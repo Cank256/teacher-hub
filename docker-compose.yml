@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: teacher-hub-postgres
+    environment:
+      POSTGRES_DB: teacher_hub
+      POSTGRES_USER: teacher_hub_user
+      POSTGRES_PASSWORD: teacher_hub_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - teacher-hub-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: teacher-hub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - teacher-hub-network
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: teacher-hub-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - teacher-hub-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    container_name: teacher-hub-backend
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://teacher_hub_user:teacher_hub_password@postgres:5432/teacher_hub
+      REDIS_URL: redis://redis:6379
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      JWT_SECRET: your-jwt-secret-key
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./packages/backend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+      - redis
+      - elasticsearch
+    networks:
+      - teacher-hub-network
+    command: npm run dev
+
+  # Web Application
+  web:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+    container_name: teacher-hub-web
+    environment:
+      VITE_API_URL: http://localhost:3001
+      VITE_WS_URL: ws://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./packages/web:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - teacher-hub-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:
+
+networks:
+  teacher-hub-network:
+    driver: bridge
