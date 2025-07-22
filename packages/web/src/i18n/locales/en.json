@@ -1,0 +1,182 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "done": "Done",
+    "yes": "Yes",
+    "no": "No",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "upload": "Upload",
+    "download": "Download",
+    "share": "Share",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "required": "Required"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "resources": "Resources",
+    "communities": "Communities",
+    "messages": "Messages",
+    "profile": "Profile",
+    "skipToMain": "Skip to main content",
+    "openMenu": "Open main menu",
+    "closeMenu": "Close main menu"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember me",
+    "loginButton": "Sign In",
+    "registerButton": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "teachingCredentials": "Teaching Credentials",
+    "verificationRequired": "Verification Required"
+  },
+  "dashboard": {
+    "welcome": "Welcome to Teacher Hub",
+    "recentResources": "Recent Resources",
+    "upcomingEvents": "Upcoming Events",
+    "communityUpdates": "Community Updates",
+    "quickActions": "Quick Actions",
+    "statistics": "Statistics"
+  },
+  "resources": {
+    "title": "Educational Resources",
+    "searchPlaceholder": "Search resources...",
+    "filterBySubject": "Filter by Subject",
+    "filterByGrade": "Filter by Grade Level",
+    "filterByType": "Filter by Type",
+    "uploadResource": "Upload Resource",
+    "myResources": "My Resources",
+    "favoriteResources": "Favorite Resources",
+    "recentlyViewed": "Recently Viewed",
+    "resourceTypes": {
+      "video": "Video",
+      "document": "Document",
+      "image": "Image",
+      "audio": "Audio",
+      "presentation": "Presentation",
+      "worksheet": "Worksheet"
+    }
+  },
+  "communities": {
+    "title": "Communities",
+    "joinCommunity": "Join Community",
+    "createCommunity": "Create Community",
+    "myCommunities": "My Communities",
+    "discoverCommunities": "Discover Communities",
+    "communityTypes": {
+      "subject": "Subject-based",
+      "region": "Regional",
+      "grade": "Grade Level",
+      "general": "General Discussion"
+    }
+  },
+  "messages": {
+    "title": "Messages",
+    "newMessage": "New Message",
+    "conversations": "Conversations",
+    "sendMessage": "Send Message",
+    "messagePlaceholder": "Type your message...",
+    "attachFile": "Attach File",
+    "online": "Online",
+    "offline": "Offline",
+    "lastSeen": "Last seen"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "personalInfo": "Personal Information",
+    "teachingInfo": "Teaching Information",
+    "preferences": "Preferences",
+    "fullName": "Full Name",
+    "subjects": "Subjects",
+    "gradeLevels": "Grade Levels",
+    "school": "School",
+    "location": "Location",
+    "experience": "Years of Experience",
+    "bio": "Biography",
+    "verificationStatus": "Verification Status",
+    "verified": "Verified",
+    "pending": "Pending",
+    "rejected": "Rejected"
+  },
+  "accessibility": {
+    "title": "Accessibility Settings",
+    "fontSize": "Font Size",
+    "fontSizes": {
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "extraLarge": "Extra Large"
+    },
+    "highContrast": "High Contrast Mode",
+    "highContrastDescription": "Increases color contrast for better visibility",
+    "reducedMotion": "Reduced Motion",
+    "reducedMotionDescription": "Minimizes animations and transitions",
+    "openSettings": "Open accessibility settings",
+    "closeSettings": "Close accessibility settings",
+    "toggleHighContrast": "Toggle high contrast mode",
+    "toggleReducedMotion": "Toggle reduced motion",
+    "fontSizeChanged": "Font size changed to {{size}}",
+    "highContrastEnabled": "High contrast mode enabled",
+    "highContrastDisabled": "High contrast mode disabled",
+    "reducedMotionEnabled": "Reduced motion enabled",
+    "reducedMotionDisabled": "Reduced motion disabled"
+  },
+  "language": {
+    "title": "Language Settings",
+    "selectLanguage": "Select Language",
+    "currentLanguage": "Current Language",
+    "changeLanguage": "Change Language",
+    "languages": {
+      "en": "English",
+      "lug": "Luganda"
+    },
+    "languageChanged": "Language changed to {{language}}"
+  },
+  "errors": {
+    "generic": "An error occurred. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "validationError": "Please check your input and try again.",
+    "fileUploadError": "Failed to upload file. Please try again.",
+    "fileTooLarge": "File is too large. Maximum size is {{maxSize}}.",
+    "invalidFileType": "Invalid file type. Supported types: {{types}}.",
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "passwordTooShort": "Password must be at least {{minLength}} characters",
+    "passwordsDoNotMatch": "Passwords do not match"
+  },
+  "success": {
+    "saved": "Changes saved successfully",
+    "uploaded": "File uploaded successfully",
+    "deleted": "Item deleted successfully",
+    "messageSent": "Message sent successfully",
+    "profileUpdated": "Profile updated successfully",
+    "settingsSaved": "Settings saved successfully"
+  },
+  "offline": {
+    "title": "You're offline",
+    "description": "Some features may not be available while offline.",
+    "syncPending": "Changes will sync when you're back online",
+    "reconnecting": "Reconnecting...",
+    "backOnline": "You're back online!"
+  }
+}

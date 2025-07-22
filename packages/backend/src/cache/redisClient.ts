@@ -122,6 +122,143 @@ class RedisClient {
     }
   }
 
+  // Additional methods for monitoring system
+  async setEx(key: string, seconds: number, value: string): Promise<string | null> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping setEx');
+      return null;
+    }
+
+    try {
+      return await this.client.setEx(key, seconds, value);
+    } catch (error) {
+      logger.error('Redis SETEX error:', error);
+      return null;
+    }
+  }
+
+  async zAdd(key: string, score: number, member: string): Promise<number>;
+  async zAdd(key: string, scoreMembers: Array<{ score: number; value: string }>): Promise<number>;
+  async zAdd(key: string, scoreOrMembers: number | Array<{ score: number; value: string }>, member?: string): Promise<number> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping zAdd');
+      return 0;
+    }
+
+    try {
+      if (typeof scoreOrMembers === 'number' && member) {
+        return await this.client.zAdd(key, { score: scoreOrMembers, value: member });
+      } else if (Array.isArray(scoreOrMembers)) {
+        return await this.client.zAdd(key, scoreOrMembers);
+      }
+      return 0;
+    } catch (error) {
+      logger.error('Redis ZADD error:', error);
+      return 0;
+    }
+  }
+
+  async zRevRange(key: string, start: number, stop: number): Promise<string[]> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping zRevRange');
+      return [];
+    }
+
+    try {
+      return await this.client.zRange(key, start, stop, { REV: true });
+    } catch (error) {
+      logger.error('Redis ZREVRANGE error:', error);
+      return [];
+    }
+  }
+
+  async zRevRangeByScore(key: string, max: number, min: number, options?: { LIMIT?: { offset: number; count: number } }): Promise<string[]> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping zRevRangeByScore');
+      return [];
+    }
+
+    try {
+      const redisOptions: any = { REV: true };
+      if (options?.LIMIT) {
+        redisOptions.LIMIT = options.LIMIT;
+      }
+      return await this.client.zRangeByScore(key, min, max, redisOptions);
+    } catch (error) {
+      logger.error('Redis ZREVRANGEBYSCORE error:', error);
+      return [];
+    }
+  }
+
+  async zRemRangeByScore(key: string, min: number, max: number): Promise<number> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping zRemRangeByScore');
+      return 0;
+    }
+
+    try {
+      return await this.client.zRemRangeByScore(key, min, max);
+    } catch (error) {
+      logger.error('Redis ZREMRANGEBYSCORE error:', error);
+      return 0;
+    }
+  }
+
+  async sAdd(key: string, members: string | string[]): Promise<number> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping sAdd');
+      return 0;
+    }
+
+    try {
+      return await this.client.sAdd(key, members);
+    } catch (error) {
+      logger.error('Redis SADD error:', error);
+      return 0;
+    }
+  }
+
+  async sCard(key: string): Promise<number> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping sCard');
+      return 0;
+    }
+
+    try {
+      return await this.client.sCard(key);
+    } catch (error) {
+      logger.error('Redis SCARD error:', error);
+      return 0;
+    }
+  }
+
+  async expire(key: string, seconds: number): Promise<boolean> {
+    if (!this.isConnected) {
+      logger.warn('Redis not connected, skipping expire');
+      return false;
+    }
+
+    try {
+      return await this.client.expire(key, seconds);
+    } catch (error) {
+      logger.error('Redis EXPIRE error:', error);
+      return false;
+    }
+  }
+
+  async ping(): Promise<string> {
+    if (!this.isConnected) {
+      throw new Error('Redis not connected');
+    }
+
+    try {
+      return await this.client.ping();
+    } catch (error) {
+      logger.error('Redis PING error:', error);
+      throw error;
+    }
+  }
+
   isHealthy(): boolean {
     return this.isConnected;
   }

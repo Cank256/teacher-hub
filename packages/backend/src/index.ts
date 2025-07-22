@@ -11,9 +11,16 @@ import contentRoutes from './routes/content';
 import governmentRoutes from './routes/government';
 import messageRoutes from './routes/messages';
 import communityRoutes from './routes/communities';
+import monitoringRoutes from './routes/monitoring';
+import adminRoutes from './routes/admin';
 import { SocketServer } from './messaging/socketServer';
 import { redisClient } from './cache/redisClient';
 import logger from './utils/logger';
+import { 
+  requestTrackingMiddleware, 
+  performanceTrackingMiddleware, 
+  errorTrackingMiddleware 
+} from './middleware/monitoring';
 
 // Load environment variables
 dotenv.config();
@@ -30,6 +37,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Add compression middleware
 import { adaptiveCompressionMiddleware } from './middleware/compression';
 app.use(adaptiveCompressionMiddleware());
+
+// Add monitoring middleware
+app.use(requestTrackingMiddleware);
+app.use(performanceTrackingMiddleware);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -65,7 +76,14 @@ app.use('/api/messages', messageRoutes);
 // Community routes
 app.use('/api/communities', communityRoutes);
 
+// Monitoring routes
+app.use('/api/monitoring', monitoringRoutes);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
+
 // Error handling middleware
+app.use(errorTrackingMiddleware);
 app.use((error: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', error);
   res.status(500).json({

@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
+import 'jest-axe/extend-expect';
 
 // Mock IntersectionObserver
 (global as any).IntersectionObserver = class IntersectionObserver {
@@ -31,3 +32,17 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 });
+
+// Mock localStorage
+const localStorageMock = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+};
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
+// Mock focus method for elements
+HTMLElement.prototype.focus = vi.fn();

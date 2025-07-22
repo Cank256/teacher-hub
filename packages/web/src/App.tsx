@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { Layout } from './components/layout/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { Resources } from './pages/Resources';
@@ -9,6 +10,7 @@ import { Profile } from './pages/Profile';
 import { PWAInstallPrompt } from './components/ui/PWAInstallPrompt';
 import { PWAStatus } from './components/ui/PWAStatus';
 import { notificationService } from './services/notificationService';
+import './i18n';
 
 function App() {
   useEffect(() => {
@@ -32,20 +34,22 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <PWAStatus />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/communities" element={<Communities />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </Layout>
-      <PWAInstallPrompt />
-    </Router>
+    <AccessibilityProvider>
+      <Router>
+        <PWAStatus />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/communities" element={<Communities />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/profile" element={<Profile />} />
+          </Routes>
+        </Layout>
+        <PWAInstallPrompt />
+      </Router>
+    </AccessibilityProvider>
   );
 }
 

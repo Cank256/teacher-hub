@@ -1,0 +1,182 @@
+{
+  "common": {
+    "loading": "Kutegeka...",
+    "save": "Kutereka",
+    "cancel": "Kusazaamu",
+    "delete": "Kusazaamu",
+    "edit": "Kukyuusa",
+    "close": "Kuggalawo",
+    "done": "Kiwedde",
+    "yes": "Ye",
+    "no": "Nedda",
+    "search": "Kunoonya",
+    "filter": "Kusengejja",
+    "sort": "Kutegeka",
+    "upload": "Kuteeka",
+    "download": "Kuggyayo",
+    "share": "Kugabana",
+    "back": "Kuddayo",
+    "next": "Okuddako",
+    "previous": "Ekyasooka",
+    "submit": "Kusindika",
+    "required": "Kyetaagisa"
+  },
+  "navigation": {
+    "dashboard": "Omutindo",
+    "resources": "Ebikozesebwa",
+    "communities": "Ebibiina",
+    "messages": "Obubaka",
+    "profile": "Ebikwata ku nze",
+    "skipToMain": "Genda ku bintu ebikulu",
+    "openMenu": "Ggulawo menyu",
+    "closeMenu": "Ggalawo menyu"
+  },
+  "auth": {
+    "login": "Kuyingira",
+    "logout": "Kufuluma",
+    "register": "Kwewandiisa",
+    "email": "Email",
+    "password": "Ekigambo eky'ekyama",
+    "confirmPassword": "Kakasa ekigambo eky'ekyama",
+    "forgotPassword": "Weerabidde ekigambo eky'ekyama?",
+    "rememberMe": "Nzijukire",
+    "loginButton": "Yingira",
+    "registerButton": "Tonda akawunti",
+    "alreadyHaveAccount": "Olina akawunti?",
+    "dontHaveAccount": "Tolina kawunti?",
+    "teachingCredentials": "Ebiwandiiko by'okusomesa",
+    "verificationRequired": "Okukakasa kwetaagisa"
+  },
+  "dashboard": {
+    "welcome": "Tukusanyuse ku Teacher Hub",
+    "recentResources": "Ebikozesebwa ebiggya",
+    "upcomingEvents": "Emikolo egijja",
+    "communityUpdates": "Amawulire g'ebibiina",
+    "quickActions": "Ebikolwa ebyanguwa",
+    "statistics": "Ebibalirirwa"
+  },
+  "resources": {
+    "title": "Ebikozesebwa mu kusomesa",
+    "searchPlaceholder": "Noonya ebikozesebwa...",
+    "filterBySubject": "Sengejja nga okusinziira ku masomo",
+    "filterByGrade": "Sengejja nga okusinziira ku mitendera",
+    "filterByType": "Sengejja nga okusinziira ku kika",
+    "uploadResource": "Teeka ekintu",
+    "myResources": "Ebikozesebwa byange",
+    "favoriteResources": "Ebikozesebwa bye njagala",
+    "recentlyViewed": "Bye nalaba mu biseera ebiggya",
+    "resourceTypes": {
+      "video": "Vidiyo",
+      "document": "Ekiwandiiko",
+      "image": "Ekifaananyi",
+      "audio": "Amaloboozi",
+      "presentation": "Okulaga",
+      "worksheet": "Ekipapula eky'okukola"
+    }
+  },
+  "communities": {
+    "title": "Ebibiina",
+    "joinCommunity": "Yingira mu kibiina",
+    "createCommunity": "Tonda ekibiina",
+    "myCommunities": "Ebibiina byange",
+    "discoverCommunities": "Zuula ebibiina",
+    "communityTypes": {
+      "subject": "Okusinziira ku masomo",
+      "region": "Okusinziira ku bitundu",
+      "grade": "Okusinziira ku mitendera",
+      "general": "Okwogera okwa bulijjo"
+    }
+  },
+  "messages": {
+    "title": "Obubaka",
+    "newMessage": "Obubaka obupya",
+    "conversations": "Emboozi",
+    "sendMessage": "Sindika obubaka",
+    "messagePlaceholder": "Wandiika obubaka bwo...",
+    "attachFile": "Gattako fayiro",
+    "online": "Ku mukutu",
+    "offline": "Si ku mukutu",
+    "lastSeen": "Yakirabiddwa"
+  },
+  "profile": {
+    "title": "Ebikwata ku nze",
+    "editProfile": "Kyuusa ebikwata ku nze",
+    "personalInfo": "Amawulire g'obuntu",
+    "teachingInfo": "Amawulire g'okusomesa",
+    "preferences": "Bye njagala",
+    "fullName": "Erinnya lyonna",
+    "subjects": "Amasomo",
+    "gradeLevels": "Emitendera",
+    "school": "Essomero",
+    "location": "Ekifo",
+    "experience": "Emyaka gy'obumanyirivu",
+    "bio": "Ebikwata ku nze",
+    "verificationStatus": "Embeera y'okukakasa",
+    "verified": "Kakasiddwa",
+    "pending": "Kulindirira",
+    "rejected": "Kugaaniddwa"
+  },
+  "accessibility": {
+    "title": "Enteekateeka z'okutuukiriza",
+    "fontSize": "Obunene bw'ennukuta",
+    "fontSizes": {
+      "small": "Ntono",
+      "medium": "Wakati",
+      "large": "Nnene",
+      "extraLarge": "Nnene nnyo"
+    },
+    "highContrast": "Enjawulo y'amabala amanene",
+    "highContrastDescription": "Yongera enjawulo y'amabala okulabika obulungi",
+    "reducedMotion": "Obuseetuka obutono",
+    "reducedMotionDescription": "Okendeeza ku buseetuka n'enkyukakyuka",
+    "openSettings": "Ggulawo enteekateeka z'okutuukiriza",
+    "closeSettings": "Ggalawo enteekateeka z'okutuukiriza",
+    "toggleHighContrast": "Kyuusa enjawulo y'amabala amanene",
+    "toggleReducedMotion": "Kyuusa obuseetuka obutono",
+    "fontSizeChanged": "Obunene bw'ennukuta bukyusiddwa okudda ku {{size}}",
+    "highContrastEnabled": "Enjawulo y'amabala amanene etandisiddwa",
+    "highContrastDisabled": "Enjawulo y'amabala amanene ezisiddwa",
+    "reducedMotionEnabled": "Obuseetuka obutono butandisiddwa",
+    "reducedMotionDisabled": "Obuseetuka obutono buzisiddwa"
+  },
+  "language": {
+    "title": "Enteekateeka z'olulimi",
+    "selectLanguage": "Londa olulimi",
+    "currentLanguage": "Olulimi olw'omu kiseera kino",
+    "changeLanguage": "Kyuusa olulimi",
+    "languages": {
+      "en": "Olungereza",
+      "lug": "Oluganda"
+    },
+    "languageChanged": "Olulimi lukyusiddwa okudda ku {{language}}"
+  },
+  "errors": {
+    "generic": "Wabaddewo ensobi. Ddamu okugezaako.",
+    "networkError": "Ensobi y'omukutu. Kebera okukwata kwo.",
+    "unauthorized": "Tolina lukusa kukola kino.",
+    "notFound": "Ekintu kyonoonya tekizuuliddwa.",
+    "validationError": "Kebera bye wayise oddemu okugezaako.",
+    "fileUploadError": "Kuteeka fayiro kugaaniddwa. Ddamu okugezaako.",
+    "fileTooLarge": "Fayiro nnene nnyo. Obunene obusinga bwe {{maxSize}}.",
+    "invalidFileType": "Kika kya fayiro tekituufu. Ebika ebikiriza: {{types}}.",
+    "required": "Kino kyetaagisa",
+    "invalidEmail": "Teeka email etuufu",
+    "passwordTooShort": "Ekigambo eky'ekyama kirina okuba n'ennukuta {{minLength}} oba ezisingawo",
+    "passwordsDoNotMatch": "Ebigambo by'ekyama tebikwatagana"
+  },
+  "success": {
+    "saved": "Enkyukakyuka ziterekeddwa obulungi",
+    "uploaded": "Fayiro etekeddwa obulungi",
+    "deleted": "Ekintu kisaziddwamu obulungi",
+    "messageSent": "Obubaka busindikiddwa obulungi",
+    "profileUpdated": "Ebikwata ku nze bikyusiddwa obulungi",
+    "settingsSaved": "Enteekateeka ziterekeddwa obulungi"
+  },
+  "offline": {
+    "title": "Toli ku mukutu",
+    "description": "Ebimu ku bintu bisobola obutabawo nga toli ku mukutu.",
+    "syncPending": "Enkyukakyuka zijja kukwatagana nga oddayo ku mukutu",
+    "reconnecting": "Kuzaayo okukwata...",
+    "backOnline": "Oddayo ku mukutu!"
+  }
+}
