@@ -8,7 +8,7 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {store, AppDispatch} from './store';
 import {AppNavigator} from './navigation/AppNavigator';
 import {DatabaseProvider} from './services/database/DatabaseProvider';
-import {checkAuthStatus} from './store/slices/authSlice';
+import {checkAuthStatus, checkBiometricAvailability} from './store/slices/authSlice';
 import {StyleSheet} from 'react-native';
 
 const AppContent: React.FC = () => {
@@ -16,6 +16,7 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     dispatch(checkAuthStatus());
+    dispatch(checkBiometricAvailability());
   }, [dispatch]);
 
   return (
