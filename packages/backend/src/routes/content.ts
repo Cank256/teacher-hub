@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { contentCategorizationService } from '../services/contentCategorizationService';
 import { authenticateToken } from '../middleware/auth';
+import { contentCache } from '../middleware/cache';
 import Joi from 'joi';
 import logger from '../utils/logger';
 
@@ -98,7 +99,7 @@ router.post('/categorize', authenticateToken, validateRequest(categorizeContentS
  * GET /api/content/categories
  * Get content categories, optionally filtered by parent or level
  */
-router.get('/categories', authenticateToken, async (req: Request, res: Response) => {
+router.get('/categories', contentCache, authenticateToken, async (req: Request, res: Response) => {
   try {
     const { parentId, level } = req.query;
     
@@ -124,7 +125,7 @@ router.get('/categories', authenticateToken, async (req: Request, res: Response)
  * GET /api/content/curriculum-standards
  * Get curriculum standards, optionally filtered by subject and grade level
  */
-router.get('/curriculum-standards', authenticateToken, async (req: Request, res: Response) => {
+router.get('/curriculum-standards', contentCache, authenticateToken, async (req: Request, res: Response) => {
   try {
     const { subject, gradeLevel } = req.query;
     
@@ -150,7 +151,7 @@ router.get('/curriculum-standards', authenticateToken, async (req: Request, res:
  * GET /api/content/tags
  * Get content tags, optionally filtered by category
  */
-router.get('/tags', authenticateToken, async (req: Request, res: Response) => {
+router.get('/tags', contentCache, authenticateToken, async (req: Request, res: Response) => {
   try {
     const { category } = req.query;
     

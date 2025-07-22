@@ -12,6 +12,8 @@ import governmentRoutes from './routes/government';
 import messageRoutes from './routes/messages';
 import communityRoutes from './routes/communities';
 import { SocketServer } from './messaging/socketServer';
+import { redisClient } from './cache/redisClient';
+import logger from './utils/logger';
 
 // Load environment variables
 dotenv.config();
@@ -24,6 +26,10 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Add compression middleware
+import { adaptiveCompressionMiddleware } from './middleware/compression';
+app.use(adaptiveCompressionMiddleware());
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -88,10 +94,37 @@ const httpServer = createServer(app);
 // Initialize WebSocket server
 const socketServer = new SocketServer(httpServer);
 
+// Initialize Redis connection
+async function initializeServices() {
+  try {
+    await redisClient.connect();
+    logger.info('Redis connection established');
+  } catch (error) {
+    logger.error('Failed to connect to Redis:', error);
+    // Continue without Redis - caching will be disabled
+  }
+}
+
 // Start server
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`WebSocket server initialized`);
+  
+  // Initialize services
+  await initializeServices();
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down gracefully');
+  await redisClient.disconnect();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down gracefully');
+  await redisClient.disconnect();
+  process.exit(0);
 });
 
 export default app;
