@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { forgotPassword, clearError } from '../../store/slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
@@ -16,12 +18,29 @@ interface ForgotPasswordFormErrors {
 
 export const ForgotPasswordPage: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState<ForgotPasswordFormData>({
     email: '',
   });
   const [errors, setErrors] = useState<ForgotPasswordFormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Clear Redux error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const validateForm = (): boolean => {
     const newErrors: ForgotPasswordFormErrors = {};
@@ -43,24 +62,18 @@ export const ForgotPasswordPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Clear any previous errors
     setErrors({});
+    dispatch(clearError());
 
     try {
-      // TODO: Implement actual password reset logic
-      console.log('Password reset request:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await dispatch(forgotPassword(formData.email)).unwrap();
       setIsSubmitted(true);
-      
     } catch (error) {
+      // Error is handled by Redux state, but we can also show local errors
       setErrors({
-        general: t('errors.generic')
+        general: error as string || t('errors.generic')
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

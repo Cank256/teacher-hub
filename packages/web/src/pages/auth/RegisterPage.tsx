@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { registerUser, clearError } from '../../store/slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
@@ -58,6 +60,10 @@ const GRADE_LEVELS = [
 
 export const RegisterPage: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState<RegisterFormData>({
     fullName: '',
     email: '',
@@ -72,7 +78,20 @@ export const RegisterPage: React.FC = () => {
     agreeToTerms: false,
   });
   const [errors, setErrors] = useState<RegisterFormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Clear Redux error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const validateForm = (): boolean => {
     const newErrors: RegisterFormErrors = {};
@@ -138,24 +157,34 @@ export const RegisterPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Clear any previous errors
     setErrors({});
+    dispatch(clearError());
 
     try {
-      // TODO: Implement actual registration logic
-      console.log('Registration attempt:', formData);
+      await dispatch(registerUser({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        subjects: formData.subjects,
+        gradeLevels: formData.gradeLevels,
+        school: formData.school,
+        location: formData.location,
+        yearsExperience: parseInt(formData.yearsExperience),
+        credentialFile: formData.credentialFile!,
+      })).unwrap();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // TODO: Handle successful registration (redirect, show success message, etc.)
-      
+      // Navigation will be handled by the useEffect hook if user is authenticated
+      // Otherwise, show success message for pending verification
+      if (!isAuthenticated) {
+        // Show success message for registration pending verification
+        navigate('/auth/login?message=registration_success');
+      }
     } catch (error) {
+      // Error is handled by Redux state, but we can also show local errors
       setErrors({
-        general: t('errors.generic')
+        general: error as string || t('errors.generic')
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loginUser, clearError } from '../../store/slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
@@ -19,13 +21,32 @@ interface LoginFormErrors {
 
 export const LoginPage: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
     rememberMe: false,
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
+
+  // Clear Redux error when component unmounts
+  useEffect(() => {
+    return () => {
+      dispatch(clearError());
+    };
+  }, [dispatch]);
 
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
@@ -51,24 +72,23 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Clear any previous errors
     setErrors({});
+    dispatch(clearError());
 
     try {
-      // TODO: Implement actual authentication logic
-      console.log('Login attempt:', formData);
+      await dispatch(loginUser({
+        email: formData.email,
+        password: formData.password,
+        rememberMe: formData.rememberMe,
+      })).unwrap();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // TODO: Handle successful login (redirect, store tokens, etc.)
-      
+      // Navigation will be handled by the useEffect hook
     } catch (error) {
+      // Error is handled by Redux state, but we can also show local errors
       setErrors({
-        general: t('errors.generic')
+        general: error as string || t('errors.generic')
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
