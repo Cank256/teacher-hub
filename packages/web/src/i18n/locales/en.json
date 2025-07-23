@@ -45,7 +45,12 @@
     "alreadyHaveAccount": "Already have an account?",
     "dontHaveAccount": "Don't have an account?",
     "teachingCredentials": "Teaching Credentials",
-    "verificationRequired": "Verification Required"
+    "verificationRequired": "Verification Required",
+    "resetPassword": "Reset Password",
+    "sendResetLink": "Send Reset Link",
+    "backToLogin": "Back to Login",
+    "checkEmail": "Check your email",
+    "resetLinkSent": "We've sent a password reset link to your email address"
   },
   "dashboard": {
     "welcome": "Welcome to Teacher Hub",

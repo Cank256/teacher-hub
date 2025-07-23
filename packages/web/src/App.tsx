@@ -7,6 +7,9 @@ import { Resources } from './pages/Resources';
 import { Communities } from './pages/Communities';
 import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { PWAInstallPrompt } from './components/ui/PWAInstallPrompt';
 import { PWAStatus } from './components/ui/PWAStatus';
 import { notificationService } from './services/notificationService';
@@ -37,16 +40,26 @@ function App() {
     <AccessibilityProvider>
       <Router>
         <PWAStatus />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/communities" element={<Communities />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          {/* Authentication routes - no layout */}
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          
+          {/* Protected routes with layout */}
+          <Route path="/*" element={
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/resources" element={<Resources />} />
+                <Route path="/communities" element={<Communities />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/profile" element={<Profile />} />
+              </Routes>
+            </Layout>
+          } />
+        </Routes>
         <PWAInstallPrompt />
       </Router>
     </AccessibilityProvider>
