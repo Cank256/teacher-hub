@@ -13,6 +13,9 @@ export interface RegisterData {
   fullName: string;
   subjects: string[];
   gradeLevels: string[];
+  schoolLocation: string;
+  yearsExperience: number;
+  credentials?: any[];
 }
 
 export interface AuthResponse {

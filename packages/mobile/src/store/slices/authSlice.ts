@@ -48,6 +48,9 @@ export const registerUser = createAsyncThunk(
     fullName: string;
     subjects: string[];
     gradeLevels: string[];
+    schoolLocation: string;
+    yearsExperience: number;
+    credentials?: any[];
   }) => {
     const response = await authService.register(userData);
     return response;
