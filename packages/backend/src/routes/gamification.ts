@@ -64,7 +64,7 @@ router.get('/rank/:userId', authMiddleware, async (req, res) => {
 router.post('/nominations', authMiddleware, async (req, res) => {
   try {
     const { nomineeId, category, reason } = req.body;
-    const nominatorId = req.user?.id;
+    const nominatorId = req.user?.userId;
 
     if (!nominatorId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -115,7 +115,7 @@ router.put('/nominations/:nominationId/review', authMiddleware, async (req, res)
   try {
     const { nominationId } = req.params;
     const { approved } = req.body;
-    const reviewerId = req.user?.id;
+    const reviewerId = req.user?.userId;
 
     if (!reviewerId) {
       return res.status(401).json({ error: 'Authentication required' });

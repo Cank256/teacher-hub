@@ -2,14 +2,24 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
-import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { Layout } from './components/layout/Layout';
+import { PublicLayout } from './components/layout/PublicLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Dashboard } from './pages/Dashboard';
 import { Resources } from './pages/Resources';
 import { Communities } from './pages/Communities';
 import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
+import { LandingPage } from './pages/LandingPage';
+import { ContactPage } from './pages/ContactPage';
+import { HelpPage } from './pages/HelpPage';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
+import { TermsOfServicePage } from './pages/TermsOfServicePage';
+import { CookiePolicyPage } from './pages/CookiePolicyPage';
+import { SystemStatusPage } from './pages/SystemStatusPage';
+import { AccessibilityPage } from './pages/AccessibilityPage';
+import { CommunityPage } from './pages/CommunityPage';
+import { BlogPage } from './pages/BlogPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -50,34 +60,117 @@ function App() {
 
   return (
     <Provider store={store}>
-      <AccessibilityProvider>
-        <Router>
-          <PWAStatus />
-          <Routes>
-            {/* Authentication routes - no layout */}
-            <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/auth/register" element={<RegisterPage />} />
-            <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-            
-            {/* Protected routes with layout */}
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/resources" element={<Resources />} />
-                    <Route path="/communities" element={<Communities />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/profile" element={<Profile />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            } />
-          </Routes>
-          <PWAInstallPrompt />
-        </Router>
-      </AccessibilityProvider>
+      <Router>
+        <PWAStatus />
+        <Routes>
+          {/* Public routes with public layout */}
+          <Route path="/" element={
+            <PublicLayout>
+              <LandingPage />
+            </PublicLayout>
+          } />
+          <Route path="/contact" element={
+            <PublicLayout>
+              <ContactPage />
+            </PublicLayout>
+          } />
+          <Route path="/help" element={
+            <PublicLayout>
+              <HelpPage />
+            </PublicLayout>
+          } />
+          <Route path="/privacy" element={
+            <PublicLayout>
+              <PrivacyPolicyPage />
+            </PublicLayout>
+          } />
+          <Route path="/terms" element={
+            <PublicLayout>
+              <TermsOfServicePage />
+            </PublicLayout>
+          } />
+          <Route path="/cookies" element={
+            <PublicLayout>
+              <CookiePolicyPage />
+            </PublicLayout>
+          } />
+          <Route path="/status" element={
+            <PublicLayout>
+              <SystemStatusPage />
+            </PublicLayout>
+          } />
+          <Route path="/accessibility" element={
+            <PublicLayout>
+              <AccessibilityPage />
+            </PublicLayout>
+          } />
+          <Route path="/community" element={
+            <PublicLayout>
+              <CommunityPage />
+            </PublicLayout>
+          } />
+          <Route path="/blog" element={
+            <PublicLayout>
+              <BlogPage />
+            </PublicLayout>
+          } />
+
+          {/* Authentication routes with public layout */}
+          <Route path="/auth/login" element={
+            <PublicLayout>
+              <LoginPage />
+            </PublicLayout>
+          } />
+          <Route path="/auth/register" element={
+            <PublicLayout>
+              <RegisterPage />
+            </PublicLayout>
+          } />
+          <Route path="/auth/forgot-password" element={
+            <PublicLayout>
+              <ForgotPasswordPage />
+            </PublicLayout>
+          } />
+          
+          {/* Protected routes with authenticated layout */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/resources" element={
+            <ProtectedRoute>
+              <Layout>
+                <Resources />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/communities" element={
+            <ProtectedRoute>
+              <Layout>
+                <Communities />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <Layout>
+                <Messages />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Layout>
+                <Profile />
+              </Layout>
+            </ProtectedRoute>
+          } />
+        </Routes>
+        <PWAInstallPrompt />
+      </Router>
     </Provider>
   );
 }

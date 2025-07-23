@@ -27,6 +27,9 @@
     "communities": "Ebibiina",
     "messages": "Obubaka",
     "profile": "Ebikwata ku nze",
+    "home": "Awaka",
+    "help": "Obuyambi",
+    "contact": "Tukirire",
     "skipToMain": "Genda ku bintu ebikulu",
     "openMenu": "Ggulawo menyu",
     "closeMenu": "Ggalawo menyu"
@@ -178,5 +181,729 @@
     "syncPending": "Enkyukakyuka zijja kukwatagana nga oddayo ku mukutu",
     "reconnecting": "Kuzaayo okukwata...",
     "backOnline": "Oddayo ku mukutu!"
+  },
+  "landing": {
+    "hero": {
+      "title": "Okugumya Abasomesa ba Uganda Okuyita mu Kwegatta",
+      "subtitle": "Kwegatta, okugabana ebikozesebwa, n'okukula mu buvunaanyizibwa wamu n'abasomesa abalala mu Uganda. Ofuna ebintu eby'obukulu okuva mu gavumenti n'okuzimba ebibiina by'ebyenjigiriza ebisingako amaanyi.",
+      "getStarted": "Tandika",
+      "signIn": "Yingira"
+    },
+    "features": {
+      "title": "Buli Kintu Abasomesa Kye Beetaaga mu Mukutu Gumu",
+      "subtitle": "Zuula ebikozesebwa eby'amaanyi ebikolebwa abasomesa ba Uganda",
+      "resourceSharing": {
+        "title": "Okugabana Ebikozesebwa",
+        "description": "Teeka, ggyayo, era ogabane ebikozesebwa by'ebyenjigiriza n'abasomesa mu Uganda yonna. Funa enteekateeka z'amasomo, ebipapula by'okukola, n'ebintu eby'amaloboozi n'ebifaananyi."
+      },
+      "collaboration": {
+        "title": "Okwegatta kw'Abasomesa",
+        "description": "Kwegatta n'abasomesa abalala, yingira mu bibiina eby'amasomo ag'enjawulo, era mukole wamu ku nteekateeka z'amasomo n'enkola z'okusomesa."
+      },
+      "governmentContent": {
+        "title": "Ebintu by'Obukulu okuva mu Gavumenti",
+        "description": "Funa ebintu ebikakasiddwa okuva mu Minisitule y'Ebyenjigiriza, UNEB, ne NCDC. Sigala ng'omanyi enkyukakyuka mu ntegeka y'amasomo n'obubaka obw'obukulu."
+      },
+      "offlineAccess": {
+        "title": "Okufuna nga Toli ku Mukutu",
+        "description": "Ggyayo ebikozesebwa okozese nga toli ku mukutu. Genda mu maaso n'okukola ne bw'omukutu gw'intaneeti gubulako oba teguli."
+      },
+      "mobileOptimized": {
+        "title": "Ebikolebwa ku Ssimu",
+        "description": "Enkola ey'okuddamu obulungi ekola bulungi ku ssimu, ku kompyuta entono, ne ku kompyuta. Funa ebintu byo wonna, buli kiseera."
+      },
+      "community": {
+        "title": "Okuzimba Ebibiina",
+        "description": "Zimba enkolagana ez'amakulu n'abasomesa, kwetaba mu kubuuza, era owe ku kibiina ky'abasomesa ekinyuvu."
+      }
+    },
+    "cta": {
+      "title": "Weetegese Okukyusa Obumanyirivu bwo bw'Okusomesa?",
+      "subtitle": "Weegatte ku nkumi z'abasomesa ba Uganda abamaze okwegatta n'okugabana ebikozesebwa ku Teacher Hub.",
+      "joinNow": "Weegatte ku Teacher Hub Leero"
+    }
+  },
+  "contact": {
+    "title": "Tukirire Teacher Hub Support",
+    "subtitle": "Tuli wano okukuyamba okufuna obulungi mu bumanyirivu bwo bw'okusomesa. Tukirire n'ebibuuzo byonna oba okweraliikirira.",
+    "info": {
+      "title": "Tukirire",
+      "supportHours": {
+        "title": "Essaawa z'Obuyambi",
+        "weekdays": "Balaza - Lwakutaano: 8:00 AM - 6:00 PM",
+        "weekends": "Lwamukaaga: 9:00 AM - 2:00 PM"
+      },
+      "email": {
+        "title": "Obuyambi bwa Email",
+        "general": "Obuyambi Obwa Bulijjo",
+        "technical": "Obuyambi bw'Ebyobukugu"
+      },
+      "phone": {
+        "title": "Obuyambi bwa Ssimu",
+        "primary": "Enkulu",
+        "whatsapp": "WhatsApp"
+      },
+      "office": {
+        "title": "Ekifo ky'Ofiisi"
+      }
+    },
+    "form": {
+      "title": "Tutumire Obubaka",
+      "name": "Erinnya Lyonna",
+      "namePlaceholder": "Wandiika erinnya lyo lyonna",
+      "email": "Endagiriro ya Email",
+      "emailPlaceholder": "Wandiika endagiriro ya email yo",
+      "category": "Ekika",
+      "categories": {
+        "general": "Okubuuza Okwa Bulijjo",
+        "technical": "Obuyambi bw'Ebyobukugu",
+        "account": "Ebizibu by'Akawunti",
+        "content": "Ebizibu by'Ebintu",
+        "feedback": "Ebirowoozo n'Okuteesa"
+      },
+      "subject": "Omulamwa",
+      "subjectPlaceholder": "Ennyonnyola entono y'okubuuza kwo",
+      "message": "Obubaka",
+      "messagePlaceholder": "Tuwa ebikwata ku kubuuza kwo oba ekizibu...",
+      "send": "Sindika Obubaka",
+      "sending": "Kusindika..."
+    },
+    "success": {
+      "title": "Obubaka Busindikiddwa Obulungi!",
+      "message": "Webale okutukirira. Tujja kukuddamu mu ssaawa 24 mu nnaku z'emirimu.",
+      "sendAnother": "Sindika Obubaka Obulala"
+    }
+  },
+  "help": {
+    "title": "Ekitongole ky'Obuyambi n'Okuwagira",
+    "subtitle": "Zuula okuddamu ku bibuuzo ebya bulijjo era oyige engeri y'okufuna obulungi mu Teacher Hub",
+    "searchPlaceholder": "Noonya ebirowoozo by'obuyambi...",
+    "categories": {
+      "title": "Ebika by'Obuyambi",
+      "gettingStarted": "Okutandika",
+      "account": "Okuddukanya Akawunti",
+      "resources": "Ebikozesebwa n'Ebintu",
+      "communities": "Ebibiina",
+      "technical": "Obuyambi bw'Ebyobukugu",
+      "mobile": "Ssimu n'Okukola nga Toli ku Mukutu"
+    },
+    "faqCount": "Ebibuuzo {{count}} ebibuuzibwa ennyo",
+    "noSearchResults": "Tewali bivaamu ku kunoonya kwo. Gezaako ebigambo ebirala oba tambula mu bika.",
+    "noFAQs": "Tewali bibuuzo bya bulijjo mu kika kino.",
+    "faqs": {
+      "whatIsTeacherHub": {
+        "question": "Teacher Hub kye ki?",
+        "answer": "Teacher Hub mukutu ogujjuvu ogwakozesebwa abasomesa ba Uganda okwegatta, okugabana ebikozesebwa by'ebyenjigiriza, n'okufuna ebintu eby'obukulu okuva mu gavumenti. Guwa ebikozesebwa by'okukula mu buvunaanyizibwa, okuzimba ebibiina, n'okuddukanya ebikozesebwa."
+      },
+      "howToRegister": {
+        "question": "Nnyinza ntya okwewandiisa nga musomesa?",
+        "answer": "Okwewandiisa, nyiga 'Tandika' oba 'Kwewandiisa' era owe ebiwandiiko byo eby'okusomesa, omutwalidde ekitabo ky'okusomesa oba ebbaluwa y'emirimu. Tukakasa ebiwandiiko byonna eby'abasomesa okukakasa obwesigwa bw'omukutu."
+      },
+      "credentialVerification": {
+        "question": "Okukakasa ebiwandiiko kutwala bbanga ki?",
+        "answer": "Okukakasa ebiwandiiko kutera okutwala ennaku 2-3 ez'emirimu. Ojja kufuna obubaka bwa email nga ebiwandiiko byo bikakasiddwa era akawunti ko kafuuse ddala."
+      },
+      "forgotPassword": {
+        "question": "Neerabidde ekigambo kyange eky'ekyama. Nkikyusa ntya?",
+        "answer": "Nyiga 'Neerabidde Ekigambo eky'Ekyama' ku lupapula lw'okuyingira, wandiika endagiriro ya email yo, era tujja kukutumira omukutu gw'okukyusa ekigambo eky'ekyama. Goberera ebiragiro mu email okukola ekigambo eky'ekyama ekipya."
+      },
+      "updateProfile": {
+        "question": "Nkyusa ntya amawulire g'ebikwata ku nze?",
+        "answer": "Genda ku lupapula lw'Ebikwata ku Nze era nyiga 'Kyuusa Ebikwata ku Nze'. Osobola okukyusa amawulire go ag'obuntu, amasomo g'osomesa, emitendera, n'amawulire g'essomero. Jjukira okutereka enkyukakyuka zo."
+      },
+      "privacySettings": {
+        "question": "Nkola ntya enteekateeka z'obwama?",
+        "answer": "Mu nteekateeka z'Ebikwata ku Nze, osobola okufuga ani ayinza okulaba amawulire g'ebikwata ku ggwe, okukukirira, n'okulaba ebikozesebwa byo by'ogabanye. Era osobola okuddukanya okusiima kw'obubaka."
+      },
+      "uploadResources": {
+        "question": "Nteeka era ngabana ntya ebikozesebwa?",
+        "answer": "Genda ku kitundu ky'Ebikozesebwa era nyiga 'Teeka Ekintu'. Londa fayiro yo, gatteko omutwe n'ennyonnyola, londa obubonero n'ebika ebirungi, olwo oteeke. Abasomesa abalala basobola okuva baazuula era baggyeyo ebikozesebwa byo."
+      },
+      "downloadOffline": {
+        "question": "Nsobola okuggyayo ebikozesebwa okozese nga toli ku mukutu?",
+        "answer": "Ye! Nyiga akabutto k'okuggyayo ku kintu kyonna okukitereka ku kyuma kyo. Ebikozesebwa ebiggyiddwa birabikira mu kitundu kyo eky'Ebikozesebwa Ebiggyiddwa era bisobola okukozesebwa awatali mukutu gw'intaneeti."
+      },
+      "governmentContent": {
+        "question": "Nfuna ntya ebintu by'obukulu okuva mu gavumenti?",
+        "answer": "Ebintu by'obukulu okuva mu Minisitule y'Ebyenjigiriza, UNEB, ne NCDC birabikira mu kitundu ky'Ebikozesebwa n'obubonero obw'okukakasa obw'obukulu. Osobola okusengejja ebintu by'obukulu bya gavumenti ng'okozesa ensengejja z'ebintu."
+      },
+      "joinCommunities": {
+        "question": "Nnyingira ntya mu bibiina by'abasomesa?",
+        "answer": "Tambula mu bibiina mu kitundu ky'Ebibiina. Osobola okwegatta ku bibiina eby'amasomo ag'enjawulo, eby'ebitundu, oba eby'emitendera. Nyiga 'Yingira mu Kibiina' okwetaba mu kubuuza n'okukola wamu n'abasomesa abalala."
+      },
+      "createCommunity": {
+        "question": "Nsobola okutondawo ekibiina kyange?",
+        "answer": "Ye! Nyiga 'Tonda Ekibiina' mu kitundu ky'Ebibiina. Londa ekika ky'ekibiina, gatteko ennyonnyola n'amateeka, olwo oyite abasomesa abalala okwegatta ku kibiina kyo."
+      },
+      "offlineAccess": {
+        "question": "Okufuna nga toli ku mukutu kukola kutya?",
+        "answer": "Ggyayo ebikozesebwa era okkirize enkola y'okukola nga toli ku mukutu mu nteekateeka zo. Puloguramu ejja kukwataganya enkyukakyuka zo ng'oddayo ku mukutu. Osobola okufuna ebintu ebiggyiddwa, okuwandiika obubaka, n'okugenda mu maaso n'okukola awatali intaneeti."
+      },
+      "syncIssues": {
+        "question": "Nnina ebizibu by'okukwataganya. Nkola ki?",
+        "answer": "Kebera omukutu gwo gw'intaneeti era gezaako okuddamu okutandika puloguramu. Bw'ebizibu bwe bigenda mu maaso, genda ku Nteekateeka > Okukwataganya era okole okukwataganya n'engalo. Kirira obuyambi singa ebizibu bigenda mu maaso."
+      },
+      "mobileApp": {
+        "question": "Waliwo puloguramu ya ssimu?",
+        "answer": "Teacher Hub ekola nga Progressive Web App (PWA) ku byuma by'essimu. Osobola okugiteeka ku ssimu yo ng'okyalira omukutu era olonda 'Gattako ku Lupapula lw'Awaka' ng'obuuziddwa."
+      },
+      "installPWA": {
+        "question": "Nteeka ntya Teacher Hub ku ssimu yange?",
+        "answer": "Kyalira teacherhub.ug ku mukutu gw'essimu yo. Ojja kulaba okubuuzibwa 'Teeka Puloguramu'. Nyiga 'Teeka' okugattako Teacher Hub ku lupapula lwo lw'awaka okufuna obwangu."
+      }
+    },
+    "quickLinks": {
+      "title": "Enkolagana ez'Obwangu",
+      "contact": "Kirira Obuyambi",
+      "contactDesc": "Funa obuyambi okuva ku ttiimu yaffe ey'obuyambi",
+      "register": "Tonda Akawunti",
+      "registerDesc": "Weegatte ku kibiina kya Teacher Hub"
+    }
+  },
+  "privacy": {
+    "title": "Enkola y'Obwama",
+    "lastUpdated": "Yakyusiddwa",
+    "introduction": {
+      "title": "Okutandika",
+      "content": "Teacher Hub yeewaddeyo okukuuma obwama bwo n'okukakasa obukuumi bw'amawulire go ag'obuntu. Enkola eno y'Obwama ennyonnyola engeri gye tukuŋŋaanyiza, gye tukozesa, gye tugabana, era gye tukuuma amawulire go ng'okozesa omukutu gwaffe."
+    },
+    "informationCollected": {
+      "title": "Amawulire Ge Tukuŋŋaanyiza",
+      "personalInfo": {
+        "title": "Amawulire g'Obuntu",
+        "name": "Erinnya lyonna n'amawulire g'okukirira",
+        "email": "Endagiriro ya email n'ennamba ya ssimu",
+        "phone": "Amawulire g'okukirira ag'omulimu",
+        "school": "Essomero ly'okukola n'ekifo",
+        "subjects": "Amasomo g'osomesa n'emitendera",
+        "credentials": "Ebiwandiiko by'okusomesa n'ebitabo"
+      },
+      "usageData": {
+        "title": "Amawulire g'Okukozesa",
+        "activity": "Ebikolwa ku mukutu n'enkolagana",
+        "device": "Amawulire g'ekyuma n'ekika kya mukutu",
+        "location": "Amawulire g'ekifo okwa bulijjo",
+        "preferences": "Ebyokwagala n'enteekateeka"
+      },
+      "content": {
+        "title": "Amawulire g'Ebintu",
+        "resources": "Ebikozesebwa by'ebyenjigiriza by'oteeka",
+        "messages": "Obubaka n'enkolagana",
+        "comments": "Ebirowoozo n'okubuuza",
+        "ratings": "Obupima n'okukebereza"
+      }
+    },
+    "howWeUse": {
+      "title": "Engeri Gye Tukozesamu Amawulire Go",
+      "provideServices": "Okuwa n'okuddukanya obuweereza bwaffe",
+      "verifyCredentials": "Okukakasa ebiwandiiko by'okusomesa",
+      "personalizeContent": "Okufuula ebintu n'okuteesa okw'obuntu",
+      "facilitateCommunication": "Okwanguyiza enkolagana wakati w'abasomesa",
+      "improveServices": "Okulongoosa n'okukuza obuweereza bwaffe",
+      "sendNotifications": "Okusindika obubaka obw'amakulu n'obubaka",
+      "ensureSecurity": "Okukakasa obukuumi bw'omukutu n'okuziyiza okukozesebwa obubi",
+      "complyLegal": "Okugoberera amateeka"
+    },
+    "informationSharing": {
+      "title": "Okugabana Amawulire",
+      "withUsers": {
+        "title": "N'Abakozesa Abalala",
+        "content": "Amawulire g'ebikwata ku ggwe n'ebikozesebwa by'ogabanye birabikira eri abasomesa abalala abakakasiddwa ku mukutu. Osobola okufuga enteekateeka z'okulabika mu byokwagala byo eby'obwama."
+      },
+      "withGovernment": {
+        "title": "N'Ebitongole bya Gavumenti",
+        "content": "Tuyinza okugabana ebibalirirwa eby'okukozesa ebitali bya muntu ku tteka n'ebitongole by'ebyenjigiriza bya gavumenti okuyamba okulongoosa obuweereza bw'ebyenjigiriza mu Uganda."
+      },
+      "withServiceProviders": {
+        "title": "N'Abawa Obuweereza",
+        "content": "Tukola n'abawa obuweereza abeesigwa abatuyamba okuddukanya omukutu. Abawa obuweereza bano basibiddwa endagaano z'obwama ezikakali."
+      },
+      "legalRequirements": {
+        "title": "Ebyetaagisa mu Mateeka",
+        "content": "Tuyinza okubikkula amawulire nga gaagaliddwa amateeka oba okukuuma eddembe, ebintu, oba obukuumi bwa Teacher Hub, abakozesa baffe, oba abalala."
+      }
+    },
+    "dataSecurity": {
+      "title": "Obukuumi bw'Amawulire",
+      "content": "Tukola enkola z'obukuumi ezijjuvu okukuuma amawulire go:",
+      "encryption": "Okusiba okw'amaanyi okw'amawulire ag'obwama",
+      "accessControls": "Okufuga okuyingira okw'amaanyi n'okukakasa",
+      "regularAudits": "Okukebereza obukuumi bwa buli kiseera n'okupima",
+      "secureStorage": "Enkola z'okutereka amawulire ez'obukuumi n'okutereka",
+      "staffTraining": "Okutendeka abakozi ku nkola z'okukuuma amawulire"
+    },
+    "yourRights": {
+      "title": "Eddembe Lyo",
+      "access": "Okufuna amawulire go ag'obuntu",
+      "correction": "Okutegeeza amawulire agatali matuufu",
+      "deletion": "Okusaba okusazaamu amawulire go",
+      "portability": "Okuggyayo amawulire go",
+      "restriction": "Okuziyiza okukola ku mawulire go",
+      "objection": "Okwegaana enkozesa ezimu ez'amawulire go",
+      "withdraw": "Okuggya olukusa buli kiseera",
+      "exerciseRights": "Okukozesa eddembe lino, tukirire ku privacy@teacherhub.ug"
+    },
+    "dataRetention": {
+      "title": "Okutereka Amawulire",
+      "content": "Tukuuma amawulire go okumala ekiseera ekyetaagisa okuwa obuweereza bwaffe:",
+      "accountData": "Amawulire g'akawunti: Okutuusa akawunti lw'esazaamu",
+      "contentData": "Amawulire g'ebintu: Okumala nga bigabanye mu lujudde",
+      "usageData": "Amawulire g'okukozesa: Okutuusa ku myaka 2 okw'ebibalirirwa",
+      "legalRequirements": "Ebyetaagisa mu mateeka biyinza okwongera ekiseera ky'okutereka"
+    },
+    "internationalTransfers": {
+      "title": "Okutambuza Amawulire Ebweru w'Eggwanga",
+      "content": "Amawulire go gaterekebwa mu Uganda okusinga. Bwe tutambuza amawulire ebweru w'eggwanga, tukakasa nti waliwo obukuumi obumala okukuuma amawulire go."
+    },
+    "childrensPrivacy": {
+      "title": "Obwama bw'Abaana",
+      "content": "Teacher Hub yakolebwa abasomesa ab'obuvunaanyizibwa. Tetukuŋŋaanyiza mawulire g'obuntu okuva ku baana abali wansi w'emyaka 18 awatali lukusa lwa bazadde."
+    },
+    "changes": {
+      "title": "Enkyukakyuka ku Nkola Eno",
+      "content": "Tuyinza okukyusa Enkola eno y'Obwama buli kiseera. Tujja kukumanyisa enkyukakyuka enkulu nga tuyita mu email oba obubaka bw'omukutu."
+    },
+    "contact": {
+      "title": "Tukirire",
+      "content": "Bw'oba olina ebibuuzo ku Nkola eno y'Obwama oba enkola zaffe ez'amawulire, tukirire:"
+    }
+  },
+  "terms": {
+    "title": "Amateeka g'Obuweereza",
+    "lastUpdated": "Gakyusiddwa",
+    "introduction": {
+      "title": "Okutandika",
+      "content": "Tukusanyuse ku Teacher Hub. Amateeka gano g'Obuweereza gafuga okukozesa kwo omukutu gwaffe n'obuweereza. Ng'ofuna oba okozesa Teacher Hub, okkiriza okusibwa amateeka gano."
+    },
+    "acceptance": {
+      "title": "Okukkiriza Amateeka",
+      "content": "Ng'otonda akawunti oba okozesa obuweereza bwaffe, okkiriza nti osomye, otegedde, era okkiriza okusibwa Amateeka gano g'Obuweereza n'Enkola yaffe y'Obwama."
+    },
+    "eligibility": {
+      "title": "Obusaasi",
+      "content": "Okukozesa Teacher Hub, olina okutuukiriza ebyetaagisa bino:",
+      "age": "Okuba n'emyaka 18 oba egisingawo",
+      "teacher": "Okuba musomesa oba omukozi w'ebyenjigiriza omutendeke",
+      "credentials": "Okuwa ebiwandiiko by'okusomesa ebirungi okukakasibwa",
+      "compliance": "Okugoberera amateeka gonna agakwata"
+    },
+    "registration": {
+      "title": "Okwewandiisa Akawunti",
+      "content": "Ng'otonda akawunti, okkiriza:",
+      "accurate": "Okuwa amawulire amatuufu era agajjuvu",
+      "secure": "Okukuuma ebikwata ku kuyingira byo obulungi",
+      "responsible": "Okuvunaanyizibwa ku bikolwa byonna wansi w'akawunti ko",
+      "notify": "Okutumanyisa amangu nga waliwo okuyingira okutakkiriziddwa"
+    },
+    "platformUse": {
+      "title": "Okukozesa Omukutu",
+      "permitted": {
+        "title": "Okukozesa Okukiriziddwa",
+        "educational": "Ebigendererwa by'ebyenjigiriza n'okukula mu buvunaanyizibwa",
+        "collaboration": "Okwegatta n'abasomesa abalala",
+        "sharing": "Okugabana ebikozesebwa by'ebyenjigiriza ebirungi",
+        "communication": "Enkolagana y'obuvunaanyizibwa n'okwegatta"
+      },
+      "prohibited": {
+        "title": "Okukozesa Okutakkiriziddwa",
+        "illegal": "Ebikolwa byonna ebitakkiriziddwa oba ebitali mu mateeka",
+        "harmful": "Ebintu ebibi, ebitasanyusa, oba ebitasaanira",
+        "spam": "Spam, okutabangula, oba enkolagana ezitasabiddwa",
+        "impersonation": "Okwefuula abalala oba okuwa amawulire ag'obulimba",
+        "copyright": "Okumenya eddembe ly'obuyinza bw'amagezi",
+        "malware": "Okusaasaanya puloguramu embi oba esinga obukozi",
+        "interference": "Okutabangula obukuumi bw'omukutu oba obukozi"
+      }
+    },
+    "content": {
+      "title": "Ebintu n'Obuyinza bw'Amagezi",
+      "userContent": {
+        "title": "Ebintu Abakozesa Bye Bakola",
+        "ownership": "Osigala ng'oli nannyini bintu by'otonda era by'oteeka ku Teacher Hub.",
+        "license": "Ng'oteeka ebintu, owa Teacher Hub olukusa okubilaga, okubisaasaanya, n'okubikozesa okuwa obuweereza bwaffe."
+      },
+      "platformContent": {
+        "title": "Ebintu by'Omukutu",
+        "ownership": "Teacher Hub ye nannyini bintu byonna eby'omukutu, omutwalidde puloguramu, enkola, n'ebiwandiiko."
+      },
+      "governmentContent": {
+        "title": "Ebintu bya Gavumenti",
+        "ownership": "Ebintu bya gavumenti bisigala nga bya bitongole bya gavumenti ya Uganda."
+      }
+    },
+    "moderation": {
+      "title": "Okuddukanya Ebintu",
+      "content": "Tukuuma eddembe:",
+      "review": "Okukebereza ebintu byonna abakozesa bye bakola",
+      "remove": "Okuggyawo ebintu ebimenye ebiragiro byaffe",
+      "suspend": "Okusimba oba okusazaamu akawunti olw'okumenya",
+      "report": "Okuloopa ebikolwa ebitali mu mateeka eri abakulu"
+    },
+    "privacy": {
+      "title": "Obwama n'Okukuuma Amawulire",
+      "content": "Obwama bwo bwa muwendo gwaffe. Soma Enkola yaffe y'Obwama okutegeera engeri gye tukuŋŋaanyiza, gye tukozesa, era gye tukuuma amawulire go."
+    },
+    "disclaimers": {
+      "title": "Okwegaana Obuvunaanyizibwa",
+      "content": "Teacher Hub eweebwa 'nga bw'eri' awatali bukuumi bwonna. Twegaana:",
+      "availability": "Okubeerawo okw'obuweereza okutasalako",
+      "accuracy": "Obutuufu bw'ebintu byonna n'amawulire",
+      "thirdParty": "Obuvunaanyizibwa ku bintu by'abalala",
+      "educational": "Ebivaamu by'ebyenjigiriza oba ebibala"
+    },
+    "liability": {
+      "title": "Okuziyiza Obuvunaanyizibwa",
+      "content": "Okumala nga amateeka bwe gakkiriza, Teacher Hub tajja kuvunaanyizibwa ku bukozi obw'omu ngeri etali butereevu, obw'okwongera, obw'enjawulo, oba obw'okuvaamu okuva ku kukozesa kwo obuweereza bwaffe."
+    },
+    "indemnification": {
+      "title": "Okusasula",
+      "content": "Okkiriza okusasula era okukuuma Teacher Hub okuva ku misango gyonna, obukozi, oba ensaasaanya ezivaamu ku kukozesa kwo obuweereza bwaffe oba okumenya amateeka gano."
+    },
+    "termination": {
+      "title": "Okukomekkereza",
+      "content": "Tuyinza okukomekkereza oba okusimba akawunti ko olw':",
+      "violation": "Okumenya Amateeka gano g'Obuweereza",
+      "request": "Okusaba kwo okusazaamu akawunti ko",
+      "inactive": "Ebbanga eddene ng'tokozesa",
+      "legal": "Ebyetaagisa mu mateeka oba ebiragiro"
+    },
+    "governingLaw": {
+      "title": "Amateeka Agafuga",
+      "content": "Amateeka gano g'Obuweereza gafugibwa amateeka ga Uganda. Enkaayana yonna ejja kugonjoolwa mu mbuga z'amateeka za Uganda."
+    },
+    "changes": {
+      "title": "Enkyukakyuka ku Mateeka",
+      "content": "Tuyinza okukyusa Amateeka gano g'Obuweereza buli kiseera. Tujja kukumanyisa enkyukakyuka enkulu era okugenda mu maaso n'okukozesa kitegeeza okukkiriza amateeka amakyusiddwa."
+    },
+    "contact": {
+      "title": "Amawulire g'Okukirira",
+      "content": "Bw'oba olina ebibuuzo ku Mateeka gano g'Obuweereza, tukirire:"
+    }
+  },
+  "footer": {
+    "description": "Okugumya abasomesa ba Uganda okuyita mu kwegatta, okugabana ebikozesebwa, n'okukula mu buvunaanyizibwa. Kwegatta n'abasomesa mu ggwanga lyonna era ofune ebintu eby'obukulu okuva mu gavumenti.",
+    "platform": {
+      "title": "Omukutu",
+      "about": "Ebikwata ku ffe",
+      "features": "Ebintu",
+      "blog": "Blog"
+    },
+    "support": {
+      "title": "Obuyambi",
+      "help": "Ekitongole ky'Obuyambi",
+      "contact": "Tukirire",
+      "community": "Ekibiina",
+      "status": "Embeera y'Enkola"
+    },
+    "legal": {
+      "title": "Amateeka",
+      "privacy": "Enkola y'Obwama",
+      "terms": "Amateeka g'Obuweereza",
+      "cookies": "Enkola ya Cookies",
+      "accessibility": "Okutuukiriza"
+    },
+    "connect": {
+      "title": "Tugoberere"
+    },
+    "copyright": "Eddembe lyonna likuumiddwa.",
+    "partnerships": "Mu kwegatta ne:"
+  },
+  "cookies": {
+    "title": "Enkola ya Cookies",
+    "lastUpdated": "Yakyusiddwa",
+    "introduction": {
+      "title": "Okutandika",
+      "content": "Enkola eno ya Cookies ennyonnyola engeri Teacher Hub gye kukozesa cookies n'ebyobukugu ebirala okukukutegeera ng'okyalira omukutu gwaffe. Ennyonnyola ebyobukugu bino bye biri n'ensonga lwaki tubikozesa, awamu n'eddembe lyo ery'okufuga okukozesa kwaffe."
+    },
+    "whatAreCookies": {
+      "title": "Cookies Kye Ki?",
+      "content": "Cookies bifaayiro entono ez'amawulire eziteekebwa ku kompyuta yo oba ku kyuma kyo eky'essimu ng'okyalira omukutu. Cookies zikozesebwa ennyo ab'omukutu okukola emikutu gyabwe okukole, oba okukola obulungi, awamu n'okuwa amawulire ag'okuloopa."
+    },
+    "typesOfCookies": {
+      "title": "Ebika bya Cookies Bye Tukozesa",
+      "essential": {
+        "title": "Cookies Ezeetaagisa",
+        "description": "Cookies zino zetaagisa nnyo okukuwa obuweereza obuli ku mukutu gwaffe n'okukozesa ebimu ku bintu byagwo.",
+        "authentication": "Okukakasa abakozesa n'okuddukanya ennkuŋŋaana",
+        "security": "Obukuumi n'okuziyiza obukuusa",
+        "preferences": "Obukozi obw'ibbulijjo n'ebyokwagala by'omukozesa"
+      },
+      "functional": {
+        "title": "Cookies ez'Obukozi",
+        "description": "Cookies zino zisobozesa omukutu okuwa obukozi obw'okusingawo n'okufuula bintu okw'obuntu.",
+        "language": "Ebyokwagala by'olulimi n'okukyusa ennimi",
+        "accessibility": "Enteekateeka z'okutuukiriza n'ebyokwagala",
+        "layout": "Okukyusa enkola y'omukozesa"
+      },
+      "analytics": {
+        "title": "Cookies ez'Okukebereza",
+        "description": "Cookies zino zituyamba okutegeera engeri abakyalira gye bakolagana n'omukutu gwaffe nga tukuŋŋaanya era nga tuloopa amawulire mu butamanyike.",
+        "usage": "Enkola z'okukozesa n'ebintu ebimanyiddwa",
+        "performance": "Obukozi bw'omukutu n'okugoberera ensobi",
+        "errors": "Okuloopa ensobi n'okuziggya"
+      }
+    },
+    "managingCookies": {
+      "title": "Okuddukanya Cookies",
+      "content": "Olina eddembe okusalawo oba okkiriza oba okugaana cookies. Osobola okukozesa eddembe lyo erya cookies ng'oteeka ebyokwagala byo mu nteekateeka za browser yo.",
+      "browserSettings": {
+        "title": "Enteekateeka za Browser",
+        "chrome": "Chrome: Settings > Privacy and security > Cookies and other site data",
+        "firefox": "Firefox: Options > Privacy & Security > Cookies and Site Data",
+        "safari": "Safari: Preferences > Privacy > Manage Website Data",
+        "edge": "Edge: Settings > Cookies and site permissions"
+      },
+      "platformSettings": {
+        "title": "Enteekateeka z'Omukutu",
+        "content": "Era osobola okuddukanya ebyokwagala ebimu ebya cookies okuyita mu nteekateeka z'akawunti ko ku Teacher Hub."
+      }
+    },
+    "thirdParty": {
+      "title": "Cookies za Bannakyewa",
+      "content": "Okugatta ku cookies zaffe, tuyinza era okukozesa cookies ez'enjawulo eza bannakyewa okuloopa ebibalirirwa by'okukozesa n'okuwaayo ebyokulaajana.",
+      "analytics": "Google Analytics okw'ebibalirirwa by'okukozesa",
+      "social": "Cookies z'okwegatta ku mikutu gy'empuliziganya",
+      "cdn": "Cookies za content delivery network"
+    },
+    "updates": {
+      "title": "Okukyusa Enkola Eno",
+      "content": "Tuyinza okukyusa Enkola eno ya Cookies buli kiseera okwoleka enkyukakyuka mu nkola zaffe oba olw'ensonga endala ez'obukozi, ez'amateeka oba ez'ebiragiro."
+    },
+    "contact": {
+      "title": "Tukirire",
+      "content": "Bw'oba olina ebibuuzo byonna ku kukozesa kwaffe cookies oba ebyobukugu ebirala, tukirire:"
+    }
+  },
+  "status": {
+    "title": "Embeera y'Enkola",
+    "subtitle": "Embeera y'obuweereza bwa Teacher Hub mu kiseera kino",
+    "overall": {
+      "operational": "Enkola Zonna Zikola Obulungi",
+      "degraded": "Obukozi Bukendeese",
+      "outage": "Obuweereza Buziyise"
+    },
+    "lastUpdated": "Yakyusiddwa",
+    "services": {
+      "title": "Embeera y'Obuweereza",
+      "operational": "Bukola Obulungi",
+      "degraded": "Bukendeese",
+      "outage": "Buziyise",
+      "uptime": "Ekiseera ky'okukola",
+      "lastChecked": "Yakeberebwa"
+    },
+    "incidents": {
+      "title": "Ebyabaddewo mu Biseera Ebiggya",
+      "noIncidents": "Tewali byabaddewo mu biseera ebiggya okuloopa. Enkola zonna zikola obulungi.",
+      "created": "Byatondebwa",
+      "updated": "Byakyusiddwa"
+    },
+    "subscribe": {
+      "title": "Sigala ng'Omanyi",
+      "description": "Manyisibwa ku nkyukakyuka z'obuweereza n'enteekateeka z'okuddaabiriza.",
+      "button": "Kirira Obuyambi okw'Amawulire"
+    }
+  },
+  "accessibilityPage": {
+    "title": "Okuragira Okutuukiriza",
+    "subtitle": "Obwewadde bwaffe okufuula Teacher Hub etuukire abasomesa bonna",
+    "commitment": {
+      "title": "Obwewadde Bwaffe",
+      "content": "Teacher Hub yeewaddeyo okukakasa okutuukiriza kw'ebyobukugu eri abantu abalina obulemu. Tuli bulijjo nga tulongoosa obumanyirivu bw'omukozesa eri buli muntu era nga tukozesa empimpi z'okutuukiriza ezikwata okukakasa nti tuwa omukisa gw'enkana eri abakozesa bonna."
+    },
+    "features": {
+      "title": "Ebintu by'Okutuukiriza",
+      "keyboard": {
+        "title": "Okutambula n'Ebibonero",
+        "navigation": "Obuwagizi obujjuvu obw'okutambula n'ebibonero",
+        "shortcuts": "Amakubo ag'amangu ag'ebibonero ag'ebikolwa ebya bulijjo",
+        "focus": "Ebiraga obwesigwa ebitegeerekeka",
+        "skipLinks": "Enkolagana z'okubuuka okutambula"
+      },
+      "visual": {
+        "title": "Okutuukiriza Okulabika",
+        "contrast": "Ekiruubirirwa ky'enjawulo y'amabala amanene",
+        "fontSize": "Obunene bw'ennukuta obukyusika",
+        "colorBlind": "Enkola etegeerekeka eri abo abatalaba mabala bulungi",
+        "reducedMotion": "Ebyokwagala by'obuseetuka obutono"
+      },
+      "screenReader": {
+        "title": "Obuwagizi bw'Abakisoma Olutimbe",
+        "labels": "Ebiraga ARIA ebirungi n'ennyonnyola",
+        "headings": "Enkola y'emitwe ey'amakulu",
+        "landmarks": "Ebifo by'omukutu n'ebitundu",
+        "announcements": "Okulangirira mu bitundu ebibeera"
+      },
+      "language": {
+        "title": "Obuwagizi bw'Ennimi",
+        "multilingual": "Obuwagizi bw'ennimi nnyingi",
+        "localLanguage": "Obuwagizi bw'olulimi lw'omu kitundu (Oluganda)",
+        "culturalContext": "Ebintu ebirungi mu buwangwa"
+      }
+    },
+    "standards": {
+      "title": "Okugoberera Empimpi",
+      "content": "Teacher Hub egezaako okugoberera Web Content Accessibility Guidelines (WCAG) 2.1 Level AA n'empimpi endala ez'okutuukiriza:",
+      "wcag": "Okugoberera WCAG 2.1 Level AA",
+      "section508": "Empimpi za Section 508",
+      "aria": "Okukozesa WAI-ARIA",
+      "html": "Enkola ya HTML ey'amakulu"
+    },
+    "howToUse": {
+      "title": "Engeri y'Okukozesa Ebintu by'Okutuukiriza",
+      "accessibilityPanel": {
+        "title": "Ekipapula ky'Okutuukiriza",
+        "content": "Funa ekipapula ky'okutuukiriza ng'onyiga akabonero k'okutuukiriza mu mutwe oba ng'okozesa omukutu gw'ebibonero Alt+A."
+      },
+      "keyboardShortcuts": {
+        "title": "Amakubo ag'Amangu ag'Ebibonero",
+        "tab": "Tambula wakati w'ebintu ebikolagana",
+        "shiftTab": "Tambula emabega",
+        "enter": "Tandika obubutto n'enkolagana",
+        "space": "Londa obubutto n'ebifo by'okukuba",
+        "escape": "Ggalawo ebyokubuuza n'emenyu"
+      },
+      "screenReaders": {
+        "title": "Okukwatagana n'Abakisoma Olutimbe",
+        "content": "Teacher Hub ekwatagana n'abakisoma olutimbe abamanyiddwa:",
+        "nvda": "NVDA (Windows)",
+        "jaws": "JAWS (Windows)",
+        "voiceOver": "VoiceOver (macOS/iOS)",
+        "talkback": "TalkBack (Android)"
+      }
+    },
+    "knownIssues": {
+      "title": "Ebizibu Ebimanyiddwa",
+      "content": "Tuli bulijjo nga tulongoosa okutuukiriza. Mu kiseera kino, tewali bizibu binene by'okutuukiriza ebimanyiddwa.",
+      "note": "Bw'osanga ebizibu byonna eby'okutuukiriza, tukirire amangu tulyo tubigonjooze."
+    },
+    "feedback": {
+      "title": "Ebirowoozo ku Kutuukiriza",
+      "content": "Tusanyukira ebirowoozo byo ku kutuukiriza kwa Teacher Hub. Tutegeeze bw'osanga ebizibu by'okutuukiriza:",
+      "contactTitle": "Amawulire g'Okukirira ag'Okutuukiriza",
+      "responseTime": "Tugezaako okuddamu ebirowoozo by'okutuukiriza mu nnaku 2 ez'emirimu."
+    },
+    "resources": {
+      "title": "Ebikozesebwa Ebirala",
+      "content": "Yiga ebisingawo ku kutuukiriza kw'omukutu:",
+      "wai": "Web Accessibility Initiative (WAI)",
+      "webaim": "WebAIM - Web Accessibility In Mind",
+      "nvda": "NVDA Screen Reader",
+      "appleAccessibility": "Apple Accessibility"
+    }
+  },
+  "communityPage": {
+    "title": "Ekibiina ky'Abasomesa",
+    "subtitle": "Kwegatta n'enkumi z'abasomesa mu Uganda yonna. Gabana amagezi, mukole wamu ku pulojekiti, era mukule wamu nga kibiina ky'abavunaanyizibwa.",
+    "stats": {
+      "teachers": "Abasomesa Abakola",
+      "resources": "Ebikozesebwa Ebigabanyiziddwa",
+      "communities": "Ebibiina Ebikola",
+      "districts": "Disitulikiti Eziriko Abantu"
+    },
+    "joinCta": {
+      "title": "Weegatte ku Kibiina kya Teacher Hub Leero",
+      "subtitle": "Kwegatta n'abasomesa abalala era ofune enkumi z'ebikozesebwa by'ebyenjigiriza",
+      "register": "Tonda Akawunti",
+      "login": "Yingira"
+    },
+    "featured": {
+      "title": "Ebibiina Ebiragiddwa",
+      "members": "bannakibiina",
+      "joinCommunity": "Yingira mu Kibiina",
+      "primaryEducation": {
+        "name": "Abasomesa b'Amasomero ag'Obwana",
+        "description": "Ekibiina ky'abasomesa b'amasomero ag'obwana okugabana enteekateeka z'amasomo, enkola z'okusomesa, n'amagezi g'okuddukanya ebibiina."
+      },
+      "mathematics": {
+        "name": "Abasomesa ba Kubala",
+        "description": "Kwegatta n'abasomesa ba kubala ku mitendera gyonna. Gabana enkola z'okugonjola ebizibu, ebikozesebwa by'entegeka y'amasomo, n'enkola z'okusomesa empya."
+      },
+      "kampala": {
+        "name": "Abasomesa b'Ekitundu kya Kampala",
+        "description": "Ekibiina ky'omu kitundu ky'abasomesa mu kitundu kya Kampala. Tegeka enkuŋŋaana, gabana ebikozesebwa by'omu kitundu, era mukole wamu ku nteekateeka z'ekitundu."
+      },
+      "science": {
+        "name": "Omukutu gw'Abasomesa ba Sayansi",
+        "description": "Gw'abasomesa ba biology, chemistry, ne physics. Gabana obugezigezi, ebikozesebwa by'omu ddagala, era mwenyigire mu kubuuza kwa sayansi."
+      }
+    },
+    "benefits": {
+      "title": "Lwaki Oyingire mu Kibiina Kyaffe?",
+      "shareResources": {
+        "title": "Gabana Ebikozesebwa",
+        "description": "Teeka era oggyeyo ebikozesebwa by'ebyenjigiriza, enteekateeka z'amasomo, n'ebikozesebwa by'okusomesa ebikolebwa abasomesa abalala."
+      },
+      "collaborate": {
+        "title": "Mukole Wamu",
+        "description": "Mukolere wamu ku pulojekiti, mugabane enkola z'okusomesa, era muyige okuva ku basomesa abamanyirivu mu Uganda yonna."
+      },
+      "grow": {
+        "title": "Okukula mu Buvunaanyizibwa",
+        "description": "Mwenyigire mu kubuuza, mutendeke emikolo gy'omu mukutu, era mufune emikisa gy'okukula mu buvunaanyizibwa."
+      }
+    },
+    "guidelines": {
+      "title": "Ebiragiro by'Ekibiina",
+      "subtitle": "Okukuuma embeera ennungi era ey'okukola, bannakibiina bonna basuubirwa okugoberera ebiragiro bino:",
+      "respectful": "Beera wa kitiibwa era wa buvunaanyizibwa mu nkolagana zonna",
+      "educational": "Kuuma okubuuza nga kwesigamye ku nsonga z'ebyenjigiriza",
+      "constructive": "Wa ebirowoozo ebizimba n'obuwagizi",
+      "authentic": "Gabana obumanyirivu obw'amazima n'ebikozesebwa",
+      "supportive": "Wagira abasomesa abalala era ojaguza obuwanguzi",
+      "professional": "Kuuma empimpi z'obuvunaanyizibwa mu nkolagana zonna",
+      "note": {
+        "title": "Kikulu:",
+        "content": "Okumenya ebiragiro by'ekibiina kiyinza okuvaamu okusimba akawunti oba okuggyawo ku mukutu."
+      }
+    }
+  },
+  "blog": {
+    "title": "Blog ya Teacher Hub",
+    "subtitle": "Amagezi, amagambo, n'emboozi okuva mu kibiina ky'ebyenjigiriza kya Uganda",
+    "readTime": "dakiika z'okusoma",
+    "readMore": "Soma Ebisingawo",
+    "featured": {
+      "title": "Emboozi Eziragiddwa"
+    },
+    "categories": {
+      "all": "Emboozi Zonna",
+      "education": "Ebyenjigiriza",
+      "community": "Ekibiina",
+      "resources": "Ebikozesebwa",
+      "technology": "Ebyobukugu"
+    },
+    "posts": {
+      "digitalLiteracy": {
+        "title": "Okuzimba Obumanyirivu bw'Ebyobukugu mu Bibiina by'Abasomesa ba Uganda",
+        "excerpt": "Zuula enkola entuufu ez'okugatta ebyobukugu mu nkola z'okusomesa eza bulijjo n'okutegeka abayizi okw'omulembe gw'ebyobukugu.",
+        "content": "Obumanyirivu bw'ebyobukugu bufuuse bwa muwendo mu byenjigiriza bya kati. Emboozi eno enoonyereza engeri abasomesa ba Uganda gye bayinza okugatta obulungi ebyobukugu mu bibiina byabwe nga bakola mu mbeera z'ebikozesebwa ebitono."
+      },
+      "communityBuilding": {
+        "title": "Amaanyi g'Ebibiina by'Abasomesa mu Kukula mu Buvunaanyizibwa",
+        "excerpt": "Zuula engeri okwegatta n'abasomesa abalala gye kiyinza okukyusa enkola yo ey'okusomesa n'okukula kw'omulimu gwo.",
+        "content": "Ebibiina by'abasomesa biwa obuwagizi obw'omuwendo, ebikozesebwa, n'emikisa gy'okukula mu buvunaanyizibwa. Yiga engeri y'okufuna obulungi mu kuyiga okw'okwegatta."
+      },
+      "resourceSharing": {
+        "title": "Okugabana Ebikozesebwa Obulungi: Enkola Ennungi ez'Abasomesa",
+        "excerpt": "Yiga engeri y'okukola, okugabana, n'okukozesa ebikozesebwa by'ebyenjigiriza obulungi mu kibiina kya Teacher Hub.",
+        "content": "Okugabana ebikozesebwa kuli ku mutima gwa Teacher Hub. Ekiragiro kino kiwa enkola ennungi ez'okukola ebikozesebwa by'ebyenjigiriza eby'omutindo gwa waggulu n'okubigabana obulungi."
+      },
+      "offlineTeaching": {
+        "title": "Okusomesa mu Mbeera z'Omukutu Omutono",
+        "excerpt": "Enkola n'ebikozesebwa by'okusomesa obulungi nga omukutu gw'intaneeti gutono oba teguli.",
+        "content": "Amasomero mangi ga Uganda gakwatibwa ebizibu by'omukutu. Emboozi eno ewa eby'okukola ebirungi okukuuma okusomesa okulungi mu mbeera z'omukutu omutono."
+      }
+    },
+    "newsletter": {
+      "title": "Sigala ng'Omanyi",
+      "subtitle": "Kwewandiise ku lupapula lwaffe olw'amawulire okufuna amagezi ag'ebyenjigiriza amaggya n'amawulire g'omukutu",
+      "emailPlaceholder": "Wandiika endagiriro ya email yo",
+      "subscribe": "Kwewandiise",
+      "privacy": "Tussaamu ekitiibwa obwama bwo era tetujja kugabana endagiriro ya email yo."
+    },
+    "comingSoon": {
+      "title": "Ebintu Ebisingawo Bijja",
+      "description": "Tukola okukuletera ebintu eby'omuwendo ebisingawo okuva ku basomesa mu Uganda yonna. Ddayo bulijjo okw'emboozi empya n'amagezi."
+    }
   }
 }

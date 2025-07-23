@@ -39,7 +39,7 @@ export const usePerformanceMonitor = (options: UsePerformanceMonitorOptions = {}
       
       // Get page load time
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-      const loadTime = navigation ? navigation.loadEventEnd - navigation.navigationStart : 0;
+      const loadTime = navigation ? navigation.loadEventEnd - navigation.fetchStart : 0;
 
       // Get connection information
       let connectionType = 'unknown';

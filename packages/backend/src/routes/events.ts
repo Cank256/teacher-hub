@@ -26,7 +26,7 @@ router.post('/', authMiddleware, async (req, res) => {
       status
     } = req.body;
 
-    const organizerId = req.user?.id;
+    const organizerId = req.user?.userId;
     if (!organizerId) {
       return res.status(401).json({ error: 'Authentication required' });
     }
@@ -102,7 +102,7 @@ router.get('/', authMiddleware, async (req, res) => {
 router.get('/upcoming', authMiddleware, async (req, res) => {
   try {
     const { limit = 10 } = req.query;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     const events = await eventService.getUpcomingEvents(userId, parseInt(limit as string));
     res.json({ events });
@@ -133,7 +133,7 @@ router.get('/:eventId', authMiddleware, async (req, res) => {
 router.put('/:eventId', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -164,7 +164,7 @@ router.put('/:eventId', authMiddleware, async (req, res) => {
 router.delete('/:eventId', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -184,7 +184,7 @@ router.delete('/:eventId', authMiddleware, async (req, res) => {
 router.post('/:eventId/register', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -206,7 +206,7 @@ router.post('/:eventId/register', authMiddleware, async (req, res) => {
 router.delete('/:eventId/register', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -224,7 +224,7 @@ router.delete('/:eventId/register', authMiddleware, async (req, res) => {
 router.get('/:eventId/registrations', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -244,7 +244,7 @@ router.get('/:eventId/registrations', authMiddleware, async (req, res) => {
 router.get('/user/:userId/registrations', authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
-    const requestingUserId = req.user?.id;
+    const requestingUserId = req.user?.userId;
     
     if (!requestingUserId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -269,7 +269,7 @@ router.post('/:eventId/reminders', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
     const { hoursBeforeEvent = 24 } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });
@@ -289,7 +289,7 @@ router.post('/:eventId/reminders', authMiddleware, async (req, res) => {
 router.get('/:eventId/analytics', authMiddleware, async (req, res) => {
   try {
     const { eventId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required' });

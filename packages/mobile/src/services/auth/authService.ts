@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Keychain from 'react-native-keychain';
 import {biometricService, BiometricAuthResult} from './biometricService';
+import {authPersistence, AuthTokens, UserSession} from './authPersistence';
 
 export interface LoginCredentials {
   email: string;
@@ -39,27 +40,34 @@ class AuthService {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Mock successful login
-      const mockResponse: AuthResponse = {
-        user: {
-          id: '1',
-          email: credentials.email,
-          fullName: 'John Doe',
-          verificationStatus: 'verified',
-        },
-        token: 'mock_jwt_token_' + Date.now(),
+      const mockUser = {
+        id: '1',
+        email: credentials.email,
+        fullName: 'John Doe',
+        verificationStatus: 'verified' as const,
       };
 
-      // Store token securely
-      await Keychain.setInternetCredentials(
-        'TeacherHub',
-        credentials.email,
-        mockResponse.token
-      );
+      const mockTokens: AuthTokens = {
+        accessToken: 'mock_access_token_' + Date.now(),
+        refreshToken: 'mock_refresh_token_' + Date.now(),
+        expiresAt: Date.now() + (60 * 60 * 1000), // 1 hour
+      };
 
-      // Store user data
-      await AsyncStorage.setItem(this.USER_KEY, JSON.stringify(mockResponse.user));
+      // Store tokens and session using new persistence service
+      await authPersistence.storeTokens(mockTokens, credentials.email);
+      
+      const session: UserSession = {
+        user: mockUser,
+        tokens: mockTokens,
+        lastActivity: Date.now(),
+      };
+      
+      await authPersistence.storeUserSession(session);
 
-      return mockResponse;
+      return {
+        user: mockUser,
+        token: mockTokens.accessToken,
+      };
     } catch (error) {
       throw new Error('Login failed');
     }
@@ -71,27 +79,34 @@ class AuthService {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Mock successful registration
-      const mockResponse: AuthResponse = {
-        user: {
-          id: '1',
-          email: userData.email,
-          fullName: userData.fullName,
-          verificationStatus: 'pending',
-        },
-        token: 'mock_jwt_token_' + Date.now(),
+      const mockUser = {
+        id: '1',
+        email: userData.email,
+        fullName: userData.fullName,
+        verificationStatus: 'pending' as const,
       };
 
-      // Store token securely
-      await Keychain.setInternetCredentials(
-        'TeacherHub',
-        userData.email,
-        mockResponse.token
-      );
+      const mockTokens: AuthTokens = {
+        accessToken: 'mock_access_token_' + Date.now(),
+        refreshToken: 'mock_refresh_token_' + Date.now(),
+        expiresAt: Date.now() + (60 * 60 * 1000), // 1 hour
+      };
 
-      // Store user data
-      await AsyncStorage.setItem(this.USER_KEY, JSON.stringify(mockResponse.user));
+      // Store tokens and session using new persistence service
+      await authPersistence.storeTokens(mockTokens, userData.email);
+      
+      const session: UserSession = {
+        user: mockUser,
+        tokens: mockTokens,
+        lastActivity: Date.now(),
+      };
+      
+      await authPersistence.storeUserSession(session);
 
-      return mockResponse;
+      return {
+        user: mockUser,
+        token: mockTokens.accessToken,
+      };
     } catch (error) {
       throw new Error('Registration failed');
     }
@@ -99,11 +114,7 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      // Remove token from keychain
-      await Keychain.resetInternetCredentials('TeacherHub');
-      
-      // Remove user data
-      await AsyncStorage.removeItem(this.USER_KEY);
+      await authPersistence.logout();
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -111,8 +122,7 @@ class AuthService {
 
   async checkAuthStatus(): Promise<boolean> {
     try {
-      const credentials = await Keychain.getInternetCredentials('TeacherHub');
-      return credentials !== false;
+      return await authPersistence.isSessionValid();
     } catch (error) {
       return false;
     }
@@ -120,8 +130,8 @@ class AuthService {
 
   async getCurrentUser(): Promise<AuthResponse['user'] | null> {
     try {
-      const userData = await AsyncStorage.getItem(this.USER_KEY);
-      return userData ? JSON.parse(userData) : null;
+      const session = await authPersistence.getUserSession();
+      return session?.user || null;
     } catch (error) {
       return null;
     }
@@ -129,8 +139,8 @@ class AuthService {
 
   async getToken(): Promise<string | null> {
     try {
-      const credentials = await Keychain.getInternetCredentials('TeacherHub');
-      return credentials !== false ? credentials.password : null;
+      const tokens = await authPersistence.getTokens();
+      return tokens?.accessToken || null;
     } catch (error) {
       return null;
     }
@@ -138,19 +148,16 @@ class AuthService {
 
   async refreshToken(): Promise<string | null> {
     try {
-      // In a real app, this would call the refresh token endpoint
-      const currentToken = await this.getToken();
-      if (currentToken) {
-        const newToken = 'refreshed_' + currentToken;
-        const credentials = await Keychain.getInternetCredentials('TeacherHub');
-        if (credentials !== false) {
-          await Keychain.setInternetCredentials(
-            'TeacherHub',
-            credentials.username,
-            newToken
-          );
+      const tokens = await authPersistence.getTokens();
+      if (tokens?.refreshToken) {
+        const newTokens = await authPersistence.refreshTokens(tokens.refreshToken);
+        if (newTokens) {
+          const session = await authPersistence.getUserSession();
+          if (session) {
+            await authPersistence.storeTokens(newTokens, session.user.email);
+            return newTokens.accessToken;
+          }
         }
-        return newToken;
       }
       return null;
     } catch (error) {
@@ -166,51 +173,16 @@ class AuthService {
   }
 
   async isBiometricEnabled(): Promise<boolean> {
-    try {
-      const enabled = await AsyncStorage.getItem(this.BIOMETRIC_ENABLED_KEY);
-      return enabled === 'true';
-    } catch (error) {
-      return false;
-    }
+    return await authPersistence.isBiometricEnabled();
   }
 
   async enableBiometric(): Promise<{success: boolean; error?: string}> {
-    try {
-      const availability = await biometricService.isBiometricAvailable();
-      if (!availability.isAvailable) {
-        return {
-          success: false,
-          error: availability.error || 'Biometric authentication is not available',
-        };
-      }
-
-      // Test biometric authentication
-      const authResult = await biometricService.authenticateWithBiometrics(
-        'Enable biometric authentication for Teacher Hub'
-      );
-
-      if (authResult.success) {
-        await AsyncStorage.setItem(this.BIOMETRIC_ENABLED_KEY, 'true');
-        await biometricService.createBiometricKeys();
-        return {success: true};
-      } else {
-        return {
-          success: false,
-          error: authResult.error || 'Biometric authentication failed',
-        };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      };
-    }
+    return await authPersistence.enableBiometric();
   }
 
   async disableBiometric(): Promise<void> {
     try {
-      await AsyncStorage.setItem(this.BIOMETRIC_ENABLED_KEY, 'false');
-      await biometricService.deleteBiometricKeys();
+      await authPersistence.disableBiometric();
     } catch (error) {
       console.error('Error disabling biometric:', error);
     }
@@ -241,24 +213,19 @@ class AuthService {
 
   async loginWithBiometric(): Promise<AuthResponse | null> {
     try {
-      const authResult = await this.authenticateWithBiometric();
+      const session = await authPersistence.authenticateWithBiometric();
       
-      if (!authResult.success) {
-        throw new Error(authResult.error || 'Biometric authentication failed');
+      if (!session) {
+        throw new Error('Biometric authentication failed');
       }
 
-      // If biometric auth succeeds, get stored credentials
-      const credentials = await Keychain.getInternetCredentials('TeacherHub');
-      const userData = await this.getCurrentUser();
+      // Update last activity
+      await authPersistence.updateLastActivity();
 
-      if (credentials !== false && userData) {
-        return {
-          user: userData,
-          token: credentials.password,
-        };
-      }
-
-      throw new Error('No stored credentials found');
+      return {
+        user: session.user,
+        token: session.tokens.accessToken,
+      };
     } catch (error) {
       throw error;
     }

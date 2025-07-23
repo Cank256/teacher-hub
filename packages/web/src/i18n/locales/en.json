@@ -27,6 +27,9 @@
     "communities": "Communities",
     "messages": "Messages",
     "profile": "Profile",
+    "home": "Home",
+    "help": "Help",
+    "contact": "Contact",
     "skipToMain": "Skip to main content",
     "openMenu": "Open main menu",
     "closeMenu": "Close main menu"
@@ -183,5 +186,729 @@
     "syncPending": "Changes will sync when you're back online",
     "reconnecting": "Reconnecting...",
     "backOnline": "You're back online!"
+  },
+  "landing": {
+    "hero": {
+      "title": "Empowering Ugandan Teachers Through Collaboration",
+      "subtitle": "Connect, share resources, and grow professionally with fellow educators across Uganda. Access official government content and build stronger educational communities.",
+      "getStarted": "Get Started",
+      "signIn": "Sign In"
+    },
+    "features": {
+      "title": "Everything Teachers Need in One Platform",
+      "subtitle": "Discover powerful tools designed specifically for Ugandan educators",
+      "resourceSharing": {
+        "title": "Resource Sharing",
+        "description": "Upload, download, and share educational materials with teachers across Uganda. Access lesson plans, worksheets, and multimedia content."
+      },
+      "collaboration": {
+        "title": "Teacher Collaboration",
+        "description": "Connect with fellow educators, join subject-specific communities, and collaborate on lesson planning and teaching strategies."
+      },
+      "governmentContent": {
+        "title": "Official Government Content",
+        "description": "Access verified content from Ministry of Education, UNEB, and NCDC. Stay updated with curriculum changes and official announcements."
+      },
+      "offlineAccess": {
+        "title": "Offline Access",
+        "description": "Download resources for offline use. Continue working even when internet connectivity is limited or unavailable."
+      },
+      "mobileOptimized": {
+        "title": "Mobile Optimized",
+        "description": "Fully responsive design that works perfectly on smartphones, tablets, and computers. Access your content anywhere, anytime."
+      },
+      "community": {
+        "title": "Community Building",
+        "description": "Build meaningful connections with educators, participate in discussions, and contribute to a vibrant teaching community."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Your Teaching Experience?",
+      "subtitle": "Join thousands of Ugandan teachers who are already collaborating and sharing resources on Teacher Hub.",
+      "joinNow": "Join Teacher Hub Today"
+    }
+  },
+  "contact": {
+    "title": "Contact Teacher Hub Support",
+    "subtitle": "We're here to help you make the most of your teaching experience. Reach out to us with any questions or concerns.",
+    "info": {
+      "title": "Get in Touch",
+      "supportHours": {
+        "title": "Support Hours",
+        "weekdays": "Monday - Friday: 8:00 AM - 6:00 PM",
+        "weekends": "Saturday: 9:00 AM - 2:00 PM"
+      },
+      "email": {
+        "title": "Email Support",
+        "general": "General Support",
+        "technical": "Technical Support"
+      },
+      "phone": {
+        "title": "Phone Support",
+        "primary": "Primary",
+        "whatsapp": "WhatsApp"
+      },
+      "office": {
+        "title": "Office Location"
+      }
+    },
+    "form": {
+      "title": "Send us a Message",
+      "name": "Full Name",
+      "namePlaceholder": "Enter your full name",
+      "email": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "category": "Category",
+      "categories": {
+        "general": "General Inquiry",
+        "technical": "Technical Support",
+        "account": "Account Issues",
+        "content": "Content Issues",
+        "feedback": "Feedback & Suggestions"
+      },
+      "subject": "Subject",
+      "subjectPlaceholder": "Brief description of your inquiry",
+      "message": "Message",
+      "messagePlaceholder": "Please provide details about your inquiry or issue...",
+      "send": "Send Message",
+      "sending": "Sending..."
+    },
+    "success": {
+      "title": "Message Sent Successfully!",
+      "message": "Thank you for contacting us. We'll get back to you within 24 hours during business days.",
+      "sendAnother": "Send Another Message"
+    }
+  },
+  "help": {
+    "title": "Help & Support Center",
+    "subtitle": "Find answers to common questions and learn how to make the most of Teacher Hub",
+    "searchPlaceholder": "Search for help topics...",
+    "categories": {
+      "title": "Help Categories",
+      "gettingStarted": "Getting Started",
+      "account": "Account Management",
+      "resources": "Resources & Content",
+      "communities": "Communities",
+      "technical": "Technical Support",
+      "mobile": "Mobile & Offline"
+    },
+    "faqCount": "{{count}} frequently asked questions",
+    "noSearchResults": "No results found for your search. Try different keywords or browse categories.",
+    "noFAQs": "No FAQs available in this category.",
+    "faqs": {
+      "whatIsTeacherHub": {
+        "question": "What is Teacher Hub?",
+        "answer": "Teacher Hub is a comprehensive platform designed specifically for Ugandan teachers to collaborate, share educational resources, and access official government content. It provides tools for professional development, community building, and resource management."
+      },
+      "howToRegister": {
+        "question": "How do I register as a teacher?",
+        "answer": "To register, click 'Get Started' or 'Register' and provide your teaching credentials, including your teaching certificate or employment letter. We verify all teacher credentials to ensure platform authenticity."
+      },
+      "credentialVerification": {
+        "question": "How long does credential verification take?",
+        "answer": "Credential verification typically takes 2-3 business days. You'll receive an email notification once your credentials are verified and your account is fully activated."
+      },
+      "forgotPassword": {
+        "question": "I forgot my password. How do I reset it?",
+        "answer": "Click 'Forgot Password' on the login page, enter your email address, and we'll send you a password reset link. Follow the instructions in the email to create a new password."
+      },
+      "updateProfile": {
+        "question": "How do I update my profile information?",
+        "answer": "Go to your Profile page and click 'Edit Profile'. You can update your personal information, teaching subjects, grade levels, and school details. Remember to save your changes."
+      },
+      "privacySettings": {
+        "question": "How do I manage my privacy settings?",
+        "answer": "In your Profile settings, you can control who can see your profile information, contact you, and view your shared resources. You can also manage notification preferences."
+      },
+      "uploadResources": {
+        "question": "How do I upload and share resources?",
+        "answer": "Go to the Resources section and click 'Upload Resource'. Select your file, add a title and description, choose appropriate tags and categories, then publish. Other teachers can then discover and download your resources."
+      },
+      "downloadOffline": {
+        "question": "Can I download resources for offline use?",
+        "answer": "Yes! Click the download button on any resource to save it to your device. Downloaded resources are available in your 'Downloaded Resources' section and can be accessed without internet connection."
+      },
+      "governmentContent": {
+        "question": "How do I access government content?",
+        "answer": "Government content from Ministry of Education, UNEB, and NCDC is automatically available in the Resources section with official verification badges. You can filter specifically for government content using the content filters."
+      },
+      "joinCommunities": {
+        "question": "How do I join teacher communities?",
+        "answer": "Browse communities in the Communities section. You can join subject-specific, regional, or grade-level communities. Click 'Join Community' to participate in discussions and collaborate with other teachers."
+      },
+      "createCommunity": {
+        "question": "Can I create my own community?",
+        "answer": "Yes! Click 'Create Community' in the Communities section. Choose a community type, add a description and rules, then invite other teachers to join your community."
+      },
+      "offlineAccess": {
+        "question": "How does offline access work?",
+        "answer": "Download resources and enable offline mode in your settings. The app will sync your changes when you're back online. You can access downloaded content, draft messages, and continue working without internet."
+      },
+      "syncIssues": {
+        "question": "I'm having sync issues. What should I do?",
+        "answer": "Check your internet connection and try refreshing the app. If issues persist, go to Settings > Sync and manually trigger a sync. Contact support if problems continue."
+      },
+      "mobileApp": {
+        "question": "Is there a mobile app available?",
+        "answer": "Teacher Hub works as a Progressive Web App (PWA) on mobile devices. You can install it on your phone by visiting the website and selecting 'Add to Home Screen' when prompted."
+      },
+      "installPWA": {
+        "question": "How do I install Teacher Hub on my phone?",
+        "answer": "Visit teacherhub.ug on your mobile browser. You'll see an 'Install App' prompt. Tap 'Install' to add Teacher Hub to your home screen for easy access."
+      }
+    },
+    "quickLinks": {
+      "title": "Quick Links",
+      "contact": "Contact Support",
+      "contactDesc": "Get help from our support team",
+      "register": "Create Account",
+      "registerDesc": "Join the Teacher Hub community"
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "introduction": {
+      "title": "Introduction",
+      "content": "Teacher Hub is committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, share, and protect your information when you use our platform."
+    },
+    "informationCollected": {
+      "title": "Information We Collect",
+      "personalInfo": {
+        "title": "Personal Information",
+        "name": "Full name and contact information",
+        "email": "Email address and phone number",
+        "phone": "Professional contact details",
+        "school": "School affiliation and location",
+        "subjects": "Teaching subjects and grade levels",
+        "credentials": "Teaching credentials and certifications"
+      },
+      "usageData": {
+        "title": "Usage Data",
+        "activity": "Platform activity and interactions",
+        "device": "Device information and browser type",
+        "location": "General location information",
+        "preferences": "User preferences and settings"
+      },
+      "content": {
+        "title": "Content Data",
+        "resources": "Educational resources you upload",
+        "messages": "Messages and communications",
+        "comments": "Comments and discussions",
+        "ratings": "Ratings and reviews"
+      }
+    },
+    "howWeUse": {
+      "title": "How We Use Your Information",
+      "provideServices": "Provide and maintain our services",
+      "verifyCredentials": "Verify teaching credentials",
+      "personalizeContent": "Personalize content and recommendations",
+      "facilitateCommunication": "Facilitate communication between teachers",
+      "improveServices": "Improve and develop our services",
+      "sendNotifications": "Send important notifications and updates",
+      "ensureSecurity": "Ensure platform security and prevent abuse",
+      "complyLegal": "Comply with legal obligations"
+    },
+    "informationSharing": {
+      "title": "Information Sharing",
+      "withUsers": {
+        "title": "With Other Users",
+        "content": "Your profile information and shared resources are visible to other verified teachers on the platform. You can control visibility settings in your privacy preferences."
+      },
+      "withGovernment": {
+        "title": "With Government Institutions",
+        "content": "We may share aggregated, non-personal usage statistics with government education institutions to help improve educational services in Uganda."
+      },
+      "withServiceProviders": {
+        "title": "With Service Providers",
+        "content": "We work with trusted service providers who help us operate the platform. These providers are bound by strict confidentiality agreements."
+      },
+      "legalRequirements": {
+        "title": "Legal Requirements",
+        "content": "We may disclose information when required by law or to protect the rights, property, or safety of Teacher Hub, our users, or others."
+      }
+    },
+    "dataSecurity": {
+      "title": "Data Security",
+      "content": "We implement comprehensive security measures to protect your information:",
+      "encryption": "End-to-end encryption for sensitive data",
+      "accessControls": "Strict access controls and authentication",
+      "regularAudits": "Regular security audits and assessments",
+      "secureStorage": "Secure data storage and backup systems",
+      "staffTraining": "Staff training on data protection practices"
+    },
+    "yourRights": {
+      "title": "Your Rights",
+      "access": "Access your personal information",
+      "correction": "Correct inaccurate information",
+      "deletion": "Request deletion of your data",
+      "portability": "Export your data",
+      "restriction": "Restrict processing of your data",
+      "objection": "Object to certain uses of your data",
+      "withdraw": "Withdraw consent at any time",
+      "exerciseRights": "To exercise these rights, contact us at privacy@teacherhub.ug"
+    },
+    "dataRetention": {
+      "title": "Data Retention",
+      "content": "We retain your information for as long as necessary to provide our services:",
+      "accountData": "Account data: Until account deletion",
+      "contentData": "Content data: As long as publicly shared",
+      "usageData": "Usage data: Up to 2 years for analytics",
+      "legalRequirements": "Legal requirements may extend retention periods"
+    },
+    "internationalTransfers": {
+      "title": "International Data Transfers",
+      "content": "Your data is primarily stored in Uganda. If we transfer data internationally, we ensure appropriate safeguards are in place to protect your information."
+    },
+    "childrensPrivacy": {
+      "title": "Children's Privacy",
+      "content": "Teacher Hub is designed for professional educators. We do not knowingly collect personal information from children under 18 without parental consent."
+    },
+    "changes": {
+      "title": "Changes to This Policy",
+      "content": "We may update this Privacy Policy periodically. We'll notify you of significant changes via email or platform notification."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "If you have questions about this Privacy Policy or our data practices, please contact us:"
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated",
+    "introduction": {
+      "title": "Introduction",
+      "content": "Welcome to Teacher Hub. These Terms of Service govern your use of our platform and services. By accessing or using Teacher Hub, you agree to be bound by these terms."
+    },
+    "acceptance": {
+      "title": "Acceptance of Terms",
+      "content": "By creating an account or using our services, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy."
+    },
+    "eligibility": {
+      "title": "Eligibility",
+      "content": "To use Teacher Hub, you must meet the following requirements:",
+      "age": "Be at least 18 years old",
+      "teacher": "Be a qualified teacher or education professional",
+      "credentials": "Provide valid teaching credentials for verification",
+      "compliance": "Comply with all applicable laws and regulations"
+    },
+    "registration": {
+      "title": "Account Registration",
+      "content": "When creating an account, you agree to:",
+      "accurate": "Provide accurate and complete information",
+      "secure": "Keep your login credentials secure",
+      "responsible": "Be responsible for all activities under your account",
+      "notify": "Notify us immediately of any unauthorized access"
+    },
+    "platformUse": {
+      "title": "Platform Use",
+      "permitted": {
+        "title": "Permitted Uses",
+        "educational": "Educational and professional development purposes",
+        "collaboration": "Collaboration with other teachers",
+        "sharing": "Sharing appropriate educational resources",
+        "communication": "Professional communication and networking"
+      },
+      "prohibited": {
+        "title": "Prohibited Uses",
+        "illegal": "Any illegal or unauthorized activities",
+        "harmful": "Harmful, offensive, or inappropriate content",
+        "spam": "Spam, harassment, or unsolicited communications",
+        "impersonation": "Impersonating others or providing false information",
+        "copyright": "Violating intellectual property rights",
+        "malware": "Distributing malware or harmful software",
+        "interference": "Interfering with platform security or functionality"
+      }
+    },
+    "content": {
+      "title": "Content and Intellectual Property",
+      "userContent": {
+        "title": "User-Generated Content",
+        "ownership": "You retain ownership of content you create and upload to Teacher Hub.",
+        "license": "By uploading content, you grant Teacher Hub a license to display, distribute, and use your content to provide our services."
+      },
+      "platformContent": {
+        "title": "Platform Content",
+        "ownership": "Teacher Hub owns all platform-specific content, including software, design, and documentation."
+      },
+      "governmentContent": {
+        "title": "Government Content",
+        "ownership": "Government content remains the property of respective Ugandan government institutions."
+      }
+    },
+    "moderation": {
+      "title": "Content Moderation",
+      "content": "We reserve the right to:",
+      "review": "Review all user-generated content",
+      "remove": "Remove content that violates our guidelines",
+      "suspend": "Suspend or terminate accounts for violations",
+      "report": "Report illegal activities to authorities"
+    },
+    "privacy": {
+      "title": "Privacy and Data Protection",
+      "content": "Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your information."
+    },
+    "disclaimers": {
+      "title": "Disclaimers",
+      "content": "Teacher Hub is provided 'as is' without warranties of any kind. We disclaim:",
+      "availability": "Continuous availability of services",
+      "accuracy": "Accuracy of all content and information",
+      "thirdParty": "Responsibility for third-party content",
+      "educational": "Educational outcomes or results"
+    },
+    "liability": {
+      "title": "Limitation of Liability",
+      "content": "To the maximum extent permitted by law, Teacher Hub shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our services."
+    },
+    "indemnification": {
+      "title": "Indemnification",
+      "content": "You agree to indemnify and hold Teacher Hub harmless from any claims, damages, or expenses arising from your use of our services or violation of these terms."
+    },
+    "termination": {
+      "title": "Termination",
+      "content": "We may terminate or suspend your account for:",
+      "violation": "Violation of these Terms of Service",
+      "request": "Your request to delete your account",
+      "inactive": "Extended periods of inactivity",
+      "legal": "Legal or regulatory requirements"
+    },
+    "governingLaw": {
+      "title": "Governing Law",
+      "content": "These Terms of Service are governed by the laws of Uganda. Any disputes will be resolved in Ugandan courts."
+    },
+    "changes": {
+      "title": "Changes to Terms",
+      "content": "We may update these Terms of Service periodically. We'll notify you of significant changes and your continued use constitutes acceptance of the updated terms."
+    },
+    "contact": {
+      "title": "Contact Information",
+      "content": "If you have questions about these Terms of Service, please contact us:"
+    }
+  },
+  "footer": {
+    "description": "Empowering Ugandan teachers through collaboration, resource sharing, and professional development. Connect with educators nationwide and access official government content.",
+    "platform": {
+      "title": "Platform",
+      "about": "About Us",
+      "features": "Features",
+      "blog": "Blog"
+    },
+    "support": {
+      "title": "Support",
+      "help": "Help Center",
+      "contact": "Contact Us",
+      "community": "Community",
+      "status": "System Status"
+    },
+    "legal": {
+      "title": "Legal",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookies": "Cookie Policy",
+      "accessibility": "Accessibility"
+    },
+    "connect": {
+      "title": "Follow Us"
+    },
+    "copyright": "All rights reserved.",
+    "partnerships": "In partnership with:"
+  },
+  "cookies": {
+    "title": "Cookie Policy",
+    "lastUpdated": "Last updated",
+    "introduction": {
+      "title": "Introduction",
+      "content": "This Cookie Policy explains how Teacher Hub uses cookies and similar technologies to recognize you when you visit our platform. It explains what these technologies are and why we use them, as well as your rights to control our use of them."
+    },
+    "whatAreCookies": {
+      "title": "What are Cookies?",
+      "content": "Cookies are small data files that are placed on your computer or mobile device when you visit a website. Cookies are widely used by website owners to make their websites work, or to work more efficiently, as well as to provide reporting information."
+    },
+    "typesOfCookies": {
+      "title": "Types of Cookies We Use",
+      "essential": {
+        "title": "Essential Cookies",
+        "description": "These cookies are strictly necessary to provide you with services available through our platform and to use some of its features.",
+        "authentication": "User authentication and session management",
+        "security": "Security and fraud prevention",
+        "preferences": "Basic functionality and user preferences"
+      },
+      "functional": {
+        "title": "Functional Cookies",
+        "description": "These cookies enable the platform to provide enhanced functionality and personalization.",
+        "language": "Language preferences and localization",
+        "accessibility": "Accessibility settings and preferences",
+        "layout": "User interface customizations"
+      },
+      "analytics": {
+        "title": "Analytics Cookies",
+        "description": "These cookies help us understand how visitors interact with our platform by collecting and reporting information anonymously.",
+        "usage": "Usage patterns and popular content",
+        "performance": "Platform performance and error tracking",
+        "errors": "Error reporting and debugging"
+      }
+    },
+    "managingCookies": {
+      "title": "Managing Cookies",
+      "content": "You have the right to decide whether to accept or reject cookies. You can exercise your cookie rights by setting your preferences in your browser settings.",
+      "browserSettings": {
+        "title": "Browser Settings",
+        "chrome": "Chrome: Settings > Privacy and security > Cookies and other site data",
+        "firefox": "Firefox: Options > Privacy & Security > Cookies and Site Data",
+        "safari": "Safari: Preferences > Privacy > Manage Website Data",
+        "edge": "Edge: Settings > Cookies and site permissions"
+      },
+      "platformSettings": {
+        "title": "Platform Settings",
+        "content": "You can also manage certain cookie preferences through your account settings on Teacher Hub."
+      }
+    },
+    "thirdParty": {
+      "title": "Third-party Cookies",
+      "content": "In addition to our own cookies, we may also use various third-party cookies to report usage statistics and deliver advertisements.",
+      "analytics": "Google Analytics for usage statistics",
+      "social": "Social media integration cookies",
+      "cdn": "Content delivery network cookies"
+    },
+    "updates": {
+      "title": "Updates to This Policy",
+      "content": "We may update this Cookie Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "content": "If you have any questions about our use of cookies or other technologies, please contact us:"
+    }
+  },
+  "status": {
+    "title": "System Status",
+    "subtitle": "Current operational status of Teacher Hub services",
+    "overall": {
+      "operational": "All Systems Operational",
+      "degraded": "Degraded Performance",
+      "outage": "Service Outage"
+    },
+    "lastUpdated": "Last updated",
+    "services": {
+      "title": "Service Status",
+      "operational": "Operational",
+      "degraded": "Degraded",
+      "outage": "Outage",
+      "uptime": "Uptime",
+      "lastChecked": "Last checked"
+    },
+    "incidents": {
+      "title": "Recent Incidents",
+      "noIncidents": "No recent incidents to report. All systems are operating normally.",
+      "created": "Created",
+      "updated": "Last updated"
+    },
+    "subscribe": {
+      "title": "Stay Updated",
+      "description": "Get notified about service updates and maintenance schedules.",
+      "button": "Contact Support for Updates"
+    }
+  },
+  "accessibilityPage": {
+    "title": "Accessibility Statement",
+    "subtitle": "Our commitment to making Teacher Hub accessible to all educators",
+    "commitment": {
+      "title": "Our Commitment",
+      "content": "Teacher Hub is committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards to ensure we provide equal access to all users."
+    },
+    "features": {
+      "title": "Accessibility Features",
+      "keyboard": {
+        "title": "Keyboard Navigation",
+        "navigation": "Full keyboard navigation support",
+        "shortcuts": "Keyboard shortcuts for common actions",
+        "focus": "Clear focus indicators",
+        "skipLinks": "Skip navigation links"
+      },
+      "visual": {
+        "title": "Visual Accessibility",
+        "contrast": "High contrast mode option",
+        "fontSize": "Adjustable font sizes",
+        "colorBlind": "Color-blind friendly design",
+        "reducedMotion": "Reduced motion preferences"
+      },
+      "screenReader": {
+        "title": "Screen Reader Support",
+        "labels": "Proper ARIA labels and descriptions",
+        "headings": "Semantic heading structure",
+        "landmarks": "Page landmarks and regions",
+        "announcements": "Live region announcements"
+      },
+      "language": {
+        "title": "Language Support",
+        "multilingual": "Multiple language support",
+        "localLanguage": "Local language (Luganda) support",
+        "culturalContext": "Culturally appropriate content"
+      }
+    },
+    "standards": {
+      "title": "Standards Compliance",
+      "content": "Teacher Hub strives to conform to Web Content Accessibility Guidelines (WCAG) 2.1 Level AA standards and other accessibility best practices:",
+      "wcag": "WCAG 2.1 Level AA compliance",
+      "section508": "Section 508 standards",
+      "aria": "WAI-ARIA implementation",
+      "html": "Semantic HTML structure"
+    },
+    "howToUse": {
+      "title": "How to Use Accessibility Features",
+      "accessibilityPanel": {
+        "title": "Accessibility Panel",
+        "content": "Access the accessibility panel by clicking the accessibility icon in the header or using the keyboard shortcut Alt+A."
+      },
+      "keyboardShortcuts": {
+        "title": "Keyboard Shortcuts",
+        "tab": "Navigate between interactive elements",
+        "shiftTab": "Navigate backwards",
+        "enter": "Activate buttons and links",
+        "space": "Select checkboxes and buttons",
+        "escape": "Close dialogs and menus"
+      },
+      "screenReaders": {
+        "title": "Screen Reader Compatibility",
+        "content": "Teacher Hub is compatible with popular screen readers:",
+        "nvda": "NVDA (Windows)",
+        "jaws": "JAWS (Windows)",
+        "voiceOver": "VoiceOver (macOS/iOS)",
+        "talkback": "TalkBack (Android)"
+      }
+    },
+    "knownIssues": {
+      "title": "Known Issues",
+      "content": "We are continuously working to improve accessibility. Currently, there are no known major accessibility issues.",
+      "note": "If you encounter any accessibility barriers, please contact us immediately so we can address them."
+    },
+    "feedback": {
+      "title": "Accessibility Feedback",
+      "content": "We welcome your feedback on the accessibility of Teacher Hub. Please let us know if you encounter accessibility barriers:",
+      "contactTitle": "Accessibility Contact Information",
+      "responseTime": "We aim to respond to accessibility feedback within 2 business days."
+    },
+    "resources": {
+      "title": "Additional Resources",
+      "content": "Learn more about web accessibility:",
+      "wai": "Web Accessibility Initiative (WAI)",
+      "webaim": "WebAIM - Web Accessibility In Mind",
+      "nvda": "NVDA Screen Reader",
+      "appleAccessibility": "Apple Accessibility"
+    }
+  },
+  "communityPage": {
+    "title": "Teacher Community",
+    "subtitle": "Connect with thousands of educators across Uganda. Share knowledge, collaborate on projects, and grow together as a professional community.",
+    "stats": {
+      "teachers": "Active Teachers",
+      "resources": "Shared Resources",
+      "communities": "Active Communities",
+      "districts": "Districts Represented"
+    },
+    "joinCta": {
+      "title": "Join the Teacher Hub Community Today",
+      "subtitle": "Connect with fellow educators and access thousands of educational resources",
+      "register": "Create Account",
+      "login": "Sign In"
+    },
+    "featured": {
+      "title": "Featured Communities",
+      "members": "members",
+      "joinCommunity": "Join Community",
+      "primaryEducation": {
+        "name": "Primary Education Teachers",
+        "description": "A community for primary school teachers to share lesson plans, teaching strategies, and classroom management tips."
+      },
+      "mathematics": {
+        "name": "Mathematics Educators",
+        "description": "Connect with math teachers across all levels. Share problem-solving techniques, curriculum resources, and innovative teaching methods."
+      },
+      "kampala": {
+        "name": "Kampala Region Teachers",
+        "description": "Local community for teachers in the Kampala region. Organize meetups, share local resources, and collaborate on regional initiatives."
+      },
+      "science": {
+        "name": "Science Teachers Network",
+        "description": "For biology, chemistry, and physics teachers. Share experiments, lab resources, and engage in scientific discussions."
+      }
+    },
+    "benefits": {
+      "title": "Why Join Our Community?",
+      "shareResources": {
+        "title": "Share Resources",
+        "description": "Upload and download educational materials, lesson plans, and teaching resources created by fellow educators."
+      },
+      "collaborate": {
+        "title": "Collaborate",
+        "description": "Work together on projects, share teaching strategies, and learn from experienced educators across Uganda."
+      },
+      "grow": {
+        "title": "Professional Growth",
+        "description": "Participate in discussions, attend virtual events, and access professional development opportunities."
+      }
+    },
+    "guidelines": {
+      "title": "Community Guidelines",
+      "subtitle": "To maintain a positive and productive environment, all community members are expected to follow these guidelines:",
+      "respectful": "Be respectful and professional in all interactions",
+      "educational": "Keep discussions focused on educational topics",
+      "constructive": "Provide constructive feedback and support",
+      "authentic": "Share authentic experiences and resources",
+      "supportive": "Support fellow educators and celebrate successes",
+      "professional": "Maintain professional standards in all communications",
+      "note": {
+        "title": "Important:",
+        "content": "Violations of community guidelines may result in account suspension or removal from the platform."
+      }
+    }
+  },
+  "blog": {
+    "title": "Teacher Hub Blog",
+    "subtitle": "Insights, tips, and stories from the Ugandan education community",
+    "readTime": "min read",
+    "readMore": "Read More",
+    "featured": {
+      "title": "Featured Posts"
+    },
+    "categories": {
+      "all": "All Posts",
+      "education": "Education",
+      "community": "Community",
+      "resources": "Resources",
+      "technology": "Technology"
+    },
+    "posts": {
+      "digitalLiteracy": {
+        "title": "Building Digital Literacy in Ugandan Classrooms",
+        "excerpt": "Explore practical strategies for integrating technology into traditional teaching methods and preparing students for the digital age.",
+        "content": "Digital literacy has become essential in modern education. This post explores how Ugandan teachers can effectively integrate technology into their classrooms while working within resource constraints."
+      },
+      "communityBuilding": {
+        "title": "The Power of Teacher Communities in Professional Development",
+        "excerpt": "Discover how connecting with fellow educators can transform your teaching practice and career growth.",
+        "content": "Teacher communities provide invaluable support, resources, and professional development opportunities. Learn how to make the most of collaborative learning."
+      },
+      "resourceSharing": {
+        "title": "Effective Resource Sharing: Best Practices for Teachers",
+        "excerpt": "Learn how to create, share, and utilize educational resources effectively within the Teacher Hub community.",
+        "content": "Resource sharing is at the heart of Teacher Hub. This guide provides best practices for creating high-quality educational materials and sharing them effectively."
+      },
+      "offlineTeaching": {
+        "title": "Teaching in Low-Connectivity Environments",
+        "excerpt": "Strategies and tools for effective teaching when internet access is limited or unavailable.",
+        "content": "Many Ugandan schools face connectivity challenges. This post provides practical solutions for maintaining effective teaching in low-connectivity environments."
+      }
+    },
+    "newsletter": {
+      "title": "Stay Updated",
+      "subtitle": "Subscribe to our newsletter for the latest education insights and platform updates",
+      "emailPlaceholder": "Enter your email address",
+      "subscribe": "Subscribe",
+      "privacy": "We respect your privacy and will never share your email address."
+    },
+    "comingSoon": {
+      "title": "More Content Coming Soon",
+      "description": "We're working on bringing you more valuable content from educators across Uganda. Check back regularly for new posts and insights."
+    }
   }
 }

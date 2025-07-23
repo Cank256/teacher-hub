@@ -18,7 +18,7 @@ export interface AuthenticatedRequest extends Request {
 /**
  * Authentication middleware that verifies JWT tokens
  */
-export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN

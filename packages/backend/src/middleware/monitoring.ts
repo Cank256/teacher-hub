@@ -147,7 +147,7 @@ export const errorTrackingMiddleware = (error: any, req: Request, res: Response,
 /**
  * Middleware to track specific user actions
  */
-export const userActionTrackingMiddleware = (action: string, category: 'authentication' | 'content' | 'messaging' | 'search' | 'navigation' | 'error' = 'navigation') => {
+export const userActionTrackingMiddleware = (action: string, category: 'authentication' | 'content' | 'messaging' | 'search' | 'navigation' | 'error' | 'monitoring' = 'navigation') => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (req.userId) {
       userAnalytics.trackEvent({
