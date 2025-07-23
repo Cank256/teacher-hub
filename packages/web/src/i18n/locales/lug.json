@@ -27,12 +27,19 @@
     "communities": "Ebibiina",
     "messages": "Obubaka",
     "profile": "Ebikwata ku nze",
+    "admin": "Omuddukanya",
     "home": "Awaka",
     "help": "Obuyambi",
     "contact": "Tukirire",
     "skipToMain": "Genda ku bintu ebikulu",
     "openMenu": "Ggulawo menyu",
-    "closeMenu": "Ggalawo menyu"
+    "closeMenu": "Ggalawo menyu",
+    "openSidebar": "Ggulawo sidebar",
+    "closeSidebar": "Ggalawo sidebar",
+    "collapseSidebar": "Fuumuula sidebar",
+    "expandSidebar": "Gaziya sidebar",
+    "collapse": "Fuumuula",
+    "currentPage": "Olupapula olw'omu kiseera kino"
   },
   "auth": {
     "login": "Kuyingira",
@@ -57,6 +64,23 @@
     "communityUpdates": "Amawulire g'ebibiina",
     "quickActions": "Ebikolwa ebyanguwa",
     "statistics": "Ebibalirirwa"
+  },
+  "search": {
+    "placeholder": "Noonya ebikozesebwa, abasomesa, ebibiina...",
+    "label": "Kunoonya"
+  },
+  "notifications": {
+    "title": "Obubaka",
+    "empty": "Tewali bubaka",
+    "markAllRead": "Teeka byonna nga bisomeddwa",
+    "viewAll": "Laba obubaka bwonna",
+    "justNow": "Kati kati",
+    "minutesAgo": "Dakiika {{count}} eyayise",
+    "minutesAgo_plural": "Dakiika {{count}} ezaayise",
+    "hoursAgo": "Ssaawa {{count}} eyayise",
+    "hoursAgo_plural": "Ssaawa {{count}} ezaayise",
+    "daysAgo": "Lunaku {{count}} olwayise",
+    "daysAgo_plural": "Ennaku {{count}} ezaayise"
   },
   "resources": {
     "title": "Ebikozesebwa mu kusomesa",
@@ -103,6 +127,7 @@
   },
   "profile": {
     "title": "Ebikwata ku nze",
+    "menu": "Menyu y'ebikwata ku nze",
     "editProfile": "Kyuusa ebikwata ku nze",
     "personalInfo": "Amawulire g'obuntu",
     "teachingInfo": "Amawulire g'okusomesa",
@@ -118,6 +143,11 @@
     "verified": "Kakasiddwa",
     "pending": "Kulindirira",
     "rejected": "Kugaaniddwa"
+  },
+  "user": {
+    "verified": "Kakasiddwa",
+    "pending": "Kulindirira okukakasibwa",
+    "rejected": "Okukakasa kugaaniddwa"
   },
   "accessibility": {
     "title": "Enteekateeka z'okutuukiriza",

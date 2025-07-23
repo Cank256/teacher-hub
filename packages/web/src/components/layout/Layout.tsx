@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigation } from './Navigation';
+import { Sidebar } from './Sidebar';
+import { TopNavigation } from './TopNavigation';
 import { AccessibilityPanel } from '../ui/AccessibilityPanel';
 import { ScreenReaderAnnouncements } from '../ui/ScreenReaderAnnouncements';
 
@@ -11,10 +12,60 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { t } = useTranslation();
   const [isAccessibilityPanelOpen, setIsAccessibilityPanelOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // On mobile, sidebar should be closed by default
+      if (mobile) {
+        setIsSidebarOpen(false);
+      } else {
+        // On desktop, restore sidebar state from localStorage or default to open
+        const savedState = localStorage.getItem('sidebar-open');
+        setIsSidebarOpen(savedState ? JSON.parse(savedState) : true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Save sidebar state to localStorage on desktop
+  useEffect(() => {
+    if (!isMobile) {
+      localStorage.setItem('sidebar-open', JSON.stringify(isSidebarOpen));
+    }
+  }, [isSidebarOpen, isMobile]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar isOpen={isSidebarOpen} onToggle={toggleSidebar} />
+      
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top navigation bar */}
+        <TopNavigation onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+
+        <main 
+          id="main-content" 
+          className="flex-1 p-6 overflow-auto"
+          role="main"
+          aria-label="Main content"
+        >
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
       
       {/* Accessibility button */}
       <button
@@ -38,15 +89,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           />
         </svg>
       </button>
-
-      <main 
-        id="main-content" 
-        className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"
-        role="main"
-        aria-label="Main content"
-      >
-        {children}
-      </main>
 
       <AccessibilityPanel
         isOpen={isAccessibilityPanelOpen}

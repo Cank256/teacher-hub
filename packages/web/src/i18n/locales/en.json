@@ -27,12 +27,19 @@
     "communities": "Communities",
     "messages": "Messages",
     "profile": "Profile",
+    "admin": "Admin",
     "home": "Home",
     "help": "Help",
     "contact": "Contact",
     "skipToMain": "Skip to main content",
     "openMenu": "Open main menu",
-    "closeMenu": "Close main menu"
+    "closeMenu": "Close main menu",
+    "openSidebar": "Open sidebar",
+    "closeSidebar": "Close sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
+    "collapse": "Collapse",
+    "currentPage": "Current page"
   },
   "auth": {
     "login": "Login",
@@ -62,6 +69,23 @@
     "communityUpdates": "Community Updates",
     "quickActions": "Quick Actions",
     "statistics": "Statistics"
+  },
+  "search": {
+    "placeholder": "Search resources, teachers, communities...",
+    "label": "Search"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minute ago",
+    "minutesAgo_plural": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hour ago",
+    "hoursAgo_plural": "{{count}} hours ago",
+    "daysAgo": "{{count}} day ago",
+    "daysAgo_plural": "{{count}} days ago"
   },
   "resources": {
     "title": "Educational Resources",
@@ -108,6 +132,7 @@
   },
   "profile": {
     "title": "Profile",
+    "menu": "Profile menu",
     "editProfile": "Edit Profile",
     "personalInfo": "Personal Information",
     "teachingInfo": "Teaching Information",
@@ -123,6 +148,11 @@
     "verified": "Verified",
     "pending": "Pending",
     "rejected": "Rejected"
+  },
+  "user": {
+    "verified": "Verified",
+    "pending": "Pending verification",
+    "rejected": "Verification rejected"
   },
   "accessibility": {
     "title": "Accessibility Settings",
