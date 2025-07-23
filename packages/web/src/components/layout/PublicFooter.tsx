@@ -9,7 +9,7 @@ export const PublicFooter: React.FC = () => {
     platform: [
       { name: t('footer.platform.about'), href: '/about' },
       { name: t('footer.platform.features'), href: '/#features' },
-      { name: t('footer.platform.pricing'), href: '/pricing' },
+      // { name: t('footer.platform.pricing'), href: '/pricing' },
       { name: t('footer.platform.blog'), href: '/blog' }
     ],
     support: [
