@@ -147,7 +147,23 @@
     "verificationStatus": "Verification Status",
     "verified": "Verified",
     "pending": "Pending",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "credentials": {
+      "title": "Teaching Credentials",
+      "addCredential": "Add Credential",
+      "credentialType": "Credential Type",
+      "documentTitle": "Document Title",
+      "issuingInstitution": "Issuing Institution",
+      "dateIssued": "Date Issued",
+      "uploadDocument": "Upload Document",
+      "viewDocument": "View Document",
+      "types": {
+        "teaching_certificate": "Teaching Certificate",
+        "degree": "Academic Degree",
+        "employment_letter": "Employment Letter",
+        "other": "Other Document"
+      }
+    }
   },
   "user": {
     "verified": "Verified",

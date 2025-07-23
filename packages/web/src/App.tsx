@@ -10,6 +10,7 @@ import { Resources } from './pages/Resources';
 import { Communities } from './pages/Communities';
 import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
+import { Preferences } from './pages/Preferences';
 import { LandingPage } from './pages/LandingPage';
 import { ContactPage } from './pages/ContactPage';
 import { HelpPage } from './pages/HelpPage';
@@ -165,6 +166,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Profile />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/preferences" element={
+            <ProtectedRoute>
+              <Layout>
+                <Preferences />
               </Layout>
             </ProtectedRoute>
           } />
