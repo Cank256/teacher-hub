@@ -17,6 +17,7 @@ import {StackNavigationProp} from '@react-navigation/stack';
 import {Button} from '../../components/ui/Button';
 import {Input} from '../../components/ui/Input';
 import {BiometricLoginButton} from '../../components/auth/BiometricLoginButton';
+import {GoogleSignInButton} from '../../components/auth/GoogleSignInButton';
 import {theme} from '../../styles/theme';
 import {loginUser, clearError, checkBiometricAvailability} from '../../store/slices/authSlice';
 import {AuthStackParamList} from '../../navigation/AuthNavigator';
@@ -120,6 +121,14 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
     Alert.alert('Biometric Authentication Failed', error);
   };
 
+  const handleGoogleRegistrationRequired = () => {
+    navigation.navigate('GoogleRegister');
+  };
+
+  const handleGoogleError = (error: string) => {
+    Alert.alert('Google Sign-In Failed', error);
+  };
+
   return (
     <SafeAreaView style={styles.container} testID="login-screen">
       <KeyboardAvoidingView
@@ -202,21 +211,29 @@ export const LoginScreen: React.FC<Props> = ({navigation}) => {
               />
             </View>
 
-            {/* Biometric Authentication */}
-            {biometric.isAvailable && (
-              <View style={styles.biometricSection}>
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>or</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-                
+            {/* Alternative Authentication Methods */}
+            <View style={styles.alternativeAuthSection}>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>or continue with</Text>
+                <View style={styles.dividerLine} />
+              </View>
+              
+              <GoogleSignInButton
+                onRegistrationRequired={handleGoogleRegistrationRequired}
+                onError={handleGoogleError}
+                disabled={isLoading}
+                style={styles.googleButton}
+              />
+
+              {biometric.isAvailable && (
                 <BiometricLoginButton
                   onSuccess={handleBiometricSuccess}
                   onError={handleBiometricError}
+                  style={styles.biometricButton}
                 />
-              </View>
-            )}
+              )}
+            </View>
 
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
@@ -315,8 +332,14 @@ const styles = StyleSheet.create({
   forgotButton: {
     marginTop: theme.spacing.md,
   },
-  biometricSection: {
+  alternativeAuthSection: {
     marginVertical: theme.spacing.lg,
+  },
+  googleButton: {
+    marginBottom: theme.spacing.md,
+  },
+  biometricButton: {
+    marginTop: theme.spacing.sm,
   },
   divider: {
     flexDirection: 'row',

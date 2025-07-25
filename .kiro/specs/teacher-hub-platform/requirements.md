@@ -16,6 +16,8 @@ Teacher Hub is a comprehensive web and mobile platform designed specifically for
 2. WHEN a teacher completes profile setup THEN the system SHALL allow specification of subject areas, grade levels, school location, and years of experience
 3. WHEN a teacher updates their profile THEN the system SHALL maintain a verification status indicator visible to other users
 4. IF a teacher's credentials cannot be verified THEN the system SHALL provide limited access until verification is complete
+5. WHEN a teacher chooses to register THEN the system SHALL provide options for email/password registration or Google OAuth authentication
+6. WHEN a teacher uses Google OAuth THEN the system SHALL still require teaching credential verification for platform access
 
 ### Requirement 2: Teacher-to-Teacher Communication and Collaboration
 
@@ -76,6 +78,8 @@ Teacher Hub is a comprehensive web and mobile platform designed specifically for
 3. WHEN the screen size changes THEN the system SHALL adapt layouts automatically without losing functionality
 4. WHEN using assistive technologies THEN the system SHALL comply with WCAG 2.1 accessibility standards
 5. IF the device has limited processing power THEN the system SHALL maintain acceptable performance through optimized code
+6. WHEN accessing protected content THEN the system SHALL require user authentication and redirect unauthenticated users to login
+7. WHEN browsing public content THEN the system SHALL allow access without authentication while providing clear paths to registration
 
 ### Requirement 7: Offline Access and Synchronization
 

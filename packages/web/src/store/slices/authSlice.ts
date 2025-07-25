@@ -212,6 +212,103 @@ export const loadUserFromStorage = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (authCode: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/google/callback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: authCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 202 && data.requiresRegistration) {
+          // User needs to complete registration
+          return rejectWithValue({ 
+            type: 'REGISTRATION_REQUIRED', 
+            message: data.error.message,
+            authCode 
+          });
+        }
+        return rejectWithValue(data.error?.message || 'Google login failed');
+      }
+
+      // Store tokens
+      localStorage.setItem('auth_token', data.data.accessToken);
+      localStorage.setItem('refresh_token', data.data.refreshToken);
+
+      return data.data;
+    } catch (error) {
+      return rejectWithValue('Network error. Please try again.');
+    }
+  }
+);
+
+export const googleRegister = createAsyncThunk(
+  'auth/googleRegister',
+  async (registrationData: {
+    authCode: string;
+    subjects: string[];
+    gradeLevels: string[];
+    schoolLocation: { district: string; region: string };
+    yearsExperience: number;
+    credentials: File[];
+    bio?: string;
+  }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append('code', registrationData.authCode);
+      formData.append('subjects', JSON.stringify(registrationData.subjects));
+      formData.append('gradeLevels', JSON.stringify(registrationData.gradeLevels));
+      formData.append('schoolLocation', JSON.stringify(registrationData.schoolLocation));
+      formData.append('yearsExperience', registrationData.yearsExperience.toString());
+      
+      if (registrationData.bio) {
+        formData.append('bio', registrationData.bio);
+      }
+
+      // Add credential files
+      registrationData.credentials.forEach((file, index) => {
+        formData.append('credentialDocuments', file);
+      });
+
+      // Add credentials metadata
+      const credentialsMetadata = registrationData.credentials.map((file, index) => ({
+        type: 'teaching_license',
+        institution: 'To be verified',
+        issueDate: new Date(),
+        documentUrl: '' // Will be set by backend
+      }));
+      formData.append('credentials', JSON.stringify(credentialsMetadata));
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/google/register`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return rejectWithValue(error.error?.message || 'Google registration failed');
+      }
+
+      const data = await response.json();
+      
+      // Store tokens
+      localStorage.setItem('auth_token', data.data.accessToken);
+      localStorage.setItem('refresh_token', data.data.refreshToken);
+
+      return data.data;
+    } catch (error) {
+      return rejectWithValue('Network error. Please try again.');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -322,6 +419,47 @@ const authSlice = createSlice({
       .addCase(loadUserFromStorage.rejected, (state) => {
         // Silently fail - user just needs to login again
         state.isAuthenticated = false;
+      })
+      
+      // Google Login
+      .addCase(googleLogin.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+        state.lastActivity = Date.now();
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.isLoading = false;
+        const payload = action.payload as any;
+        if (payload?.type === 'REGISTRATION_REQUIRED') {
+          state.error = payload.message;
+        } else {
+          state.error = payload as string;
+        }
+      })
+      
+      // Google Register
+      .addCase(googleRegister.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(googleRegister.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.accessToken;
+        state.refreshToken = action.payload.refreshToken;
+        state.isAuthenticated = true;
+        state.lastActivity = Date.now();
+      })
+      .addCase(googleRegister.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   },
 });

@@ -1,38 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { registerUser, clearError } from '../../store/slices/authSlice';
+import { googleRegister, clearError } from '../../store/slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
-import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 
-interface RegisterFormData {
-  fullName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
+interface GoogleRegisterFormData {
   subjects: string[];
   gradeLevels: string[];
-  school: string;
-  location: string;
+  district: string;
+  region: string;
   yearsExperience: string;
-  credentialFile: File | null;
+  credentialFiles: File[];
+  bio: string;
   agreeToTerms: boolean;
 }
 
-interface RegisterFormErrors {
-  fullName?: string;
-  email?: string;
-  password?: string;
-  confirmPassword?: string;
+interface GoogleRegisterFormErrors {
   subjects?: string;
   gradeLevels?: string;
-  school?: string;
-  location?: string;
+  district?: string;
+  region?: string;
   yearsExperience?: string;
-  credentialFile?: string;
+  credentialFiles?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -59,33 +51,54 @@ const GRADE_LEVELS = [
   'Tertiary'
 ];
 
-export const RegisterPage: React.FC = () => {
+const UGANDAN_REGIONS = [
+  'Central',
+  'Eastern',
+  'Northern',
+  'Western'
+];
+
+const DISTRICTS_BY_REGION: Record<string, string[]> = {
+  'Central': ['Kampala', 'Wakiso', 'Mukono', 'Mpigi', 'Luwero', 'Nakasongola', 'Masaka', 'Rakai'],
+  'Eastern': ['Jinja', 'Mbale', 'Soroti', 'Tororo', 'Busia', 'Iganga', 'Kamuli', 'Pallisa'],
+  'Northern': ['Gulu', 'Lira', 'Arua', 'Kitgum', 'Pader', 'Apac', 'Nebbi', 'Yumbe'],
+  'Western': ['Mbarara', 'Kasese', 'Kabale', 'Hoima', 'Masindi', 'Bundibugyo', 'Rukungiri', 'Ntungamo']
+};
+
+export const GoogleRegisterPage: React.FC = () => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
   
-  const [formData, setFormData] = useState<RegisterFormData>({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
+  const authCode = (location.state as any)?.authCode;
+  const from = (location.state as any)?.from;
+
+  const [formData, setFormData] = useState<GoogleRegisterFormData>({
     subjects: [],
     gradeLevels: [],
-    school: '',
-    location: '',
+    district: '',
+    region: '',
     yearsExperience: '',
-    credentialFile: null,
+    credentialFiles: [],
+    bio: '',
     agreeToTerms: false,
   });
-  const [errors, setErrors] = useState<RegisterFormErrors>({});
+  const [errors, setErrors] = useState<GoogleRegisterFormErrors>({});
 
-  // Redirect if already authenticated
+  // Redirect if no auth code or already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+    if (!authCode) {
+      navigate('/auth/login', { replace: true });
+      return;
     }
-  }, [isAuthenticated, navigate]);
+
+    if (isAuthenticated) {
+      const redirectTo = from?.pathname || '/dashboard';
+      navigate(redirectTo, { replace: true });
+    }
+  }, [authCode, isAuthenticated, navigate, from]);
 
   // Clear Redux error when component unmounts
   useEffect(() => {
@@ -95,29 +108,7 @@ export const RegisterPage: React.FC = () => {
   }, [dispatch]);
 
   const validateForm = (): boolean => {
-    const newErrors: RegisterFormErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = t('errors.required');
-    }
-
-    if (!formData.email) {
-      newErrors.email = t('errors.required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = t('errors.invalidEmail');
-    }
-
-    if (!formData.password) {
-      newErrors.password = t('errors.required');
-    } else if (formData.password.length < 8) {
-      newErrors.password = t('errors.passwordTooShort', { minLength: 8 });
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('errors.required');
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('errors.passwordsDoNotMatch');
-    }
+    const newErrors: GoogleRegisterFormErrors = {};
 
     if (formData.subjects.length === 0) {
       newErrors.subjects = t('errors.required');
@@ -127,20 +118,20 @@ export const RegisterPage: React.FC = () => {
       newErrors.gradeLevels = t('errors.required');
     }
 
-    if (!formData.school.trim()) {
-      newErrors.school = t('errors.required');
+    if (!formData.region) {
+      newErrors.region = t('errors.required');
     }
 
-    if (!formData.location.trim()) {
-      newErrors.location = t('errors.required');
+    if (!formData.district) {
+      newErrors.district = t('errors.required');
     }
 
     if (!formData.yearsExperience) {
       newErrors.yearsExperience = t('errors.required');
     }
 
-    if (!formData.credentialFile) {
-      newErrors.credentialFile = t('errors.required');
+    if (formData.credentialFiles.length === 0) {
+      newErrors.credentialFiles = t('errors.required');
     }
 
     if (!formData.agreeToTerms) {
@@ -163,34 +154,29 @@ export const RegisterPage: React.FC = () => {
     dispatch(clearError());
 
     try {
-      await dispatch(registerUser({
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
+      await dispatch(googleRegister({
+        authCode,
         subjects: formData.subjects,
         gradeLevels: formData.gradeLevels,
-        school: formData.school,
-        location: formData.location,
+        schoolLocation: {
+          district: formData.district,
+          region: formData.region
+        },
         yearsExperience: parseInt(formData.yearsExperience),
-        credentialFile: formData.credentialFile!,
+        credentials: formData.credentialFiles,
+        bio: formData.bio || undefined,
       })).unwrap();
       
-      // Navigation will be handled by the useEffect hook if user is authenticated
-      // Otherwise, show success message for pending verification
-      if (!isAuthenticated) {
-        // Show success message for registration pending verification
-        navigate('/auth/login?message=registration_success');
-      }
+      // Navigation will be handled by the useEffect hook
     } catch (error) {
-      // Error is handled by Redux state, but we can also show local errors
       setErrors({
         general: error as string || t('errors.generic')
       });
     }
   };
 
-  const handleInputChange = (field: keyof RegisterFormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  const handleInputChange = (field: keyof GoogleRegisterFormData) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const value = field === 'agreeToTerms' ? (e.target as HTMLInputElement).checked : e.target.value;
     setFormData(prev => ({
@@ -199,7 +185,7 @@ export const RegisterPage: React.FC = () => {
     }));
     
     // Clear field error when user starts typing
-    if (errors[field as keyof RegisterFormErrors]) {
+    if (errors[field as keyof GoogleRegisterFormErrors]) {
       setErrors(prev => ({
         ...prev,
         [field]: undefined
@@ -226,31 +212,43 @@ export const RegisterPage: React.FC = () => {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
+    const files = Array.from(e.target.files || []);
     setFormData(prev => ({
       ...prev,
-      credentialFile: file
+      credentialFiles: files
     }));
     
     // Clear file error
-    if (errors.credentialFile) {
+    if (errors.credentialFiles) {
       setErrors(prev => ({
         ...prev,
-        credentialFile: undefined
+        credentialFiles: undefined
       }));
     }
   };
 
-  const handleGoogleRegistrationRequired = (authCode: string) => {
-    // Navigate to Google registration page with auth code
-    navigate('/auth/google/register', { 
-      state: { authCode } 
-    });
+  const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const region = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      region,
+      district: '' // Reset district when region changes
+    }));
+    
+    // Clear region error
+    if (errors.region) {
+      setErrors(prev => ({
+        ...prev,
+        region: undefined
+      }));
+    }
   };
 
-  const handleGoogleError = (error: string) => {
-    setErrors({ general: error });
-  };
+  const availableDistricts = formData.region ? DISTRICTS_BY_REGION[formData.region] || [] : [];
+
+  if (!authCode) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -260,18 +258,18 @@ export const RegisterPage: React.FC = () => {
             Teacher Hub
           </h1>
           <h2 className="text-xl text-gray-600">
-            {t('auth.register')}
+            Complete Your Profile
           </h2>
+          <p className="text-sm text-gray-500 mt-2">
+            Please provide additional information to complete your registration
+          </p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-center">
-              {t('auth.registerButton')}
+              Teaching Profile Information
             </CardTitle>
-            <p className="text-sm text-gray-600 text-center mt-2">
-              {t('auth.verificationRequired')}
-            </p>
           </CardHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -285,68 +283,15 @@ export const RegisterPage: React.FC = () => {
               </div>
             )}
 
-            {/* Personal Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                {t('profile.personalInfo')}
-              </h3>
-              
-              <Input
-                label={t('profile.fullName')}
-                type="text"
-                value={formData.fullName}
-                onChange={handleInputChange('fullName')}
-                error={errors.fullName}
-                required
-                autoComplete="name"
-                placeholder="Enter your full name"
-              />
-
-              <Input
-                label={t('auth.email')}
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange('email')}
-                error={errors.email}
-                required
-                autoComplete="email"
-                placeholder="teacher@example.com"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label={t('auth.password')}
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange('password')}
-                  error={errors.password}
-                  required
-                  autoComplete="new-password"
-                  placeholder="Minimum 8 characters"
-                />
-
-                <Input
-                  label={t('auth.confirmPassword')}
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange('confirmPassword')}
-                  error={errors.confirmPassword}
-                  required
-                  autoComplete="new-password"
-                  placeholder="Confirm your password"
-                />
-              </div>
-            </div>
-
             {/* Teaching Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {t('profile.teachingInfo')}
+                Teaching Information
               </h3>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('profile.subjects')} <span className="text-red-500">*</span>
+                  Subjects <span className="text-red-500">*</span>
                 </label>
                 <select
                   multiple
@@ -376,7 +321,7 @@ export const RegisterPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('profile.gradeLevels')} <span className="text-red-500">*</span>
+                  Grade Levels <span className="text-red-500">*</span>
                 </label>
                 <select
                   multiple
@@ -405,29 +350,62 @@ export const RegisterPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label={t('profile.school')}
-                  type="text"
-                  value={formData.school}
-                  onChange={handleInputChange('school')}
-                  error={errors.school}
-                  required
-                  placeholder="School name"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Region <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.region}
+                    onChange={handleRegionChange}
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 ${
+                      errors.region ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    aria-describedby={errors.region ? 'region-error' : undefined}
+                  >
+                    <option value="">Select Region</option>
+                    {UGANDAN_REGIONS.map(region => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.region && (
+                    <p id="region-error" className="mt-1 text-sm text-red-600" role="alert">
+                      {errors.region}
+                    </p>
+                  )}
+                </div>
 
-                <Input
-                  label={t('profile.location')}
-                  type="text"
-                  value={formData.location}
-                  onChange={handleInputChange('location')}
-                  error={errors.location}
-                  required
-                  placeholder="District, Region"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    District <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.district}
+                    onChange={handleInputChange('district')}
+                    disabled={!formData.region}
+                    className={`block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                      errors.district ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    aria-describedby={errors.district ? 'district-error' : undefined}
+                  >
+                    <option value="">Select District</option>
+                    {availableDistricts.map(district => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.district && (
+                    <p id="district-error" className="mt-1 text-sm text-red-600" role="alert">
+                      {errors.district}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <Input
-                label={t('profile.experience')}
+                label="Years of Teaching Experience"
                 type="number"
                 value={formData.yearsExperience}
                 onChange={handleInputChange('yearsExperience')}
@@ -437,35 +415,59 @@ export const RegisterPage: React.FC = () => {
                 max="50"
                 placeholder="Years of teaching experience"
               />
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Bio (Optional)
+                </label>
+                <textarea
+                  value={formData.bio}
+                  onChange={handleInputChange('bio')}
+                  rows={3}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Tell us about yourself and your teaching experience..."
+                />
+              </div>
             </div>
 
             {/* Credential Upload */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {t('auth.teachingCredentials')}
+                Teaching Credentials
               </h3>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Upload Teaching Certificate <span className="text-red-500">*</span>
+                  Upload Teaching Certificates <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="file"
                   onChange={handleFileChange}
                   accept=".pdf,.jpg,.jpeg,.png"
+                  multiple
                   className={`block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 ${
-                    errors.credentialFile ? 'border-red-300' : ''
+                    errors.credentialFiles ? 'border-red-300' : ''
                   }`}
-                  aria-describedby={errors.credentialFile ? 'credential-error' : 'credential-help'}
+                  aria-describedby={errors.credentialFiles ? 'credential-error' : 'credential-help'}
                 />
-                {errors.credentialFile && (
+                {errors.credentialFiles && (
                   <p id="credential-error" className="mt-1 text-sm text-red-600" role="alert">
-                    {errors.credentialFile}
+                    {errors.credentialFiles}
                   </p>
                 )}
                 <p id="credential-help" className="mt-1 text-sm text-gray-500">
-                  Upload your teaching certificate or diploma (PDF, JPG, PNG - Max 5MB)
+                  Upload your teaching certificates or diplomas (PDF, JPG, PNG - Max 5MB each)
                 </p>
+                {formData.credentialFiles.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Selected files:</p>
+                    <ul className="text-sm text-gray-500">
+                      {formData.credentialFiles.map((file, index) => (
+                        <li key={index}>• {file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -483,23 +485,23 @@ export const RegisterPage: React.FC = () => {
               <div className="ml-3">
                 <label htmlFor="agree-terms" className="text-sm text-gray-900">
                   I agree to the{' '}
-                  <Link
-                    to="/terms"
+                  <a
+                    href="/terms"
                     className="text-primary-600 hover:text-primary-500 underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     Terms of Service
-                  </Link>
+                  </a>
                   {' '}and{' '}
-                  <Link
-                    to="/privacy"
+                  <a
+                    href="/privacy"
                     className="text-primary-600 hover:text-primary-500 underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     Privacy Policy
-                  </Link>
+                  </a>
                 </label>
                 {errors.agreeToTerms && (
                   <p id="terms-error" className="mt-1 text-sm text-red-600" role="alert">
@@ -515,46 +517,11 @@ export const RegisterPage: React.FC = () => {
               size="lg"
               className="w-full"
               loading={isLoading}
-              loadingText={t('common.loading')}
+              loadingText="Completing Registration..."
             >
-              {t('auth.registerButton')}
+              Complete Registration
             </Button>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  {t('auth.orContinueWith')}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <GoogleSignInButton
-                onRegistrationRequired={handleGoogleRegistrationRequired}
-                onError={handleGoogleError}
-                disabled={isLoading}
-                text="signup_with"
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              {t('auth.alreadyHaveAccount')}{' '}
-              <Link
-                to="/auth/login"
-                className="font-medium text-primary-600 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
-              >
-                {t('auth.login')}
-              </Link>
-            </p>
-          </div>
         </Card>
       </div>
     </div>

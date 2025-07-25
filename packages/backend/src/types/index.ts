@@ -41,7 +41,7 @@ export interface UserPreferences {
 export interface TeacherProfile {
   id: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string; // Optional for Google OAuth users
   fullName: string;
   subjects: string[];
   gradeLevels: string[];
@@ -54,6 +54,9 @@ export interface TeacherProfile {
   bio?: string;
   isActive: boolean;
   lastLoginAt?: Date;
+  // Google OAuth fields
+  googleId?: string;
+  authProvider: 'local' | 'google';
   createdAt: Date;
   updatedAt: Date;
 }

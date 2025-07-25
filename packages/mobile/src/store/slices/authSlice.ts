@@ -108,6 +108,29 @@ export const loginWithBiometric = createAsyncThunk(
   }
 );
 
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async () => {
+    const response = await authService.loginWithGoogle();
+    return response;
+  }
+);
+
+export const registerWithGoogle = createAsyncThunk(
+  'auth/registerWithGoogle',
+  async (userData: {
+    subjects: string[];
+    gradeLevels: string[];
+    schoolLocation: {district: string; region: string};
+    yearsExperience: number;
+    credentials: any[];
+    bio?: string;
+  }) => {
+    const response = await authService.registerWithGoogle(userData);
+    return response;
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -204,6 +227,38 @@ const authSlice = createSlice({
       .addCase(loginWithBiometric.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Biometric login failed';
+      })
+      // Google Login
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Google login failed';
+      })
+      // Google Register
+      .addCase(registerWithGoogle.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerWithGoogle.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.error = null;
+      })
+      .addCase(registerWithGoogle.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Google registration failed';
       });
   },
 });

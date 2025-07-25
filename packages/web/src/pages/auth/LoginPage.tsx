@@ -6,6 +6,7 @@ import { loginUser, clearError } from '../../store/slices/authSlice';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Card, CardHeader, CardTitle } from '../../components/ui/Card';
+import { GoogleSignInButton } from '../../components/auth/GoogleSignInButton';
 
 interface LoginFormData {
   email: string;
@@ -110,6 +111,17 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handleGoogleRegistrationRequired = (authCode: string) => {
+    // Navigate to Google registration page with auth code
+    navigate('/auth/google/register', { 
+      state: { authCode, from: location.state?.from } 
+    });
+  };
+
+  const handleGoogleError = (error: string) => {
+    setErrors({ general: error });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -199,6 +211,28 @@ export const LoginPage: React.FC = () => {
               {t('auth.loginButton')}
             </Button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  {t('auth.orContinueWith')}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <GoogleSignInButton
+                onRegistrationRequired={handleGoogleRegistrationRequired}
+                onError={handleGoogleError}
+                disabled={isLoading}
+                className="w-full"
+              />
+            </div>
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">

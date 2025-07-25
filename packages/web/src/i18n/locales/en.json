@@ -60,7 +60,11 @@
     "sendResetLink": "Send Reset Link",
     "backToLogin": "Back to Login",
     "checkEmail": "Check your email",
-    "resetLinkSent": "We've sent a password reset link to your email address"
+    "resetLinkSent": "We've sent a password reset link to your email address",
+    "signInWithGoogle": "Sign in with Google",
+    "signUpWithGoogle": "Sign up with Google",
+    "orContinueWith": "Or continue with",
+    "googleSignInUnavailable": "Google Sign-In unavailable"
   },
   "dashboard": {
     "welcome": "Welcome to Teacher Hub",

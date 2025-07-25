@@ -470,4 +470,287 @@ router.post('/change-password', authenticateToken, requireOwnership, async (req,
   }
 });
 
+/**
+ * GET /auth/google
+ * Get Google OAuth authorization URL
+ */
+router.get('/google', (req, res) => {
+  try {
+    const state = req.query.state as string;
+    const authUrl = authService.getGoogleAuthUrl(state);
+
+    res.json({
+      authUrl,
+      message: 'Google OAuth authorization URL generated'
+    });
+
+  } catch (error) {
+    logger.error('Failed to generate Google auth URL', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(500).json({
+      error: {
+        code: 'GOOGLE_AUTH_URL_FAILED',
+        message: 'Failed to generate Google authorization URL',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
+/**
+ * POST /auth/google/callback
+ * Handle Google OAuth callback
+ */
+router.post('/google/callback', authRateLimit, async (req, res) => {
+  try {
+    const { code, state } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_AUTH_CODE',
+          message: 'Authorization code is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    try {
+      const result = await authService.handleGoogleCallback({ code, state });
+
+      res.json({
+        message: 'Google OAuth login successful',
+        data: result
+      });
+
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REGISTRATION_REQUIRED') {
+        // User needs to complete registration
+        return res.status(202).json({
+          error: {
+            code: 'REGISTRATION_REQUIRED',
+            message: 'User registration required. Please complete your profile.',
+            timestamp: new Date().toISOString()
+          },
+          requiresRegistration: true
+        });
+      }
+      throw error;
+    }
+
+  } catch (error) {
+    logger.error('Google OAuth callback failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
+      error: {
+        code: 'GOOGLE_AUTH_FAILED',
+        message: error instanceof Error ? error.message : 'Google authentication failed',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
+/**
+ * POST /auth/google/register
+ * Register new user with Google OAuth
+ */
+router.post('/google/register', authRateLimit, upload.array('credentialDocuments', 5), async (req, res) => {
+  try {
+    const {
+      code,
+      subjects,
+      gradeLevels,
+      schoolLocation,
+      yearsExperience,
+      bio
+    } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_AUTH_CODE',
+          message: 'Authorization code is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    // Parse JSON fields
+    let parsedSubjects: string[];
+    let parsedGradeLevels: string[];
+    let parsedSchoolLocation: any;
+    let parsedCredentials: any[] = [];
+
+    try {
+      parsedSubjects = typeof subjects === 'string' ? JSON.parse(subjects) : subjects;
+      parsedGradeLevels = typeof gradeLevels === 'string' ? JSON.parse(gradeLevels) : gradeLevels;
+      parsedSchoolLocation = typeof schoolLocation === 'string' ? JSON.parse(schoolLocation) : schoolLocation;
+      
+      if (req.body.credentials) {
+        parsedCredentials = typeof req.body.credentials === 'string' 
+          ? JSON.parse(req.body.credentials) 
+          : req.body.credentials;
+      }
+    } catch (parseError) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_JSON',
+          message: 'Invalid JSON format in request body',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    // Validate uploaded files
+    const files = req.files as Express.Multer.File[];
+    if (files && files.length > 0) {
+      for (const file of files) {
+        if (!validateCredentialDocument(file)) {
+          return res.status(400).json({
+            error: {
+              code: 'INVALID_FILE',
+              message: `Invalid credential document: ${file.originalname}`,
+              timestamp: new Date().toISOString()
+            }
+          });
+        }
+      }
+
+      parsedCredentials = parsedCredentials.map((cred: any, index: number) => ({
+        ...cred,
+        documentUrl: files[index] ? `/uploads/credentials/${files[index].filename}` : cred.documentUrl
+      }));
+    }
+
+    // Get Google user info from the authorization code
+    const { tokens, userInfo } = await authService.getGoogleTokensAndUserInfo(code);
+
+    const registrationData = {
+      googleUserInfo: userInfo,
+      subjects: parsedSubjects,
+      gradeLevels: parsedGradeLevels,
+      schoolLocation: parsedSchoolLocation,
+      yearsExperience: parseInt(yearsExperience),
+      credentials: parsedCredentials,
+      bio
+    };
+
+    const result = await authService.registerWithGoogle(registrationData);
+
+    res.status(201).json({
+      message: 'Google OAuth registration successful',
+      data: result
+    });
+
+  } catch (error) {
+    logger.error('Google OAuth registration failed', { 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
+      error: {
+        code: 'GOOGLE_REGISTRATION_FAILED',
+        message: error instanceof Error ? error.message : 'Google OAuth registration failed',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
+/**
+ * POST /auth/google/link
+ * Link Google account to existing user account
+ */
+router.post('/google/link', authenticateToken, async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_AUTH_CODE',
+          message: 'Authorization code is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({
+        error: {
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'Authentication required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    // Get Google user info from the authorization code
+    const { tokens, userInfo } = await authService.getGoogleTokensAndUserInfo(code);
+
+    await authService.linkGoogleAccount(req.user.userId, userInfo);
+
+    res.json({
+      message: 'Google account linked successfully'
+    });
+
+  } catch (error) {
+    logger.error('Google account linking failed', { 
+      userId: req.user?.userId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
+      error: {
+        code: 'GOOGLE_LINK_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to link Google account',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
+/**
+ * DELETE /auth/google/unlink
+ * Unlink Google account from user account
+ */
+router.delete('/google/unlink', authenticateToken, async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        error: {
+          code: 'AUTHENTICATION_REQUIRED',
+          message: 'Authentication required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+
+    await authService.unlinkGoogleAccount(req.user.userId);
+
+    res.json({
+      message: 'Google account unlinked successfully'
+    });
+
+  } catch (error) {
+    logger.error('Google account unlinking failed', { 
+      userId: req.user?.userId,
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+    
+    res.status(400).json({
+      error: {
+        code: 'GOOGLE_UNLINK_FAILED',
+        message: error instanceof Error ? error.message : 'Failed to unlink Google account',
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+});
+
 export default router;

@@ -100,15 +100,33 @@ graph TB
 - JWT token management with refresh token rotation
 - Multi-factor authentication for sensitive operations
 - Integration with Uganda's teacher verification systems
-- OAuth2 implementation for third-party integrations
+- Google OAuth2 integration for streamlined authentication
+- Route protection system separating public and authenticated areas
 
 **API Endpoints:**
 ```
 POST /auth/register - Teacher registration with credential verification
 POST /auth/login - User authentication
+POST /auth/google - Google OAuth authentication
+GET /auth/google/callback - Google OAuth callback handler
 POST /auth/refresh - Token refresh
 POST /auth/verify-credentials - Teaching credential verification
 GET /auth/profile - User profile retrieval
+```
+
+**Route Protection Architecture:**
+```mermaid
+graph TB
+    User[User Request] --> Router[React Router]
+    Router --> PublicCheck{Is Public Route?}
+    PublicCheck -->|Yes| PublicLayout[Public Layout]
+    PublicCheck -->|No| AuthCheck{Is Authenticated?}
+    AuthCheck -->|Yes| ProtectedLayout[Protected Layout]
+    AuthCheck -->|No| LoginRedirect[Redirect to Login]
+    
+    PublicLayout --> PublicPages[Landing, Help, Contact, Auth Pages]
+    ProtectedLayout --> AuthPages[Dashboard, Resources, Communities, Messages, Profile]
+    LoginRedirect --> AuthPages[Login/Register Pages]
 ```
 
 ### User Management Service

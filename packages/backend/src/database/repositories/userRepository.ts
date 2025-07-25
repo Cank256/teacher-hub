@@ -28,6 +28,23 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
   }
 
   /**
+   * Find user by Google ID
+   */
+  async findByGoogleId(googleId: string): Promise<TeacherProfile | null> {
+    try {
+      const result = await db.query(
+        'SELECT * FROM users WHERE google_id = $1 AND is_active = true',
+        [googleId]
+      );
+      
+      return result.rows.length > 0 ? this.mapFromDb(result.rows[0]) : null;
+    } catch (error) {
+      logger.error(`Failed to find user by Google ID: ${googleId}`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Find users by subject
    */
   async findBySubject(subject: string, limit: number = 10): Promise<TeacherProfile[]> {
@@ -168,6 +185,21 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
   }
 
   /**
+   * Update user Google ID
+   */
+  async updateGoogleId(id: string, googleId: string | null): Promise<void> {
+    try {
+      await db.query(
+        'UPDATE users SET google_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        [googleId, id]
+      );
+    } catch (error) {
+      logger.error(`Failed to update Google ID for user: ${id}`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Get user statistics
    */
   async getStatistics(): Promise<{
@@ -249,6 +281,8 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
       bio: row.bio,
       isActive: row.is_active,
       lastLoginAt: row.last_login_at,
+      googleId: row.google_id,
+      authProvider: row.auth_provider || 'local',
       createdAt: row.created_at,
       updatedAt: row.updated_at
     };
@@ -271,6 +305,8 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
     if (data.bio !== undefined) dbData.bio = data.bio;
     if (data.isActive !== undefined) dbData.is_active = data.isActive;
     if (data.lastLoginAt !== undefined) dbData.last_login_at = data.lastLoginAt;
+    if (data.googleId !== undefined) dbData.google_id = data.googleId;
+    if (data.authProvider !== undefined) dbData.auth_provider = data.authProvider;
 
     return dbData;
   }

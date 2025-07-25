@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { TeacherProfile, Credential, Location, UserPreferences } from '../types';
 import { userRepository } from '../database/repositories/userRepository';
 import { validateEmail, validatePassword, validateCredentials } from '../utils/validation';
+import { googleOAuthService, GoogleUserInfo } from '../config/googleOAuth';
 import logger from '../utils/logger';
 
 export interface RegisterUserRequest {
@@ -21,6 +22,21 @@ export interface RegisterUserRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+}
+
+export interface GoogleAuthRequest {
+  code: string;
+  state?: string;
+}
+
+export interface GoogleRegisterRequest {
+  googleUserInfo: GoogleUserInfo;
+  subjects: string[];
+  gradeLevels: string[];
+  schoolLocation: Location;
+  yearsExperience: number;
+  credentials: Omit<Credential, 'id' | 'verificationStatus'>[];
+  bio?: string;
 }
 
 export interface AuthResponse {
@@ -110,7 +126,8 @@ class AuthService {
         credentials: processedCredentials,
         preferences: defaultPreferences,
         bio: userData.bio,
-        isActive: true
+        isActive: true,
+        authProvider: 'local'
       };
 
       // Save user to database
@@ -162,7 +179,16 @@ class AuthService {
         throw new Error('Account is deactivated');
       }
 
+      // Check if user uses Google OAuth (no password to verify)
+      if (user.authProvider === 'google') {
+        throw new Error('Please use Google OAuth to sign in');
+      }
+
       // Verify password
+      if (!user.passwordHash) {
+        throw new Error('Invalid email or password');
+      }
+
       const isPasswordValid = await bcrypt.compare(loginData.password, user.passwordHash);
       if (!isPasswordValid) {
         throw new Error('Invalid email or password');
@@ -455,7 +481,16 @@ class AuthService {
         throw new Error('User not found');
       }
 
+      // Check if user uses Google OAuth (no password to change)
+      if (user.authProvider === 'google') {
+        throw new Error('Cannot change password for Google OAuth users');
+      }
+
       // Verify current password
+      if (!user.passwordHash) {
+        throw new Error('User has no password set');
+      }
+
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
       if (!isCurrentPasswordValid) {
         throw new Error('Current password is incorrect');
@@ -475,6 +510,261 @@ class AuthService {
     } catch (error) {
       logger.error('Password change failed', { 
         userId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Generate Google OAuth authorization URL
+   */
+  getGoogleAuthUrl(state?: string): string {
+    try {
+      return googleOAuthService.getAuthUrl(state);
+    } catch (error) {
+      logger.error('Failed to generate Google auth URL', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Handle Google OAuth callback and authenticate user
+   */
+  async handleGoogleCallback(authRequest: GoogleAuthRequest): Promise<AuthResponse> {
+    try {
+      // Exchange code for tokens and get user info
+      const { tokens, userInfo } = await googleOAuthService.getTokensAndUserInfo(authRequest.code);
+
+      if (!userInfo.verified_email) {
+        throw new Error('Google account email is not verified');
+      }
+
+      // Check if user already exists
+      let user = await userRepository.findByEmail(userInfo.email.toLowerCase());
+      
+      if (user) {
+        // User exists - check if it's a Google OAuth user
+        if (user.authProvider !== 'google') {
+          throw new Error('An account with this email already exists. Please use email/password login or link your Google account.');
+        }
+
+        // Update last login and Google ID if needed
+        if (user.googleId !== userInfo.id) {
+          await userRepository.updateGoogleId(user.id, userInfo.id);
+          user.googleId = userInfo.id;
+        }
+
+        await userRepository.updateLastLogin(user.id);
+
+        // Generate tokens
+        const { accessToken, refreshToken } = this.generateTokensWithRotation(user);
+
+        logger.info('Google OAuth login successful', { 
+          userId: user.id, 
+          email: user.email 
+        });
+
+        const { passwordHash: _, ...userWithoutPassword } = user;
+        
+        return {
+          user: userWithoutPassword,
+          accessToken,
+          refreshToken
+        };
+      } else {
+        // User doesn't exist - return user info for registration
+        throw new Error('REGISTRATION_REQUIRED');
+      }
+
+    } catch (error) {
+      if (error instanceof Error && error.message === 'REGISTRATION_REQUIRED') {
+        throw error;
+      }
+      
+      logger.error('Google OAuth callback failed', { 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      
+      // Re-throw specific errors for better error handling
+      if (error instanceof Error) {
+        throw error;
+      }
+      
+      throw new Error('Google authentication failed');
+    }
+  }
+
+  /**
+   * Register a new user with Google OAuth
+   */
+  async registerWithGoogle(registrationData: GoogleRegisterRequest): Promise<AuthResponse> {
+    try {
+      // Validate Google user info
+      if (!registrationData.googleUserInfo.verified_email) {
+        throw new Error('Google account email is not verified');
+      }
+
+      // Check if user already exists
+      const existingUser = await userRepository.findByEmail(registrationData.googleUserInfo.email.toLowerCase());
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+
+      // Process credentials and set initial verification status
+      const processedCredentials: Credential[] = registrationData.credentials.map((cred, index) => ({
+        ...cred,
+        id: `cred_${Date.now()}_${index}`,
+        verificationStatus: 'pending' as const
+      }));
+
+      // Create default user preferences
+      const defaultPreferences: UserPreferences = {
+        language: 'en',
+        notifications: {
+          email: true,
+          push: true,
+          sms: false
+        },
+        privacy: {
+          profileVisibility: 'teachers_only',
+          showLocation: true,
+          showExperience: true
+        },
+        contentFilters: {
+          subjects: registrationData.subjects,
+          gradeLevels: registrationData.gradeLevels,
+          contentTypes: ['video', 'document', 'text', 'image']
+        }
+      };
+
+      // Create user profile with Google OAuth data
+      const newUser: Omit<TeacherProfile, 'id' | 'createdAt' | 'updatedAt'> = {
+        email: registrationData.googleUserInfo.email.toLowerCase(),
+        fullName: registrationData.googleUserInfo.name,
+        subjects: registrationData.subjects,
+        gradeLevels: registrationData.gradeLevels,
+        schoolLocation: registrationData.schoolLocation,
+        yearsExperience: registrationData.yearsExperience,
+        verificationStatus: 'pending',
+        credentials: processedCredentials,
+        preferences: defaultPreferences,
+        profileImageUrl: registrationData.googleUserInfo.picture,
+        bio: registrationData.bio,
+        isActive: true,
+        googleId: registrationData.googleUserInfo.id,
+        authProvider: 'google'
+      };
+
+      // Save user to database
+      const savedUser = await userRepository.create(newUser);
+
+      // Generate tokens
+      const { accessToken, refreshToken } = this.generateTokensWithRotation(savedUser);
+
+      logger.info('Google OAuth user registered successfully', { 
+        userId: savedUser.id, 
+        email: savedUser.email,
+        credentialsCount: processedCredentials.length
+      });
+
+      // Return response without password hash
+      const { passwordHash: _, ...userWithoutPassword } = savedUser;
+      
+      return {
+        user: userWithoutPassword,
+        accessToken,
+        refreshToken
+      };
+
+    } catch (error) {
+      logger.error('Google OAuth registration failed', { 
+        email: registrationData.googleUserInfo.email, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Link Google account to existing local account
+   */
+  async linkGoogleAccount(userId: string, googleUserInfo: GoogleUserInfo): Promise<void> {
+    try {
+      if (!googleUserInfo.verified_email) {
+        throw new Error('Google account email is not verified');
+      }
+
+      const user = await userRepository.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Check if Google account is already linked to another user
+      const existingGoogleUser = await userRepository.findByGoogleId(googleUserInfo.id);
+      if (existingGoogleUser && existingGoogleUser.id !== userId) {
+        throw new Error('This Google account is already linked to another user');
+      }
+
+      // Check if emails match
+      if (user.email.toLowerCase() !== googleUserInfo.email.toLowerCase()) {
+        throw new Error('Google account email must match your current account email');
+      }
+
+      // Link Google account
+      await userRepository.updateGoogleId(userId, googleUserInfo.id);
+
+      logger.info('Google account linked successfully', { 
+        userId, 
+        googleId: googleUserInfo.id 
+      });
+
+    } catch (error) {
+      logger.error('Google account linking failed', { 
+        userId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Unlink Google account from user
+   */
+  async unlinkGoogleAccount(userId: string): Promise<void> {
+    try {
+      const user = await userRepository.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (user.authProvider === 'google' && !user.passwordHash) {
+        throw new Error('Cannot unlink Google account without setting a password first');
+      }
+
+      await userRepository.updateGoogleId(userId, null);
+
+      logger.info('Google account unlinked successfully', { userId });
+
+    } catch (error) {
+      logger.error('Google account unlinking failed', { 
+        userId, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get Google tokens and user info from authorization code
+   */
+  async getGoogleTokensAndUserInfo(code: string): Promise<{ tokens: any; userInfo: GoogleUserInfo }> {
+    try {
+      return await googleOAuthService.getTokensAndUserInfo(code);
+    } catch (error) {
+      logger.error('Failed to get Google tokens and user info', { 
         error: error instanceof Error ? error.message : 'Unknown error' 
       });
       throw error;
