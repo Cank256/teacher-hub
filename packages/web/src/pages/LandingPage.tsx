@@ -141,7 +141,184 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Preview Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {t('landing.preview.title')}
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              {t('landing.preview.subtitle')}
+            </p>
+          </div>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Dashboard Preview */}
+            <div className="order-2 lg:order-1">
+              <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+                <div className="bg-primary-600 px-4 py-3 flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                  <div className="flex-1 text-center">
+                    <span className="text-white text-sm font-medium">Teacher Hub Dashboard</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <span className="text-gray-700">Access 500+ verified teaching resources</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <span className="text-gray-700">Connect with 1,200+ teachers nationwide</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <span className="text-gray-700">Get official updates from UNEB & NCDC</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <span className="text-gray-700">Download content for offline use</span>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Join thousands of teachers already using Teacher Hub</span>
+                      <span className="font-medium text-primary-600">Free to join</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="order-1 lg:order-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                {t('landing.preview.dashboardTitle')}
+              </h3>
+              <p className="text-lg text-gray-600 mb-6">
+                {t('landing.preview.dashboardDescription')}
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Personalized Dashboard</h4>
+                    <p className="text-gray-600">Get content recommendations based on your subjects and grade levels</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Real-time Notifications</h4>
+                    <p className="text-gray-600">Stay updated with curriculum changes and new resources</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Progress Tracking</h4>
+                    <p className="text-gray-600">Monitor your professional development and community contributions</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              {t('landing.testimonials.title')}
+            </h2>
+            <p className="text-xl text-gray-600">
+              {t('landing.testimonials.subtitle')}
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-semibold">MK</span>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Mary Kisakye</h4>
+                  <p className="text-gray-600 text-sm">Primary School Teacher, Kampala</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic">
+                "Teacher Hub has transformed how I prepare my lessons. The resources are high-quality and the community support is incredible."
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-semibold">JM</span>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">John Mukasa</h4>
+                  <p className="text-gray-600 text-sm">Secondary School Teacher, Jinja</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic">
+                "The offline access feature is a game-changer for teachers in rural areas. I can download resources and use them even without internet."
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-semibold">SN</span>
+                </div>
+                <div className="ml-4">
+                  <h4 className="font-semibold text-gray-900">Sarah Namukasa</h4>
+                  <p className="text-gray-600 text-sm">Head Teacher, Mbarara</p>
+                </div>
+              </div>
+              <p className="text-gray-700 italic">
+                "Getting official updates from UNEB and NCDC directly through the platform keeps our school aligned with national standards."
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced CTA Section */}
       <section className="py-20 bg-primary-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -150,12 +327,42 @@ export const LandingPage: React.FC = () => {
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
             {t('landing.cta.subtitle')}
           </p>
-          <Link
-            to="/auth/register"
-            className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-          >
-            {t('landing.cta.joinNow')}
-          </Link>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link
+              to="/auth/register"
+              className="bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600 text-lg"
+            >
+              {t('landing.cta.joinNow')} - {t('landing.cta.free')}
+            </Link>
+            <Link
+              to="/auth/login"
+              className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-primary-600 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600 text-lg"
+            >
+              {t('landing.cta.signIn')}
+            </Link>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-8 text-primary-100">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+              <span>Free to join</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+              </svg>
+              <span>Instant access</span>
+            </div>
+          </div>
         </div>
       </section>
     </div>

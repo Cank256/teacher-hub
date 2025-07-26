@@ -5,6 +5,8 @@ import { store } from './store';
 import { Layout } from './components/layout/Layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { PublicRoute } from './components/auth/PublicRoute';
+import { AuthRedirectHandler } from './components/auth/AuthRedirectHandler';
 import { Dashboard } from './pages/Dashboard';
 import { Resources } from './pages/Resources';
 import { Communities } from './pages/Communities';
@@ -62,8 +64,9 @@ function App() {
   return (
     <Provider store={store}>
       <Router>
-        <PWAStatus />
-        <Routes>
+        <AuthRedirectHandler>
+          <PWAStatus />
+          <Routes>
           {/* Public routes with public layout */}
           <Route path="/" element={
             <PublicLayout>
@@ -116,21 +119,27 @@ function App() {
             </PublicLayout>
           } />
 
-          {/* Authentication routes with public layout */}
+          {/* Authentication routes with public layout - redirect if authenticated */}
           <Route path="/auth/login" element={
-            <PublicLayout>
-              <LoginPage />
-            </PublicLayout>
+            <PublicRoute redirectIfAuthenticated={true}>
+              <PublicLayout>
+                <LoginPage />
+              </PublicLayout>
+            </PublicRoute>
           } />
           <Route path="/auth/register" element={
-            <PublicLayout>
-              <RegisterPage />
-            </PublicLayout>
+            <PublicRoute redirectIfAuthenticated={true}>
+              <PublicLayout>
+                <RegisterPage />
+              </PublicLayout>
+            </PublicRoute>
           } />
           <Route path="/auth/forgot-password" element={
-            <PublicLayout>
-              <ForgotPasswordPage />
-            </PublicLayout>
+            <PublicRoute redirectIfAuthenticated={true}>
+              <PublicLayout>
+                <ForgotPasswordPage />
+              </PublicLayout>
+            </PublicRoute>
           } />
           
           {/* Protected routes with authenticated layout */}
@@ -176,8 +185,9 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
-        </Routes>
-        <PWAInstallPrompt />
+          </Routes>
+          <PWAInstallPrompt />
+        </AuthRedirectHandler>
       </Router>
     </Provider>
   );

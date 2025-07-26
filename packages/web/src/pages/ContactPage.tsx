@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export const ContactPage: React.FC = () => {
@@ -74,9 +75,36 @@ export const ContactPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {t('contact.title')}
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             {t('contact.subtitle')}
           </p>
+          
+          {/* Quick access for new users */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+              </svg>
+              <span className="text-blue-800 font-medium">Need help getting started?</span>
+            </div>
+            <p className="text-blue-700 mb-4">
+              Most questions are answered in our comprehensive help section. For account-specific issues, please create an account first.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/help"
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Browse Help Center
+              </Link>
+              <Link
+                to="/auth/register"
+                className="border border-blue-600 text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                Create Account
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">

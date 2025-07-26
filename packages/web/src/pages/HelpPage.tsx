@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 interface FAQItem {
@@ -145,9 +146,36 @@ export const HelpPage: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             {t('help.title')}
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6">
             {t('help.subtitle')}
           </p>
+          
+          {/* Call-to-action for non-authenticated users */}
+          <div className="bg-primary-50 border border-primary-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <div className="flex items-center justify-center space-x-2 mb-3">
+              <svg className="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+              </svg>
+              <span className="text-primary-800 font-medium">New to Teacher Hub?</span>
+            </div>
+            <p className="text-primary-700 mb-4">
+              Join thousands of teachers accessing verified resources, connecting with peers, and staying updated with official curriculum changes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                to="/auth/register"
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                Get Started Free
+              </Link>
+              <Link
+                to="/auth/login"
+                className="border border-primary-600 text-primary-600 px-6 py-2 rounded-lg font-medium hover:bg-primary-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                Sign In
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Search */}

@@ -34,11 +34,25 @@ export const LoginPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<LoginFormErrors>({});
 
-  // Redirect if already authenticated
+  // Enhanced redirect handling for authenticated users
   useEffect(() => {
     if (isAuthenticated) {
-      const from = (location.state as any)?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      const state = location.state as any;
+      let redirectPath = '/dashboard';
+      
+      // Check for return URL in state
+      if (state?.returnUrl) {
+        redirectPath = state.returnUrl;
+      } else if (state?.from?.pathname && state.from.pathname !== '/auth/login') {
+        redirectPath = state.from.pathname + (state.from.search || '');
+      }
+      
+      // Prevent redirect loops
+      if (redirectPath.startsWith('/auth/')) {
+        redirectPath = '/dashboard';
+      }
+      
+      navigate(redirectPath, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
 

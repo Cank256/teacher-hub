@@ -324,8 +324,8 @@
   - Write mobile E2E tests for Google OAuth authentication
   - _Requirements: 1.5, 1.6, 6.6_
 
-- [ ] 21. Enhance route protection and navigation structure
-- [ ] 21.1 Strengthen web application route protection
+- [x] 21. Enhance route protection and navigation structure
+- [x] 21.1 Strengthen web application route protection
   - Review and enhance ProtectedRoute component for comprehensive auth checking
   - Implement automatic redirect to login for unauthenticated access attempts
   - Add loading states during authentication verification
@@ -333,7 +333,7 @@
   - Write unit tests for route protection logic
   - _Requirements: 6.6, 6.7_
 
-- [ ] 21.2 Optimize public vs authenticated user experience
+- [x] 21.2 Optimize public vs authenticated user experience
   - Ensure public pages provide clear calls-to-action for registration
   - Implement seamless transition from public to authenticated areas
   - Add preview content for unauthenticated users to encourage registration
