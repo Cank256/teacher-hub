@@ -105,13 +105,40 @@ test.describe('Public to Authenticated User Journey', () => {
   });
 
   test('should preserve return URL during authentication flow', async ({ page }) => {
-    // Try to access a protected route
+    // Clear any existing authentication state
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => sessionStorage.clear());
+
+    // Try to access a protected route (dashboard)
     await page.goto('/dashboard');
     
     // Should be redirected to login with return URL preserved
     await expect(page).toHaveURL('/auth/login');
     
-    // The return URL preservation is handled by the route protection components
-    // and would be tested with actual authentication in integration tests
+    // Should not see dashboard content
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).not.toBeVisible();
+    
+    // Should see login page content
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
+  });
+
+  test('should protect all authenticated routes from unauthenticated access', async ({ page }) => {
+    // Clear authentication state
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => sessionStorage.clear());
+
+    const protectedRoutes = ['/dashboard', '/resources', '/communities', '/messages', '/profile', '/preferences'];
+
+    for (const route of protectedRoutes) {
+      await page.goto(route);
+      
+      // Should be redirected to login page
+      await expect(page).toHaveURL('/auth/login');
+      
+      // Should see login page content
+      await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
+    }
   });
 });

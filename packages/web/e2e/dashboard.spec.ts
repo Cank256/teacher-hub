@@ -1,7 +1,97 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Dashboard', () => {
+test.describe('Dashboard Route Protection', () => {
+  test('should redirect unauthenticated users to login page', async ({ page }) => {
+    // Clear any existing authentication state
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => sessionStorage.clear());
+
+    // Try to access dashboard without authentication
+    await page.goto('/dashboard');
+
+    // Should be redirected to login page
+    await expect(page).toHaveURL('/auth/login');
+    
+    // Should not see dashboard content
+    await expect(page.getByRole('heading', { name: 'Dashboard' })).not.toBeVisible();
+    
+    // Should see login page content instead
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible();
+  });
+
+  test('should preserve return URL when redirecting to login', async ({ page }) => {
+    // Clear authentication state
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
+    await page.evaluate(() => sessionStorage.clear());
+
+    // Try to access dashboard
+    await page.goto('/dashboard');
+
+    // Should be redirected to login
+    await expect(page).toHaveURL('/auth/login');
+    
+    // The return URL should be preserved in the navigation state
+    // This is handled by the ProtectedRoute component
+    const currentUrl = page.url();
+    expect(currentUrl).toContain('/auth/login');
+  });
+
+  test('should show loading state during authentication verification', async ({ page }) => {
+    // Mock a slow authentication check
+    await page.route('**/api/auth/verify', async (route) => {
+      // Delay the response to simulate slow network
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Unauthorized' })
+      });
+    });
+
+    const dashboardPromise = page.goto('/dashboard');
+    
+    // Should show loading state
+    await expect(page.getByText('Verifying Authentication')).toBeVisible();
+    await expect(page.getByText('Please wait while we verify your login status...')).toBeVisible();
+    
+    await dashboardPromise;
+    
+    // Should eventually redirect to login
+    await expect(page).toHaveURL('/auth/login');
+  });
+});
+
+test.describe('Dashboard Content (Authenticated)', () => {
   test.beforeEach(async ({ page }) => {
+    // Mock authentication state
+    await page.addInitScript(() => {
+      localStorage.setItem('auth_token', 'mock_token');
+      localStorage.setItem('user', JSON.stringify({
+        id: '1',
+        email: 'test@example.com',
+        fullName: 'Test User',
+        verificationStatus: 'verified'
+      }));
+    });
+
+    // Mock API calls for authenticated user
+    await page.route('**/api/auth/verify', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          user: {
+            id: '1',
+            email: 'test@example.com',
+            fullName: 'Test User',
+            verificationStatus: 'verified'
+          }
+        })
+      });
+    });
+
     await page.goto('/dashboard');
   });
 

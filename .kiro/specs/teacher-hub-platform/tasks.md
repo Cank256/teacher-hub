@@ -338,6 +338,8 @@
   - Implement seamless transition from public to authenticated areas
   - Add preview content for unauthenticated users to encourage registration
   - Create consistent branding and messaging across public and protected areas
+  - Ensure dashboard is properly protected under authenticated routes and requires login
+  - Verify dashboard route is only accessible to authenticated users with proper redirects
   - Write E2E tests for public-to-authenticated user journey
   - _Requirements: 6.7, 8.1_
 
