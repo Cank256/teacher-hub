@@ -1,13 +1,13 @@
-import Redis from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import { Message } from '../types';
 import logger from '../utils/logger';
 
 export class MessageQueue {
-  private redis: Redis.RedisClientType;
+  private redis: RedisClientType;
   private isConnected: boolean = false;
 
   constructor() {
-    this.redis = Redis.createClient({
+    this.redis = createClient({
       url: process.env.REDIS_URL || 'redis://localhost:6379'
     });
 

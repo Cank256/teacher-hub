@@ -2,7 +2,7 @@
 
 -- Badges table
 CREATE TABLE badges (
-    id VARCHAR(255) PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     icon VARCHAR(50) NOT NULL,
@@ -18,9 +18,9 @@ CREATE TABLE badges (
 
 -- User badges (earned badges)
 CREATE TABLE user_badges (
-    id VARCHAR(255) PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL,
-    badge_id VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    badge_id UUID NOT NULL,
     earned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     progress INTEGER DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -30,7 +30,7 @@ CREATE TABLE user_badges (
 
 -- User points and statistics
 CREATE TABLE user_stats (
-    user_id VARCHAR(255) PRIMARY KEY,
+    user_id UUID PRIMARY KEY,
     total_points INTEGER DEFAULT 0,
     weekly_points INTEGER DEFAULT 0,
     monthly_points INTEGER DEFAULT 0,
@@ -47,8 +47,8 @@ CREATE TABLE user_stats (
 
 -- Achievements
 CREATE TABLE achievements (
-    id VARCHAR(255) PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('badge_earned', 'milestone_reached', 'peer_nominated', 'top_contributor')),
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
@@ -59,15 +59,15 @@ CREATE TABLE achievements (
 
 -- Peer nominations
 CREATE TABLE peer_nominations (
-    id VARCHAR(255) PRIMARY KEY,
-    nominator_id VARCHAR(255) NOT NULL,
-    nominee_id VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    nominator_id UUID NOT NULL,
+    nominee_id UUID NOT NULL,
     category VARCHAR(50) NOT NULL CHECK (category IN ('helpful_teacher', 'innovative_educator', 'community_leader', 'resource_creator')),
     reason TEXT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     reviewed_at TIMESTAMP,
-    reviewed_by VARCHAR(255),
+    reviewed_by UUID,
     FOREIGN KEY (nominator_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (nominee_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (reviewed_by) REFERENCES users(id) ON DELETE SET NULL,
@@ -77,7 +77,7 @@ CREATE TABLE peer_nominations (
 -- Leaderboard cache (for performance)
 CREATE TABLE leaderboard_cache (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL,
     timeframe VARCHAR(20) NOT NULL CHECK (timeframe IN ('weekly', 'monthly', 'all_time')),
     rank INTEGER NOT NULL,
     points INTEGER NOT NULL,
@@ -102,7 +102,7 @@ CREATE INDEX idx_user_stats_total_points ON user_stats(total_points DESC);
 
 -- Events table
 CREATE TABLE events (
-    id VARCHAR(255) PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('workshop', 'webinar', 'conference', 'training', 'meeting')),
@@ -113,7 +113,7 @@ CREATE TABLE events (
     virtual_link VARCHAR(500),
     max_attendees INTEGER,
     current_attendees INTEGER DEFAULT 0,
-    organizer_id VARCHAR(255) NOT NULL,
+    organizer_id UUID NOT NULL,
     tags TEXT[], -- PostgreSQL array type
     subjects TEXT[],
     target_audience TEXT[],
@@ -126,9 +126,9 @@ CREATE TABLE events (
 
 -- Event registrations table
 CREATE TABLE event_registrations (
-    id VARCHAR(255) PRIMARY KEY,
-    event_id VARCHAR(255) NOT NULL,
-    user_id VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    event_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) NOT NULL DEFAULT 'registered' CHECK (status IN ('registered', 'attended', 'cancelled', 'no_show')),
     notes TEXT,
@@ -139,9 +139,9 @@ CREATE TABLE event_registrations (
 
 -- Event notifications table
 CREATE TABLE event_notifications (
-    id VARCHAR(255) PRIMARY KEY,
-    event_id VARCHAR(255) NOT NULL,
-    user_id VARCHAR(255) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    event_id UUID NOT NULL,
+    user_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL CHECK (type IN ('registration_confirmation', 'reminder', 'update', 'cancellation')),
     message TEXT NOT NULL,
     scheduled_for TIMESTAMP NOT NULL,
@@ -164,12 +164,12 @@ CREATE INDEX idx_event_notifications_scheduled ON event_notifications(scheduled_
 CREATE INDEX idx_event_notifications_sent ON event_notifications(sent);
 
 -- Insert default badges
-INSERT INTO badges (id, name, description, icon, category, criteria_type, criteria_threshold, rarity, points) VALUES
-('first_upload', 'First Contributor', 'Upload your first educational resource', '🎯', 'milestone', 'resource_uploads', 1, 'common', 10),
-('helpful_teacher', 'Helpful Teacher', 'Receive 10 helpful ratings from peers', '⭐', 'engagement', 'helpful_ratings', 10, 'uncommon', 25),
-('resource_master', 'Resource Master', 'Upload 50 high-quality resources', '📚', 'contribution', 'resource_uploads', 50, 'rare', 100),
-('community_champion', 'Community Champion', 'Active in community discussions for 30 days', '🏆', 'engagement', 'community_participation', 30, 'epic', 150),
-('peer_favorite', 'Peer Favorite', 'Receive 5 peer nominations', '💎', 'achievement', 'peer_nominations', 5, 'legendary', 200),
-('early_adopter', 'Early Adopter', 'One of the first 100 users to join', '🚀', 'milestone', 'profile_completion', 1, 'rare', 75),
-('mentor', 'Mentor', 'Help 25 fellow teachers with resources', '👨‍🏫', 'engagement', 'helpful_ratings', 25, 'epic', 125),
-('innovator', 'Innovator', 'Create unique and creative educational content', '💡', 'contribution', 'resource_uploads', 20, 'uncommon', 50);
+INSERT INTO badges (name, description, icon, category, criteria_type, criteria_threshold, rarity, points) VALUES
+('First Contributor', 'Upload your first educational resource', '🎯', 'milestone', 'resource_uploads', 1, 'common', 10),
+('Helpful Teacher', 'Receive 10 helpful ratings from peers', '⭐', 'engagement', 'helpful_ratings', 10, 'uncommon', 25),
+('Resource Master', 'Upload 50 high-quality resources', '📚', 'contribution', 'resource_uploads', 50, 'rare', 100),
+('Community Champion', 'Active in community discussions for 30 days', '🏆', 'engagement', 'community_participation', 30, 'epic', 150),
+('Peer Favorite', 'Receive 5 peer nominations', '💎', 'achievement', 'peer_nominations', 5, 'legendary', 200),
+('Early Adopter', 'One of the first 100 users to join', '🚀', 'milestone', 'profile_completion', 1, 'rare', 75),
+('Mentor', 'Help 25 fellow teachers with resources', '👨‍🏫', 'engagement', 'helpful_ratings', 25, 'epic', 125),
+('Innovator', 'Create unique and creative educational content', '💡', 'contribution', 'resource_uploads', 20, 'uncommon', 50);

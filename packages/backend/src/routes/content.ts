@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { contentCategorizationService } from '../services/contentCategorizationService';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { contentCache } from '../middleware/cache';
 import Joi from 'joi';
 import logger from '../utils/logger';
@@ -60,7 +60,7 @@ const validateRequest = (schema: Joi.ObjectSchema) => {
  * POST /api/content/categorize
  * Automatically categorize content and suggest tags and curriculum alignments
  */
-router.post('/categorize', authenticateToken, validateRequest(categorizeContentSchema), async (req: Request, res: Response) => {
+router.post('/categorize', authMiddleware, validateRequest(categorizeContentSchema), async (req: Request, res: Response) => {
   try {
     const { title, description, subjects, gradeLevels, tags } = req.body;
 
@@ -99,7 +99,7 @@ router.post('/categorize', authenticateToken, validateRequest(categorizeContentS
  * GET /api/content/categories
  * Get content categories, optionally filtered by parent or level
  */
-router.get('/categories', contentCache, authenticateToken, async (req: Request, res: Response) => {
+router.get('/categories', contentCache, authMiddleware, async (req: Request, res: Response) => {
   try {
     const { parentId, level } = req.query;
     
@@ -125,7 +125,7 @@ router.get('/categories', contentCache, authenticateToken, async (req: Request, 
  * GET /api/content/curriculum-standards
  * Get curriculum standards, optionally filtered by subject and grade level
  */
-router.get('/curriculum-standards', contentCache, authenticateToken, async (req: Request, res: Response) => {
+router.get('/curriculum-standards', contentCache, authMiddleware, async (req: Request, res: Response) => {
   try {
     const { subject, gradeLevel } = req.query;
     
@@ -151,7 +151,7 @@ router.get('/curriculum-standards', contentCache, authenticateToken, async (req:
  * GET /api/content/tags
  * Get content tags, optionally filtered by category
  */
-router.get('/tags', contentCache, authenticateToken, async (req: Request, res: Response) => {
+router.get('/tags', contentCache, authMiddleware, async (req: Request, res: Response) => {
   try {
     const { category } = req.query;
     
@@ -174,7 +174,7 @@ router.get('/tags', contentCache, authenticateToken, async (req: Request, res: R
  * POST /api/content/tags
  * Add a custom content tag
  */
-router.post('/tags', authenticateToken, validateRequest(addTagSchema), async (req: Request, res: Response) => {
+router.post('/tags', authMiddleware, validateRequest(addTagSchema), async (req: Request, res: Response) => {
   try {
     const tagData = req.body;
     
@@ -203,7 +203,7 @@ router.post('/tags', authenticateToken, validateRequest(addTagSchema), async (re
  * POST /api/content/validate-alignment
  * Validate curriculum alignment IDs
  */
-router.post('/validate-alignment', authenticateToken, validateRequest(validateAlignmentSchema), async (req: Request, res: Response) => {
+router.post('/validate-alignment', authMiddleware, validateRequest(validateAlignmentSchema), async (req: Request, res: Response) => {
   try {
     const { alignments } = req.body;
     
@@ -226,7 +226,7 @@ router.post('/validate-alignment', authenticateToken, validateRequest(validateAl
  * POST /api/content/rating-data
  * Calculate rating data from individual ratings
  */
-router.post('/rating-data', authenticateToken, async (req: Request, res: Response): Promise<void> => {
+router.post('/rating-data', authMiddleware, async (req: Request, res: Response): Promise<void> => {
   try {
     const { ratings } = req.body;
     

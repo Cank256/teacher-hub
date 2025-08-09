@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { fileService, FileUploadOptions } from '../services/fileService';
 import logger from '../utils/logger';
 
@@ -18,7 +18,7 @@ const upload = multer({
  * Upload a single file
  * POST /api/files/upload
  */
-router.post('/upload', authenticateToken, upload.single('file'), async (req, res) => {
+router.post('/upload', authMiddleware, upload.single('file'), async (req, res): Promise<any> => {
   try {
     if (!req.file) {
       return res.status(400).json({
@@ -63,7 +63,7 @@ router.post('/upload', authenticateToken, upload.single('file'), async (req, res
  * Upload multiple files
  * POST /api/files/upload-multiple
  */
-router.post('/upload-multiple', authenticateToken, upload.array('files', 10), async (req, res) => {
+router.post('/upload-multiple', authMiddleware, upload.array('files', 10), async (req, res): Promise<any> => {
   try {
     const files = req.files as Express.Multer.File[];
     
@@ -111,7 +111,7 @@ router.post('/upload-multiple', authenticateToken, upload.array('files', 10), as
  * Get presigned URL for secure file access
  * GET /api/files/:fileId/presigned-url
  */
-router.get('/:fileId/presigned-url', authenticateToken, async (req, res) => {
+router.get('/:fileId/presigned-url', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { fileId } = req.params;
     const userId = req.user!.userId;
@@ -149,7 +149,7 @@ router.get('/:fileId/presigned-url', authenticateToken, async (req, res) => {
  * Delete a file
  * DELETE /api/files/:fileId
  */
-router.delete('/:fileId', authenticateToken, async (req, res) => {
+router.delete('/:fileId', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { fileId } = req.params;
     const userId = req.user!.userId;

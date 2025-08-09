@@ -343,8 +343,8 @@
   - Write E2E tests for public-to-authenticated user journey
   - _Requirements: 6.7, 8.1_
 
-- [ ] 22. Run applications locally and generate demo data
-- [ ] 22.1 Set up local development environment
+- [-] 22. Run applications locally and generate demo data
+- [-] 22.1 Set up local development environment
   - Start all services using Docker Compose (backend, database, web, mobile)
   - Verify all services are running and communicating properly
   - Test database connections and migrations

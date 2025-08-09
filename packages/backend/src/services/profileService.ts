@@ -262,7 +262,7 @@ class ProfileService {
           const { passwordHash, ...publicProfile } = profile;
           return publicProfile;
         });
-        result.followerCount = result.followers.length;
+        result.followerCount = result.followers?.length || 0;
       }
 
       if (type === 'following' || type === 'both') {
@@ -280,7 +280,7 @@ class ProfileService {
           const { passwordHash, ...publicProfile } = profile;
           return publicProfile;
         });
-        result.followingCount = result.following.length;
+        result.followingCount = result.following?.length || 0;
       }
 
       // If we only need counts, get them efficiently

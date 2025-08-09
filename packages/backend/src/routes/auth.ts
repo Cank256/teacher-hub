@@ -3,7 +3,7 @@ import multer from 'multer';
 import { authService, RegisterUserRequest, LoginRequest } from '../services/authService';
 import { validateCredentialDocument } from '../utils/validation';
 import logger from '../utils/logger';
-import { authenticateToken, authRateLimit, requireOwnership } from '../middleware/auth';
+import { authMiddleware, authRateLimit, requireOwnership } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -27,7 +27,7 @@ const upload = multer({
  * POST /auth/register
  * Register a new teacher with credential verification
  */
-router.post('/register', authRateLimit, upload.array('credentialDocuments', 5), async (req, res) => {
+router.post('/register', authRateLimit, upload.array('credentialDocuments', 5), async (req, res): Promise<any> => {
   try {
     const {
       email,
@@ -125,7 +125,7 @@ router.post('/register', authRateLimit, upload.array('credentialDocuments', 5), 
  * POST /auth/login
  * Authenticate user and return tokens
  */
-router.post('/login', authRateLimit, async (req, res) => {
+router.post('/login', authRateLimit, async (req, res): Promise<any> => {
   try {
     const { email, password }: LoginRequest = req.body;
 
@@ -163,7 +163,7 @@ router.post('/login', authRateLimit, async (req, res) => {
  * POST /auth/refresh
  * Refresh access token using refresh token
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req, res): Promise<any> => {
   try {
     const { refreshToken } = req.body;
 
@@ -201,7 +201,7 @@ router.post('/refresh', async (req, res) => {
  * POST /auth/verify-credential
  * Verify a specific credential (admin/moderator only)
  */
-router.post('/verify-credential', async (req, res) => {
+router.post('/verify-credential', async (req, res): Promise<any> => {
   try {
     const { userId, credentialId, status, notes } = req.body;
 
@@ -248,7 +248,7 @@ router.post('/verify-credential', async (req, res) => {
  * GET /auth/profile
  * Get current user profile (requires authentication)
  */
-router.get('/profile', authenticateToken, async (req, res) => {
+router.get('/profile', authMiddleware, async (req, res): Promise<any> => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -300,7 +300,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
  * POST /auth/validate-email
  * Validate email format and availability
  */
-router.post('/validate-email', async (req, res) => {
+router.post('/validate-email', async (req, res): Promise<any> => {
   try {
     const { email } = req.body;
 
@@ -339,7 +339,7 @@ router.post('/validate-email', async (req, res) => {
  * POST /auth/logout
  * Logout user and revoke refresh token
  */
-router.post('/logout', authenticateToken, async (req, res) => {
+router.post('/logout', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { refreshToken } = req.body;
 
@@ -384,7 +384,7 @@ router.post('/logout', authenticateToken, async (req, res) => {
  * POST /auth/logout-all
  * Logout user from all devices by revoking all refresh tokens
  */
-router.post('/logout-all', authenticateToken, async (req, res) => {
+router.post('/logout-all', authMiddleware, async (req, res): Promise<any> => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -424,7 +424,7 @@ router.post('/logout-all', authenticateToken, async (req, res) => {
  * POST /auth/change-password
  * Change user password (requires authentication)
  */
-router.post('/change-password', authenticateToken, requireOwnership, async (req, res) => {
+router.post('/change-password', authMiddleware, requireOwnership, async (req, res): Promise<any> => {
   try {
     const { currentPassword, newPassword } = req.body;
 
@@ -503,7 +503,7 @@ router.get('/google', (req, res) => {
  * POST /auth/google/callback
  * Handle Google OAuth callback
  */
-router.post('/google/callback', authRateLimit, async (req, res) => {
+router.post('/google/callback', authRateLimit, async (req, res): Promise<any> => {
   try {
     const { code, state } = req.body;
 
@@ -559,7 +559,7 @@ router.post('/google/callback', authRateLimit, async (req, res) => {
  * POST /auth/google/register
  * Register new user with Google OAuth
  */
-router.post('/google/register', authRateLimit, upload.array('credentialDocuments', 5), async (req, res) => {
+router.post('/google/register', authRateLimit, upload.array('credentialDocuments', 5), async (req, res): Promise<any> => {
   try {
     const {
       code,
@@ -666,7 +666,7 @@ router.post('/google/register', authRateLimit, upload.array('credentialDocuments
  * POST /auth/google/link
  * Link Google account to existing user account
  */
-router.post('/google/link', authenticateToken, async (req, res) => {
+router.post('/google/link', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { code } = req.body;
 
@@ -719,7 +719,7 @@ router.post('/google/link', authenticateToken, async (req, res) => {
  * DELETE /auth/google/unlink
  * Unlink Google account from user account
  */
-router.delete('/google/unlink', authenticateToken, async (req, res) => {
+router.delete('/google/unlink', authMiddleware, async (req, res): Promise<any> => {
   try {
     if (!req.user) {
       return res.status(401).json({

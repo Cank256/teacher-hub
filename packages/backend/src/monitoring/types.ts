@@ -32,7 +32,7 @@ export interface UserAnalyticsEvent {
   userId: string;
   sessionId: string;
   event: string;
-  category: 'authentication' | 'content' | 'messaging' | 'search' | 'navigation' | 'error';
+  category: 'authentication' | 'content' | 'messaging' | 'search' | 'navigation' | 'error' | 'monitoring';
   properties?: Record<string, any>;
   userAgent?: string;
   ip?: string;

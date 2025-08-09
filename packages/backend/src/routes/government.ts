@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { governmentContentService, GovernmentContentIngestionRequest } from '../services/governmentContentService';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import Joi from 'joi';
 import logger from '../utils/logger';
 
@@ -128,7 +128,7 @@ const requireGovernmentAccess = (req: Request, res: Response, next: Function): v
  * Ingest government content with digital signature verification
  */
 router.post('/content', 
-  authenticateToken, 
+  authMiddleware, 
   requireGovernmentAccess,
   validateRequest(ingestContentSchema), 
   async (req: Request, res: Response) => {
@@ -173,7 +173,7 @@ router.post('/content',
  * Get government content with filtering and prioritization
  */
 router.get('/content',
-  authenticateToken,
+  authMiddleware,
   validateRequest(getContentSchema),
   async (req: Request, res: Response) => {
     try {
@@ -216,7 +216,7 @@ router.get('/content',
  * Get specific government content by ID
  */
 router.get('/content/:id',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -258,7 +258,7 @@ router.get('/content/:id',
  * Update government content status (activate/deactivate)
  */
 router.patch('/content/:id/status',
-  authenticateToken,
+  authMiddleware,
   requireGovernmentAccess,
   validateRequest(updateStatusSchema),
   async (req: Request, res: Response) => {
@@ -309,7 +309,7 @@ router.patch('/content/:id/status',
  * Get available government content sources
  */
 router.get('/sources',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       const sources = [
@@ -352,7 +352,7 @@ router.get('/sources',
  * Get government content by priority level
  */
 router.get('/content/priority/:priority',
-  authenticateToken,
+  authMiddleware,
   async (req: Request, res: Response) => {
     try {
       const { priority } = req.params;

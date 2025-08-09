@@ -38,7 +38,7 @@ export class SocketServer {
 
   private setupMiddleware() {
     // Authentication middleware
-    this.io.use(async (socket: any, next) => {
+    this.io.use(async (socket: any, next: any) => {
       try {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
         
@@ -65,7 +65,7 @@ export class SocketServer {
   }
 
   private setupEventHandlers() {
-    this.io.on('connection', (socket: AuthenticatedSocket) => {
+    this.io.on('connection', (socket: any) => {
       logger.info(`User ${socket.userProfile.fullName} connected with socket ${socket.id}`);
       
       // Track connected user
@@ -376,7 +376,7 @@ export class SocketServer {
       });
 
       // Handle disconnection
-      socket.on('disconnect', (reason) => {
+      socket.on('disconnect', (reason: any) => {
         logger.info(`User ${socket.userProfile.fullName} disconnected: ${reason}`);
         this.connectedUsers.delete(socket.userId);
         

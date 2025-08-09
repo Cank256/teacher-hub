@@ -521,7 +521,7 @@ class AuthService {
    */
   getGoogleAuthUrl(state?: string): string {
     try {
-      return googleOAuthService.getAuthUrl(state);
+      return googleOAuthService.getInstance().getAuthUrl(state);
     } catch (error) {
       logger.error('Failed to generate Google auth URL', { 
         error: error instanceof Error ? error.message : 'Unknown error' 
@@ -536,7 +536,7 @@ class AuthService {
   async handleGoogleCallback(authRequest: GoogleAuthRequest): Promise<AuthResponse> {
     try {
       // Exchange code for tokens and get user info
-      const { tokens, userInfo } = await googleOAuthService.getTokensAndUserInfo(authRequest.code);
+      const { tokens, userInfo } = await googleOAuthService.getInstance().getTokensAndUserInfo(authRequest.code);
 
       if (!userInfo.verified_email) {
         throw new Error('Google account email is not verified');
@@ -762,7 +762,7 @@ class AuthService {
    */
   async getGoogleTokensAndUserInfo(code: string): Promise<{ tokens: any; userInfo: GoogleUserInfo }> {
     try {
-      return await googleOAuthService.getTokensAndUserInfo(code);
+      return await googleOAuthService.getInstance().getTokensAndUserInfo(code);
     } catch (error) {
       logger.error('Failed to get Google tokens and user info', { 
         error: error instanceof Error ? error.message : 'Unknown error' 

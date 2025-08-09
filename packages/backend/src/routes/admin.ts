@@ -2,13 +2,13 @@ import express from 'express';
 import { errorTracker } from '../monitoring/errorTracker';
 import { performanceMonitor } from '../monitoring/performanceMonitor';
 import { userAnalytics } from '../monitoring/userAnalytics';
-import { authenticateToken } from '../middleware/auth';
+import { authMiddleware } from '../middleware/auth';
 import { userActionTrackingMiddleware } from '../middleware/monitoring';
 
 const router = express.Router();
 
 // Apply authentication middleware to all admin routes
-router.use(authenticateToken);
+router.use(authMiddleware);
 
 // Middleware to check admin permissions (placeholder - would check user role)
 const adminMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {

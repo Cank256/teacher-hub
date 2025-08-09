@@ -131,4 +131,13 @@ class GoogleOAuthService {
   }
 }
 
-export const googleOAuthService = new GoogleOAuthService();
+let googleOAuthServiceInstance: GoogleOAuthService | null = null;
+
+export const googleOAuthService = {
+  getInstance(): GoogleOAuthService {
+    if (!googleOAuthServiceInstance) {
+      googleOAuthServiceInstance = new GoogleOAuthService();
+    }
+    return googleOAuthServiceInstance;
+  }
+};

@@ -1,7 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { profileService } from '../services/profileService';
-import { authenticateToken, requireOwnership } from '../middleware/auth';
+import { authMiddleware, requireOwnership } from '../middleware/auth';
 import { validateProfileUpdate } from '../utils/validation';
 import logger from '../utils/logger';
 
@@ -27,7 +27,7 @@ const upload = multer({
  * GET /profile/:id
  * Get user profile by ID
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
     
@@ -68,9 +68,20 @@ router.get('/:id', async (req, res) => {
  * PUT /profile/:id
  * Update user profile (requires authentication and ownership)
  */
-router.put('/:id', authenticateToken, requireOwnership, upload.single('profileImage'), async (req, res) => {
+router.put('/:id', authMiddleware, requireOwnership, upload.single('profileImage'), async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_USER_ID',
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
+    
     const updateData = req.body;
 
     // Parse JSON fields if they exist
@@ -198,10 +209,20 @@ router.get('/search', async (req, res) => {
  * PUT /profile/:id/verification-status
  * Update profile verification status (admin/moderator only)
  */
-router.put('/:id/verification-status', authenticateToken, async (req, res) => {
+router.put('/:id/verification-status', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_USER_ID',
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
 
     if (!status || !['pending', 'verified', 'rejected'].includes(status)) {
       return res.status(400).json({
@@ -254,7 +275,7 @@ router.put('/:id/verification-status', authenticateToken, async (req, res) => {
  * GET /profile/:id/connections
  * Get user connections (followers/following)
  */
-router.get('/:id/connections', async (req, res) => {
+router.get('/:id/connections', async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
     const { type = 'both' } = req.query;
@@ -296,10 +317,20 @@ router.get('/:id/connections', async (req, res) => {
  * POST /profile/:id/follow
  * Follow/unfollow a user
  */
-router.post('/:id/follow', authenticateToken, async (req, res) => {
+router.post('/:id/follow', authMiddleware, async (req, res): Promise<any> => {
   try {
     const { id } = req.params;
     const { action } = req.body; // 'follow' or 'unfollow'
+
+    if (!id) {
+      return res.status(400).json({
+        error: {
+          code: 'MISSING_USER_ID',
+          message: 'User ID is required',
+          timestamp: new Date().toISOString()
+        }
+      });
+    }
 
     if (!req.user) {
       return res.status(401).json({
