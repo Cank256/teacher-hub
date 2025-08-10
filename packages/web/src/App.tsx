@@ -27,6 +27,7 @@ import { BlogPage } from './pages/BlogPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { PWAInstallPrompt } from './components/ui/PWAInstallPrompt';
 import { PWAStatus } from './components/ui/PWAStatus';
 import { notificationService } from './services/notificationService';
@@ -190,6 +191,20 @@ function App() {
                 <Preferences />
               </Layout>
             </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute>
+              <Layout>
+                <AdminDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          {/* Test route to verify routing is working */}
+          <Route path="/admin-test" element={
+            <div style={{ padding: '20px' }}>
+              <h1>Admin Test Route Works!</h1>
+              <p>If you can see this, routing is working correctly.</p>
+            </div>
           } />
           </Routes>
           <PWAInstallPrompt />

@@ -10,11 +10,11 @@ async function updateUsersWithRoles() {
     await db.query(`UPDATE users SET role = 'admin' WHERE email = 'sarah.nakato@example.com'`);
     await db.query(`UPDATE users SET role = 'moderator' WHERE email = 'james.okello@example.com'`);
     logger.info('Updated existing users with admin roles');
-    
+
     // Create admin users
     const adminPassword = await bcrypt.hash('AdminPass123!', 12);
     const superAdminPassword = await bcrypt.hash('SuperAdmin123!', 12);
-    
+
     try {
       await db.query(`
         INSERT INTO users (
@@ -46,7 +46,7 @@ async function updateUsersWithRoles() {
         throw e;
       }
     }
-    
+
     try {
       await db.query(`
         INSERT INTO users (
@@ -78,7 +78,7 @@ async function updateUsersWithRoles() {
         throw e;
       }
     }
-    
+
     // List all admin users
     const adminUsers = await db.query(`
       SELECT email, full_name, role, verification_status 
@@ -93,7 +93,7 @@ async function updateUsersWithRoles() {
         END,
         full_name
     `);
-    
+
     console.log('\n✅ Admin Users Setup Complete!');
     console.log('\n📋 Admin Users List:');
     console.log('==========================================');
@@ -101,13 +101,13 @@ async function updateUsersWithRoles() {
       console.log(`${user.role.toUpperCase().padEnd(12)} | ${user.email.padEnd(25)} | ${user.full_name}`);
     });
     console.log('==========================================');
-    
+
     console.log('\n🔑 Login Credentials:');
     console.log('Super Admin: superadmin@teacherhub.ug / SuperAdmin123!');
     console.log('Admin:       admin@teacherhub.ug / AdminPass123!');
     console.log('Moderator:   james.okello@example.com / Password123!');
     console.log('Teacher:     sarah.nakato@example.com / Password123! (now has admin role)');
-    
+
   } catch (error) {
     logger.error('Error updating users:', error);
     console.error('❌ Error updating users:', error);
