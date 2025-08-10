@@ -1,5 +1,5 @@
 class NotificationService {
-  private vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY || ''; // This would come from environment variables
+  private vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || ''; // This would come from environment variables
 
   async requestPermission(): Promise<boolean> {
     if (!('Notification' in window)) {
