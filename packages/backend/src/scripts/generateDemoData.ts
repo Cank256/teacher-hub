@@ -125,6 +125,40 @@ class DemoDataGenerator {
   private async generateDemoUsers(): Promise<any[]> {
     // For demo purposes, let's create users directly in the database to bypass validation issues
     const demoUsersData = [
+      // Admin Users
+      {
+        email: 'admin@teacherhub.ug',
+        password: 'AdminPass123!',
+        fullName: 'Dr. Patricia Namugga',
+        subjects: ['Administration', 'Education Management'],
+        gradeLevels: ['All Levels'],
+        schoolLocation: {
+          district: 'Kampala',
+          region: 'Central',
+          schoolName: 'Ministry of Education and Sports'
+        },
+        yearsExperience: 15,
+        bio: 'Senior Education Administrator with extensive experience in educational policy and teacher development. Responsible for platform oversight and quality assurance.',
+        verificationStatus: 'verified',
+        role: 'admin'
+      },
+      {
+        email: 'superadmin@teacherhub.ug',
+        password: 'SuperAdmin123!',
+        fullName: 'Prof. Robert Kyeyune',
+        subjects: ['System Administration', 'Educational Technology'],
+        gradeLevels: ['All Levels'],
+        schoolLocation: {
+          district: 'Kampala',
+          region: 'Central',
+          schoolName: 'Teacher Hub Platform'
+        },
+        yearsExperience: 20,
+        bio: 'Platform Super Administrator and Educational Technology Expert. Oversees all technical and administrative aspects of the Teacher Hub platform.',
+        verificationStatus: 'verified',
+        role: 'super_admin'
+      },
+      // Regular Teachers
       {
         email: 'sarah.nakato@example.com',
         password: 'Password123!',
@@ -138,7 +172,8 @@ class DemoDataGenerator {
         },
         yearsExperience: 8,
         bio: 'Passionate mathematics and physics teacher with 8 years of experience. I love creating interactive learning experiences for my students.',
-        verificationStatus: 'verified'
+        verificationStatus: 'verified',
+        role: 'teacher'
       },
       {
         email: 'james.okello@example.com',
@@ -153,7 +188,8 @@ class DemoDataGenerator {
         },
         yearsExperience: 12,
         bio: 'Experienced English teacher focusing on literacy development and creative writing.',
-        verificationStatus: 'verified'
+        verificationStatus: 'verified',
+        role: 'moderator'
       },
       {
         email: 'mary.achieng@example.com',
@@ -168,7 +204,8 @@ class DemoDataGenerator {
         },
         yearsExperience: 6,
         bio: 'Science teacher passionate about environmental education and laboratory experiments.',
-        verificationStatus: 'verified'
+        verificationStatus: 'verified',
+        role: 'teacher'
       },
       {
         email: 'david.musoke@example.com',
@@ -183,7 +220,8 @@ class DemoDataGenerator {
         },
         yearsExperience: 4,
         bio: 'Social studies teacher interested in Ugandan history and cultural preservation.',
-        verificationStatus: 'pending'
+        verificationStatus: 'pending',
+        role: 'teacher'
       },
       {
         email: 'grace.namuli@example.com',
@@ -198,7 +236,8 @@ class DemoDataGenerator {
         },
         yearsExperience: 10,
         bio: 'Technology enthusiast teaching mathematics and computer science. Advocate for digital literacy.',
-        verificationStatus: 'verified'
+        verificationStatus: 'verified',
+        role: 'teacher'
       }
     ];
 
@@ -211,9 +250,9 @@ class DemoDataGenerator {
         const result = await this.database.query(`
           INSERT INTO users (
             email, password_hash, full_name, subjects_json, grade_levels_json,
-            school_location_json, years_experience, bio, verification_status
+            school_location_json, years_experience, bio, verification_status, role
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           RETURNING *
         `, [
           userData.email,
@@ -224,7 +263,8 @@ class DemoDataGenerator {
           JSON.stringify(userData.schoolLocation),
           userData.yearsExperience,
           userData.bio,
-          userData.verificationStatus
+          userData.verificationStatus,
+          userData.role || 'teacher'
         ]);
         
         createdUsers.push(result.rows[0]);

@@ -3,21 +3,17 @@ import { errorTracker } from '../monitoring/errorTracker';
 import { performanceMonitor } from '../monitoring/performanceMonitor';
 import { userAnalytics } from '../monitoring/userAnalytics';
 import { authMiddleware } from '../middleware/auth';
+import { requireAdmin, requirePermission, loadUserRole } from '../middleware/roleMiddleware';
 import { userActionTrackingMiddleware } from '../middleware/monitoring';
 
 const router = express.Router();
 
 // Apply authentication middleware to all admin routes
 router.use(authMiddleware);
+router.use(loadUserRole);
 
-// Middleware to check admin permissions (placeholder - would check user role)
-const adminMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // In a real implementation, this would check if the user has admin role
-  // For now, we'll assume all authenticated users can access admin features
-  next();
-};
-
-router.use(adminMiddleware);
+// All admin routes require admin role
+router.use(requireAdmin);
 
 /**
  * Get comprehensive admin dashboard data

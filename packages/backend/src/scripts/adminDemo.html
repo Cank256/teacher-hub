@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Hub - Admin Functionality Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .login-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .login-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .login-card h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .credentials {
+            background: #e8f4f8;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn.success {
+            background: #27ae60;
+        }
+        .btn.danger {
+            background: #e74c3c;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .demo-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        .demo-section h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .result-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .role-super_admin {
+            background: #8e44ad;
+            color: white;
+        }
+        .role-admin {
+            background: #e74c3c;
+            color: white;
+        }
+        .role-moderator {
+            background: #f39c12;
+            color: white;
+        }
+        .role-teacher {
+            background: #27ae60;
+            color: white;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        .feature-card h4 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .permission-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background: white;
+        }
+        .permission-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .permission-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Teacher Hub Platform - Admin Functionality Demo</h1>
+        
+        <div class="status info">
+            <strong>Welcome to the Teacher Hub Admin Demo!</strong><br>
+            This demo showcases the comprehensive role-based access control system implemented in the Teacher Hub platform.
+        </div>
+
+        <h2>👥 Demo User Accounts</h2>
+        <div class="login-section">
+            <div class="login-card">
+                <h3><span class="role-badge role-super_admin">Super Admin</span></h3>
+                <div class="credentials">
+                    Email: superadmin@teacherhub.ug<br>
+                    Password: SuperAdmin123!
+                </div>
+                <p><strong>Capabilities:</strong> Full system access, can manage all users, roles, and permissions. Can create other super admins.</p>
+                <button class="btn" onclick="loginUser('superadmin@teacherhub.ug', 'SuperAdmin123!', 'super_admin')">Login as Super Admin</button>
+            </div>
+
+            <div class="login-card">
+                <h3><span class="role-badge role-admin">Admin</span></h3>
+                <div class="credentials">
+                    Email: admin@teacherhub.ug<br>
+                    Password: AdminPass123!
+                </div>
+                <p><strong>Capabilities:</strong> Administrative access, can manage users, content, and system settings. Cannot create super admins.</p>
+                <button class="btn" onclick="loginUser('admin@teacherhub.ug', 'AdminPass123!', 'admin')">Login as Admin</button>
+            </div>
+
+            <div class="login-card">
+                <h3><span class="role-badge role-moderator">Moderator</span></h3>
+                <div class="credentials">
+                    Email: james.okello@example.com<br>
+                    Password: Password123!
+                </div>
+                <p><strong>Capabilities:</strong> Content moderation, user verification, community management. Limited administrative access.</p>
+                <button class="btn" onclick="loginUser('james.okello@example.com', 'Password123!', 'moderator')">Login as Moderator</button>
+            </div>
+
+            <div class="login-card">
+                <h3><span class="role-badge role-teacher">Teacher</span></h3>
+                <div class="credentials">
+                    Email: mary.achieng@example.com<br>
+                    Password: Password123!
+                </div>
+                <p><strong>Capabilities:</strong> Standard user access, can create content, join communities, participate in discussions.</p>
+                <button class="btn" onclick="loginUser('mary.achieng@example.com', 'Password123!', 'teacher')">Login as Teacher</button>
+            </div>
+        </div>
+
+        <div id="loginStatus"></div>
+
+        <h2>🔐 Role-Based Access Control Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🎯 Permission System</h4>
+                <p>Granular permissions for different resources and actions:</p>
+                <ul>
+                    <li>User management (create, read, update, delete)</li>
+                    <li>Content moderation and verification</li>
+                    <li>Community management</li>
+                    <li>System administration</li>
+                    <li>Government content management</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>👑 Role Hierarchy</h4>
+                <p>Four distinct role levels:</p>
+                <ul>
+                    <li><strong>Super Admin:</strong> Full system control</li>
+                    <li><strong>Admin:</strong> Administrative privileges</li>
+                    <li><strong>Moderator:</strong> Content & user moderation</li>
+                    <li><strong>Teacher:</strong> Standard user access</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>🔄 Dynamic Role Management</h4>
+                <p>Administrators can:</p>
+                <ul>
+                    <li>Change user roles</li>
+                    <li>Grant/revoke individual permissions</li>
+                    <li>View role change history</li>
+                    <li>Audit user actions</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>🛡️ Security Features</h4>
+                <p>Built-in security measures:</p>
+                <ul>
+                    <li>Role-based middleware protection</li>
+                    <li>Permission verification</li>
+                    <li>Audit logging</li>
+                    <li>Secure role transitions</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🧪 Interactive Demo</h3>
+            <p>Login with any of the accounts above to test the admin functionality. The demo will show different capabilities based on your role.</p>
+            
+            <div id="demoControls" style="display: none;">
+                <button class="btn" onclick="testAdminDashboard()">📊 Access Admin Dashboard</button>
+                <button class="btn" onclick="testUserManagement()">👥 Test User Management</button>
+                <button class="btn" onclick="testPermissionCheck()">🔑 Check Permissions</button>
+                <button class="btn" onclick="testRoleManagement()">⚙️ Test Role Management</button>
+                <button class="btn danger" onclick="logout()">🚪 Logout</button>
+            </div>
+
+            <div id="demoResults" class="result-box" style="display: none;"></div>
+        </div>
+
+        <h2>📋 System Overview</h2>
+        <div class="demo-section">
+            <h3>Database Schema</h3>
+            <p>The role system includes the following database tables:</p>
+            <ul>
+                <li><strong>users:</strong> Extended with role column</li>
+                <li><strong>permissions:</strong> Defines all available permissions</li>
+                <li><strong>role_permissions:</strong> Maps roles to permissions</li>
+                <li><strong>user_permissions:</strong> Individual user permission overrides</li>
+                <li><strong>role_audit_log:</strong> Tracks role changes</li>
+            </ul>
+
+            <h3>API Endpoints</h3>
+            <p>New role management endpoints:</p>
+            <ul>
+                <li><code>GET /api/roles/permissions</code> - Get all permissions</li>
+                <li><code>GET /api/roles/users/:userId</code> - Get user role and permissions</li>
+                <li><code>PUT /api/roles/users/:userId/role</code> - Change user role</li>
+                <li><code>POST /api/roles/users/:userId/permissions/:permission/grant</code> - Grant permission</li>
+                <li><code>GET /api/roles/admin-users</code> - Get all admin users</li>
+                <li><code>GET /api/roles/check/:permission</code> - Check if user has permission</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentToken = '';
+        let currentUser = null;
+
+        async function loginUser(email, password, expectedRole) {
+            const statusDiv = document.getElementById('loginStatus');
+            const demoControls = document.getElementById('demoControls');
+            const demoResults = document.getElementById('demoResults');
+            
+            try {
+                statusDiv.innerHTML = '<div class="status info">Logging in...</div>';
+                
+                const response = await fetch('http://localhost:8001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.data.accessToken;
+                    currentUser = data.data.user;
+                    
+                    statusDiv.innerHTML = `
+                        <div class="status success">
+                            <strong>✅ Login Successful!</strong><br>
+                            Welcome, ${currentUser.fullName}<br>
+                            Role: <span class="role-badge role-${currentUser.role}">${currentUser.role}</span><br>
+                            Email: ${currentUser.email}
+                        </div>
+                    `;
+                    
+                    demoControls.style.display = 'block';
+                    demoResults.style.display = 'block';
+                    demoResults.textContent = 'Ready to test admin functionality...';
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ Login failed: ${data.error?.message || 'Unknown error'}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Login failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testAdminDashboard() {
+            const resultsDiv = document.getElementById('demoResults');
+            resultsDiv.textContent = 'Testing admin dashboard access...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/admin/dashboard', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.textContent = `✅ Admin Dashboard Access Successful!\n\nDashboard Data:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultsDiv.textContent = `❌ Admin Dashboard Access Denied:\n${data.error?.message || 'Access forbidden'}`;
+                }
+            } catch (error) {
+                resultsDiv.textContent = `❌ Error accessing admin dashboard:\n${error.message}`;
+            }
+        }
+
+        async function testUserManagement() {
+            const resultsDiv = document.getElementById('demoResults');
+            resultsDiv.textContent = 'Testing user management access...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/roles/admin-users', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    let result = '✅ User Management Access Successful!\n\nAdmin Users:\n';
+                    data.data.forEach(user => {
+                        result += `- ${user.full_name} (${user.email}) - ${user.role.toUpperCase()}\n`;
+                    });
+                    resultsDiv.textContent = result;
+                } else {
+                    resultsDiv.textContent = `❌ User Management Access Denied:\n${data.error?.message || 'Access forbidden'}`;
+                }
+            } catch (error) {
+                resultsDiv.textContent = `❌ Error accessing user management:\n${error.message}`;
+            }
+        }
+
+        async function testPermissionCheck() {
+            const resultsDiv = document.getElementById('demoResults');
+            resultsDiv.textContent = 'Testing permission checking...';
+            
+            const permissionsToCheck = [
+                'users.create',
+                'users.delete',
+                'system.admin',
+                'resources.moderate',
+                'communities.create'
+            ];
+            
+            let results = '🔑 Permission Check Results:\n\n';
+            
+            for (const permission of permissionsToCheck) {
+                try {
+                    const response = await fetch(`http://localhost:8001/api/roles/check/${permission}`, {
+                        headers: {
+                            'Authorization': `Bearer ${currentToken}`
+                        }
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        const hasPermission = data.data.hasPermission;
+                        results += `${hasPermission ? '✅' : '❌'} ${permission}: ${hasPermission ? 'GRANTED' : 'DENIED'}\n`;
+                    } else {
+                        results += `❌ ${permission}: ERROR - ${data.error?.message}\n`;
+                    }
+                } catch (error) {
+                    results += `❌ ${permission}: ERROR - ${error.message}\n`;
+                }
+            }
+            
+            resultsDiv.textContent = results;
+        }
+
+        async function testRoleManagement() {
+            const resultsDiv = document.getElementById('demoResults');
+            resultsDiv.textContent = 'Testing role management access...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/roles/permissions', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    let result = `✅ Role Management Access Successful!\n\nTotal Permissions: ${data.data.permissions.length}\n\nPermission Categories:\n`;
+                    
+                    const grouped = data.data.groupedPermissions;
+                    Object.keys(grouped).forEach(resource => {
+                        result += `\n${resource.toUpperCase()}:\n`;
+                        grouped[resource].forEach(perm => {
+                            result += `  - ${perm.name}: ${perm.description}\n`;
+                        });
+                    });
+                    
+                    resultsDiv.textContent = result;
+                } else {
+                    resultsDiv.textContent = `❌ Role Management Access Denied:\n${data.error?.message || 'Access forbidden'}`;
+                }
+            } catch (error) {
+                resultsDiv.textContent = `❌ Error accessing role management:\n${error.message}`;
+            }
+        }
+
+        function logout() {
+            currentToken = '';
+            currentUser = null;
+            
+            document.getElementById('loginStatus').innerHTML = '<div class="status info">Logged out successfully</div>';
+            document.getElementById('demoControls').style.display = 'none';
+            document.getElementById('demoResults').style.display = 'none';
+        }
+
+        // Check if server is running on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('http://localhost:8001/api');
+                if (response.ok) {
+                    console.log('✅ Backend server is running');
+                } else {
+                    console.log('❌ Backend server responded with error');
+                }
+            } catch (error) {
+                console.log('❌ Backend server is not running:', error.message);
+                document.getElementById('loginStatus').innerHTML = `
+                    <div class="status error">
+                        <strong>⚠️ Backend Server Not Running</strong><br>
+                        Please start the backend server first:<br>
+                        <code>cd packages/backend && npm run dev</code>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

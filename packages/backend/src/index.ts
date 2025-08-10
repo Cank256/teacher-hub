@@ -13,6 +13,7 @@ import messageRoutes from './routes/messages';
 import communityRoutes from './routes/communities';
 import monitoringRoutes from './routes/monitoring';
 import adminRoutes from './routes/admin';
+import roleManagementRoutes from './routes/roleManagement';
 import { SocketServer } from './messaging/socketServer';
 import { redisClient } from './cache/redisClient';
 import logger from './utils/logger';
@@ -81,6 +82,9 @@ app.use('/api/monitoring', monitoringRoutes);
 
 // Admin routes
 app.use('/api/admin', adminRoutes);
+
+// Role management routes
+app.use('/api/roles', roleManagementRoutes);
 
 // Error handling middleware
 app.use(errorTrackingMiddleware);
