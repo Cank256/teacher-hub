@@ -15,12 +15,16 @@ export const Input: React.FC<InputProps> = ({
   id,
   required = false,
   'aria-describedby': ariaDescribedBy,
+  value,
   ...props
 }) => {
   const generatedId = useId();
   const inputId = id || generatedId;
   const errorId = `${inputId}-error`;
   const helperTextId = `${inputId}-helper`;
+  
+  // Ensure value is always a string to prevent controlled/uncontrolled switching
+  const safeValue = value === null || value === undefined ? '' : String(value);
   
   // Build aria-describedby attribute
   const describedByIds = [];
@@ -54,6 +58,7 @@ export const Input: React.FC<InputProps> = ({
           ${className}
         `}
         {...props}
+        value={safeValue}
       />
       {error && (
         <p id={errorId} className="mt-1 text-sm text-red-600" role="alert" aria-live="polite">

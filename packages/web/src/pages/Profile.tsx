@@ -59,24 +59,24 @@ export const Profile: React.FC = () => {
     yearsExperience: user?.yearsExperience || 0,
     location: user?.location || '',
     bio: user?.bio || '',
-    profilePicture: user?.profilePicture
+    profilePicture: user?.profilePicture || ''
   });
 
   // Update profile when user data changes
   useEffect(() => {
     if (user) {
-      setProfile({
-        fullName: user.fullName,
-        email: user.email,
-        phone: user.phone || '',
-        school: user.school,
-        subjects: user.subjects,
-        gradeLevels: user.gradeLevels,
-        yearsExperience: user.yearsExperience,
-        location: user.location,
-        bio: user.bio || '',
-        profilePicture: user.profilePicture
-      });
+      setProfile(prevProfile => ({
+        fullName: user.fullName || prevProfile.fullName || '',
+        email: user.email || prevProfile.email || '',
+        phone: user.phone || prevProfile.phone || '',
+        school: user.school || prevProfile.school || '',
+        subjects: user.subjects || prevProfile.subjects || [],
+        gradeLevels: user.gradeLevels || prevProfile.gradeLevels || [],
+        yearsExperience: user.yearsExperience ?? prevProfile.yearsExperience ?? 0,
+        location: user.location || prevProfile.location || '',
+        bio: user.bio || prevProfile.bio || '',
+        profilePicture: user.profilePicture || prevProfile.profilePicture || ''
+      }));
     }
   }, [user]);
 
@@ -289,6 +289,18 @@ export const Profile: React.FC = () => {
           <Link to="/auth/login">
             <Button>Go to Login</Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Ensure we have stable profile data before rendering
+  if (!profile.fullName || !profile.email) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
     );
@@ -581,7 +593,7 @@ export const Profile: React.FC = () => {
               <Input
                 label={t('profile.experience')}
                 type="number"
-                value={profile.yearsExperience}
+                value={profile.yearsExperience.toString()}
                 onChange={(e) => setProfile({...profile, yearsExperience: parseInt(e.target.value) || 0})}
                 disabled={!isEditing}
                 min="0"
