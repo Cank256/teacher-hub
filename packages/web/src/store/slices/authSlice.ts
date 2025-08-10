@@ -48,7 +48,6 @@ export const loginUser = createAsyncThunk(
         },
         body: JSON.stringify(credentials),
       });
-      console.log('Response: ', response)
 
       if (!response.ok) {
         const error = await response.json();
@@ -57,7 +56,7 @@ export const loginUser = createAsyncThunk(
 
       const response_data = await response.json();
       const data = response_data.data; // Extract data from the response wrapper
-      console.log('The data: ',data)
+
       // Store tokens in localStorage if remember me is checked
       if (credentials.rememberMe) {
         localStorage.setItem('auth_token', data.accessToken);
