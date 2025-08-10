@@ -1,9 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { updateUser } from '../store/slices/authSlice';
+import { profileService } from '../services/profileService';
 
 interface ProfileData {
   fullName: string;
@@ -30,6 +33,9 @@ interface Credential {
 
 export const Profile: React.FC = () => {
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const credentialFileRef = useRef<HTMLInputElement>(null);
   
@@ -40,19 +46,39 @@ export const Profile: React.FC = () => {
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [showAddGrade, setShowAddGrade] = useState(false);
   const [showAddCredential, setShowAddCredential] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
+  // Initialize profile from Redux store
   const [profile, setProfile] = useState<ProfileData>({
-    fullName: 'Jane Nakamya',
-    email: 'jane.nakamya@example.com',
-    phone: '+256 700 123 456',
-    school: 'Kampala Primary School',
-    subjects: ['Mathematics', 'Science', 'English'],
-    gradeLevels: ['Primary 4-7'],
-    yearsExperience: 8,
-    location: 'Kampala, Uganda',
-    bio: 'Passionate educator with 8 years of experience teaching primary school students. I specialize in making mathematics and science engaging through hands-on activities and real-world applications.',
-    profilePicture: undefined
+    fullName: user?.fullName || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    school: user?.school || '',
+    subjects: user?.subjects || [],
+    gradeLevels: user?.gradeLevels || [],
+    yearsExperience: user?.yearsExperience || 0,
+    location: user?.location || '',
+    bio: user?.bio || '',
+    profilePicture: user?.profilePicture
   });
+
+  // Update profile when user data changes
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone || '',
+        school: user.school,
+        subjects: user.subjects,
+        gradeLevels: user.gradeLevels,
+        yearsExperience: user.yearsExperience,
+        location: user.location,
+        bio: user.bio || '',
+        profilePicture: user.profilePicture
+      });
+    }
+  }, [user]);
 
   const [credentials, setCredentials] = useState<Credential[]>([
     {
@@ -92,16 +118,50 @@ export const Profile: React.FC = () => {
     file: null as File | null
   });
 
-  const verificationStatus = 'verified'; // This would come from the backend
+  const verificationStatus = user?.verificationStatus || 'pending';
 
   const handleSave = async () => {
+    if (!user) return;
+    
     setIsUploading(true);
+    setError(null);
+    
     try {
-      // Save profile logic would go here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      // Prepare update data
+      const updateData: any = {
+        fullName: profile.fullName,
+        email: profile.email,
+        school: profile.school,
+        subjects: profile.subjects,
+        gradeLevels: profile.gradeLevels,
+        yearsExperience: profile.yearsExperience,
+        location: profile.location,
+      };
+      
+      if (profile.bio) {
+        updateData.bio = profile.bio;
+      }
+      
+      if (profile.phone) {
+        updateData.phone = profile.phone;
+      }
+      
+      // Add profile image if changed (base64 to file conversion)
+      if (profile.profilePicture && profile.profilePicture.startsWith('data:')) {
+        const response = await fetch(profile.profilePicture);
+        const blob = await response.blob();
+        updateData.profileImage = new File([blob], 'profile.jpg', { type: 'image/jpeg' });
+      }
+
+      const updatedUser = await profileService.updateProfile(user.id, updateData);
+
+      // Update Redux store with new user data
+      dispatch(updateUser(updatedUser));
+      
       setIsEditing(false);
     } catch (error) {
       console.error('Failed to save profile:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save profile');
     } finally {
       setIsUploading(false);
     }
@@ -219,8 +279,49 @@ export const Profile: React.FC = () => {
     return types[type as keyof typeof types] || type;
   };
 
+  // Redirect to login if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please log in to view your profile.</p>
+          <Link to="/auth/login">
+            <Button>Go to Login</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+            <div className="ml-auto pl-3">
+              <button
+                onClick={() => setError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <span className="sr-only">Dismiss</span>
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('profile.title')}</h1>

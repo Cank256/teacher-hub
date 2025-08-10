@@ -52,6 +52,7 @@ export interface TeacherProfile {
   preferences: UserPreferences;
   profileImageUrl?: string;
   bio?: string;
+  phone?: string;
   isActive: boolean;
   lastLoginAt?: Date;
   // Google OAuth fields

@@ -279,6 +279,7 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
       preferences: typeof row.preferences_json === 'object' ? row.preferences_json : JSON.parse(row.preferences_json || '{}'),
       profileImageUrl: row.profile_image_url,
       bio: row.bio,
+      phone: row.phone,
       isActive: row.is_active,
       lastLoginAt: row.last_login_at,
       googleId: row.google_id,
@@ -303,6 +304,7 @@ export class UserRepository extends BaseRepository<TeacherProfile> {
     if (data.preferences !== undefined) dbData.preferences_json = JSON.stringify(data.preferences);
     if (data.profileImageUrl !== undefined) dbData.profile_image_url = data.profileImageUrl;
     if (data.bio !== undefined) dbData.bio = data.bio;
+    if (data.phone !== undefined) dbData.phone = data.phone;
     if (data.isActive !== undefined) dbData.is_active = data.isActive;
     if (data.lastLoginAt !== undefined) dbData.last_login_at = data.lastLoginAt;
     if (data.googleId !== undefined) dbData.google_id = data.googleId;

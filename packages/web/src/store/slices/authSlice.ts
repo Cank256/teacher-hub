@@ -11,6 +11,8 @@ export interface User {
   yearsExperience: number;
   verificationStatus: 'pending' | 'verified' | 'rejected';
   profilePicture?: string;
+  bio?: string;
+  phone?: string;
 }
 
 export interface AuthState {
