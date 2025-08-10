@@ -149,6 +149,47 @@
     "pending": "Kulindirira okukakasibwa",
     "rejected": "Okukakasa kugaaniddwa"
   },
+  "admin": {
+    "title": "Ekitongole ky'Omuddukanya",
+    "role": "Omuddukanya",
+    "mode": {
+      "indicator": "Enkola y'Omuddukanya - Oli mu nkola y'omuddukanya"
+    },
+    "exitMode": "Kuva mu Nkola y'Omuddukanya",
+    "navigation": {
+      "dashboard": "Omutindo gw'Omuddukanya",
+      "users": "Okuddukanya Abakozesa",
+      "content": "Okuddukanya Ebirimu",
+      "settings": "Enteekateeka z'Enkola",
+      "analytics": "Okwekenenya",
+      "reports": "Alipoota"
+    },
+    "users": {
+      "title": "Okuddukanya Abakozesa",
+      "overview": "Okutunuulira Abakozesa",
+      "description": "Ddukanya akawunti z'abakozesa, kakasa obujulizi, era weekennenye emirimu gy'abakozesa ku pulatifomu."
+    },
+    "content": {
+      "title": "Okuddukanya Ebirimu",
+      "overview": "Okutunuulira Ebirimu",
+      "description": "Ddukanya ebikozesebwa by'okuyigiriza, labirira ebirimu, era weekennenye ebyawaganyizibwa mu bibiina."
+    },
+    "settings": {
+      "title": "Enteekateeka z'Enkola",
+      "overview": "Enteekateeka y'Enkola",
+      "description": "Teekateeka enteekateeka z'enkola yonna, enkola z'obukuumi, n'ebyetaago bya pulatifomu."
+    },
+    "analytics": {
+      "title": "Omutindo gw'Okwekenenya",
+      "overview": "Okwekenenya kwa Pulatifomu",
+      "description": "Laba okwekenenya okw'amawulire ku nkozesa ya pulatifomu, okwenyigira kw'abakozesa, n'omulimu gw'ebirimu."
+    },
+    "reports": {
+      "title": "Alipoota n'Okumanya",
+      "overview": "Alipoota z'Enkola",
+      "description": "Kola era ofulumye alipoota ezijjuvu ku mirimu gya pulatifomu n'omulimu gwayo."
+    }
+  },
   "accessibility": {
     "title": "Enteekateeka z'okutuukiriza",
     "fontSize": "Obunene bw'ennukuta",

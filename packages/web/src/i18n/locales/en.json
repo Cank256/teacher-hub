@@ -174,6 +174,47 @@
     "pending": "Pending verification",
     "rejected": "Verification rejected"
   },
+  "admin": {
+    "title": "Admin Panel",
+    "role": "Administrator",
+    "mode": {
+      "indicator": "Admin Mode - You are currently in administrator mode"
+    },
+    "exitMode": "Exit Admin Mode",
+    "navigation": {
+      "dashboard": "Admin Dashboard",
+      "users": "User Management",
+      "content": "Content Management",
+      "settings": "System Settings",
+      "analytics": "Analytics",
+      "reports": "Reports"
+    },
+    "users": {
+      "title": "User Management",
+      "overview": "User Overview",
+      "description": "Manage user accounts, verify credentials, and monitor user activity across the platform."
+    },
+    "content": {
+      "title": "Content Management",
+      "overview": "Content Overview",
+      "description": "Manage educational resources, moderate content, and oversee community contributions."
+    },
+    "settings": {
+      "title": "System Settings",
+      "overview": "System Configuration",
+      "description": "Configure system-wide settings, security policies, and platform preferences."
+    },
+    "analytics": {
+      "title": "Analytics Dashboard",
+      "overview": "Platform Analytics",
+      "description": "View detailed analytics about platform usage, user engagement, and content performance."
+    },
+    "reports": {
+      "title": "Reports & Insights",
+      "overview": "System Reports",
+      "description": "Generate and download comprehensive reports about platform activity and performance."
+    }
+  },
   "accessibility": {
     "title": "Accessibility Settings",
     "fontSize": "Font Size",
