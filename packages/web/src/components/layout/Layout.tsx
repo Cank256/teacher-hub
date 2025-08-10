@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { TopNavigation } from './TopNavigation';
 import { AccessibilityPanel } from '../ui/AccessibilityPanel';
 import { ScreenReaderAnnouncements } from '../ui/ScreenReaderAnnouncements';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -53,7 +54,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top navigation bar */}
-        <TopNavigation onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <ErrorBoundary fallback={<div className="h-16 bg-white shadow-sm" />}>
+          <TopNavigation onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        </ErrorBoundary>
 
         <main 
           id="main-content" 
@@ -90,12 +93,16 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </svg>
       </button>
 
-      <AccessibilityPanel
-        isOpen={isAccessibilityPanelOpen}
-        onClose={() => setIsAccessibilityPanelOpen(false)}
-      />
+      <ErrorBoundary fallback={<div />}>
+        <AccessibilityPanel
+          isOpen={isAccessibilityPanelOpen}
+          onClose={() => setIsAccessibilityPanelOpen(false)}
+        />
+      </ErrorBoundary>
 
-      <ScreenReaderAnnouncements />
+      <ErrorBoundary fallback={<div />}>
+        <ScreenReaderAnnouncements />
+      </ErrorBoundary>
     </div>
   );
 };

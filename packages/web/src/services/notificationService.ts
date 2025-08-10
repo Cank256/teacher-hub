@@ -1,5 +1,5 @@
 class NotificationService {
-  private vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY'; // This would come from environment variables
+  private vapidPublicKey = process.env.REACT_APP_VAPID_PUBLIC_KEY || ''; // This would come from environment variables
 
   async requestPermission(): Promise<boolean> {
     if (!('Notification' in window)) {
@@ -22,6 +22,11 @@ class NotificationService {
   async subscribeToPushNotifications(): Promise<PushSubscription | null> {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.warn('Push messaging is not supported');
+      return null;
+    }
+
+    if (!this.vapidPublicKey) {
+      console.warn('VAPID public key not configured');
       return null;
     }
 
@@ -79,18 +84,31 @@ class NotificationService {
   }
 
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
+    if (!base64String) {
+      throw new Error('Base64 string is empty or undefined');
+    }
+
+    // Validate base64 string format
+    if (!/^[A-Za-z0-9_-]+$/.test(base64String)) {
+      throw new Error('Invalid base64 string format');
+    }
+
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
       .replace(/-/g, '+')
       .replace(/_/g, '/');
 
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
+    try {
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
 
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+    } catch (error) {
+      throw new Error(`Failed to decode base64 string: ${error}`);
     }
-    return outputArray;
   }
 
   private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {

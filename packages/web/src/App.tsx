@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
 import { Layout } from './components/layout/Layout';
 import { PublicLayout } from './components/layout/PublicLayout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -45,9 +46,13 @@ function App() {
           console.log('Service Worker registered successfully:', registration);
           
           // Request notification permission and subscribe to push notifications
-          const hasPermission = await notificationService.requestPermission();
-          if (hasPermission) {
-            await notificationService.subscribeToPushNotifications();
+          try {
+            const hasPermission = await notificationService.requestPermission();
+            if (hasPermission) {
+              await notificationService.subscribeToPushNotifications();
+            }
+          } catch (notificationError) {
+            console.warn('Failed to initialize push notifications:', notificationError);
           }
         } catch (error) {
           console.error('Service Worker registration failed:', error);
@@ -63,10 +68,11 @@ function App() {
 
   return (
     <Provider store={store}>
-      <Router>
-        <AuthRedirectHandler>
-          <PWAStatus />
-          <Routes>
+      <AccessibilityProvider>
+        <Router>
+          <AuthRedirectHandler>
+            <PWAStatus />
+            <Routes>
           {/* Public routes with public layout */}
           <Route path="/" element={
             <PublicLayout>
@@ -189,6 +195,7 @@ function App() {
           <PWAInstallPrompt />
         </AuthRedirectHandler>
       </Router>
+      </AccessibilityProvider>
     </Provider>
   );
 }

@@ -157,7 +157,17 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ ch
 export const useAccessibility = (): AccessibilityContextType => {
   const context = useContext(AccessibilityContext);
   if (context === undefined) {
-    throw new Error('useAccessibility must be used within an AccessibilityProvider');
+    console.warn('useAccessibility must be used within an AccessibilityProvider. Using fallback values.');
+    
+    // Return fallback context with no-op functions
+    return {
+      state: initialState,
+      toggleHighContrast: () => {},
+      setFontSize: () => {},
+      toggleReducedMotion: () => {},
+      announceToScreenReader: () => {},
+      clearAnnouncements: () => {},
+    };
   }
   return context;
 };

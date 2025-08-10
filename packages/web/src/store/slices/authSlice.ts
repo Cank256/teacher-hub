@@ -33,33 +33,37 @@ const initialState: AuthState = {
   lastActivity: null,
 };
 
+const BACKEND_URL = import.meta.env.REACT_BACKEND_URL || "http://localhost:8001";
+
 // Async thunks for authentication actions
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string; rememberMe: boolean }, { rejectWithValue }) => {
     try {
       // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(BACKEND_URL + '/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(credentials),
       });
+      console.log('Response: ', response)
 
       if (!response.ok) {
         const error = await response.json();
         return rejectWithValue(error.message || 'Login failed');
       }
 
-      const data = await response.json();
-      
+      const response_data = await response.json();
+      const data = response_data.data; // Extract data from the response wrapper
+      console.log('The data: ',data)
       // Store tokens in localStorage if remember me is checked
       if (credentials.rememberMe) {
-        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('auth_token', data.accessToken);
         localStorage.setItem('refresh_token', data.refreshToken);
       } else {
-        sessionStorage.setItem('auth_token', data.token);
+        sessionStorage.setItem('auth_token', data.accessToken);
         sessionStorage.setItem('refresh_token', data.refreshToken);
       }
 
@@ -95,18 +99,18 @@ export const registerUser = createAsyncThunk(
         }
       });
 
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(error.message || 'Registration failed');
+        return rejectWithValue(error.error?.message || error.message || 'Registration failed');
       }
 
-      const data = await response.json();
+      const response_data = await response.json();
+      const data = response_data.data; // Extract data from the response wrapper
       return data;
     } catch (error) {
       return rejectWithValue('Network error. Please try again.');
@@ -125,8 +129,7 @@ export const refreshAuthToken = createAsyncThunk(
         return rejectWithValue('No refresh token available');
       }
 
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/refresh', {
+      const response = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -138,11 +141,12 @@ export const refreshAuthToken = createAsyncThunk(
         return rejectWithValue('Token refresh failed');
       }
 
-      const data = await response.json();
-      
+      const result = await response.json();
+      const data = result.data;
+
       // Update stored tokens
       const storage = localStorage.getItem('auth_token') ? localStorage : sessionStorage;
-      storage.setItem('auth_token', data.token);
+      storage.setItem('auth_token', data.accessToken);
       storage.setItem('refresh_token', data.refreshToken);
 
       return data;
@@ -156,8 +160,7 @@ export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email: string, { rejectWithValue }) => {
     try {
-      // TODO: Replace with actual API call
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch(`${BACKEND_URL}/api/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +170,7 @@ export const forgotPassword = createAsyncThunk(
 
       if (!response.ok) {
         const error = await response.json();
-        return rejectWithValue(error.message || 'Failed to send reset email');
+        return rejectWithValue(error.error?.message || error.message || 'Failed to send reset email');
       }
 
       return { email };
@@ -188,8 +191,8 @@ export const loadUserFromStorage = createAsyncThunk(
         return rejectWithValue('No stored authentication');
       }
 
-      // TODO: Validate token with API and get user data
-      const response = await fetch('/api/auth/me', {
+      // Validate token with API and get user data
+      const response = await fetch(`${BACKEND_URL}/api/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -204,7 +207,8 @@ export const loadUserFromStorage = createAsyncThunk(
         return rejectWithValue('Invalid stored token');
       }
 
-      const user = await response.json();
+      const result = await response.json();
+      const user = result.data;
       return { user, token, refreshToken };
     } catch (error) {
       return rejectWithValue('Failed to load user data');
@@ -216,7 +220,7 @@ export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
   async (authCode: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/google/callback`, {
+      const response = await fetch(`${BACKEND_URL}/api/auth/google/callback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,25 +228,27 @@ export const googleLogin = createAsyncThunk(
         body: JSON.stringify({ code: authCode }),
       });
 
-      const data = await response.json();
+      const response_data = await response.json();
 
       if (!response.ok) {
-        if (response.status === 202 && data.requiresRegistration) {
+        if (response.status === 202 && response_data.requiresRegistration) {
           // User needs to complete registration
-          return rejectWithValue({ 
-            type: 'REGISTRATION_REQUIRED', 
-            message: data.error.message,
-            authCode 
+          return rejectWithValue({
+            type: 'REGISTRATION_REQUIRED',
+            message: response_data.error?.message || 'Registration required',
+            authCode
           });
         }
-        return rejectWithValue(data.error?.message || 'Google login failed');
+        return rejectWithValue(response_data.error?.message || 'Google login failed');
       }
 
-      // Store tokens
-      localStorage.setItem('auth_token', data.data.accessToken);
-      localStorage.setItem('refresh_token', data.data.refreshToken);
+      const data = response_data.data;
 
-      return data.data;
+      // Store tokens
+      localStorage.setItem('auth_token', data.accessToken);
+      localStorage.setItem('refresh_token', data.refreshToken);
+
+      return data;
     } catch (error) {
       return rejectWithValue('Network error. Please try again.');
     }
@@ -267,18 +273,18 @@ export const googleRegister = createAsyncThunk(
       formData.append('gradeLevels', JSON.stringify(registrationData.gradeLevels));
       formData.append('schoolLocation', JSON.stringify(registrationData.schoolLocation));
       formData.append('yearsExperience', registrationData.yearsExperience.toString());
-      
+
       if (registrationData.bio) {
         formData.append('bio', registrationData.bio);
       }
 
       // Add credential files
-      registrationData.credentials.forEach((file, index) => {
+      registrationData.credentials.forEach((file) => {
         formData.append('credentialDocuments', file);
       });
 
       // Add credentials metadata
-      const credentialsMetadata = registrationData.credentials.map((file, index) => ({
+      const credentialsMetadata = registrationData.credentials.map(() => ({
         type: 'teaching_license',
         institution: 'To be verified',
         issueDate: new Date(),
@@ -286,7 +292,7 @@ export const googleRegister = createAsyncThunk(
       }));
       formData.append('credentials', JSON.stringify(credentialsMetadata));
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/auth/google/register`, {
+      const response = await fetch(`${BACKEND_URL}/api/auth/google/register`, {
         method: 'POST',
         body: formData,
       });
@@ -296,13 +302,14 @@ export const googleRegister = createAsyncThunk(
         return rejectWithValue(error.error?.message || 'Google registration failed');
       }
 
-      const data = await response.json();
-      
-      // Store tokens
-      localStorage.setItem('auth_token', data.data.accessToken);
-      localStorage.setItem('refresh_token', data.data.refreshToken);
+      const response_data = await response.json();
+      const data = response_data.data;
 
-      return data.data;
+      // Store tokens
+      localStorage.setItem('auth_token', data.accessToken);
+      localStorage.setItem('refresh_token', data.refreshToken);
+
+      return data;
     } catch (error) {
       return rejectWithValue('Network error. Please try again.');
     }
@@ -320,7 +327,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.lastActivity = null;
-      
+
       // Clear stored tokens
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
@@ -349,7 +356,7 @@ const authSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user;
-        state.token = action.payload.token;
+        state.token = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
         state.isAuthenticated = true;
         state.lastActivity = Date.now();
@@ -358,7 +365,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
+
       // Register
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
@@ -369,7 +376,7 @@ const authSlice = createSlice({
         // Registration might not immediately authenticate the user
         if (action.payload.user) {
           state.user = action.payload.user;
-          state.token = action.payload.token;
+          state.token = action.payload.accessToken;
           state.refreshToken = action.payload.refreshToken;
           state.isAuthenticated = true;
           state.lastActivity = Date.now();
@@ -379,10 +386,10 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
+
       // Refresh token
       .addCase(refreshAuthToken.fulfilled, (state, action) => {
-        state.token = action.payload.token;
+        state.token = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
         state.lastActivity = Date.now();
       })
@@ -394,7 +401,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.lastActivity = null;
       })
-      
+
       // Forgot password
       .addCase(forgotPassword.pending, (state) => {
         state.isLoading = true;
@@ -407,7 +414,7 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      
+
       // Load from storage
       .addCase(loadUserFromStorage.fulfilled, (state, action) => {
         state.user = action.payload.user;
@@ -420,7 +427,7 @@ const authSlice = createSlice({
         // Silently fail - user just needs to login again
         state.isAuthenticated = false;
       })
-      
+
       // Google Login
       .addCase(googleLogin.pending, (state) => {
         state.isLoading = true;
@@ -443,7 +450,7 @@ const authSlice = createSlice({
           state.error = payload as string;
         }
       })
-      
+
       // Google Register
       .addCase(googleRegister.pending, (state) => {
         state.isLoading = true;

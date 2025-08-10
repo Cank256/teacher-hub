@@ -1,4 +1,5 @@
 import { Credential } from '../types';
+import multer from 'multer';
 
 /**
  * Validates email format using a comprehensive regex pattern
@@ -136,7 +137,7 @@ export function validateUgandanDistrict(district: string): boolean {
 /**
  * Validates file upload for credential documents
  */
-export function validateCredentialDocument(file: Express.Multer.File): boolean {
+export function validateCredentialDocument(file: any): boolean {
   // Check file size (max 5MB)
   const maxSize = 5 * 1024 * 1024; // 5MB
   if (file.size > maxSize) {

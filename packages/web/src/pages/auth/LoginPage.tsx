@@ -99,10 +99,10 @@ export const LoginPage: React.FC = () => {
       })).unwrap();
       
       // Navigation will be handled by the useEffect hook
-    } catch (error) {
+    } catch (err) {
       // Error is handled by Redux state, but we can also show local errors
       setErrors({
-        general: error as string || t('errors.generic')
+        general: err as string || t('errors.generic')
       });
     }
   };

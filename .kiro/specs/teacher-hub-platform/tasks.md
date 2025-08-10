@@ -343,15 +343,15 @@
   - Write E2E tests for public-to-authenticated user journey
   - _Requirements: 6.7, 8.1_
 
-- [-] 22. Run applications locally and generate demo data
-- [-] 22.1 Set up local development environment
+- [x] 22. Run applications locally and generate demo data
+- [x] 22.1 Set up local development environment
   - Start all services using Docker Compose (backend, database, web, mobile)
   - Verify all services are running and communicating properly
   - Test database connections and migrations
   - Ensure all environment variables are properly configured
   - _Requirements: 10.1, 10.2_
 
-- [ ] 22.2 Generate comprehensive demo data
+- [x] 22.2 Generate comprehensive demo data
   - Create demo teacher accounts with various verification statuses
   - Generate sample educational resources across different subjects and grade levels
   - Create demo communities and discussion threads
@@ -360,7 +360,7 @@
   - Create demo events and workshops for community engagement
   - _Requirements: 1.2, 3.1, 4.1, 8.2_
 
-- [ ] 22.3 Validate local application functionality
+- [x] 22.3 Validate local application functionality
   - Test user registration and authentication flows
   - Verify resource upload, search, and discovery features
   - Test messaging and community interaction features

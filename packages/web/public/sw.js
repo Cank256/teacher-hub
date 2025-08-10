@@ -52,16 +52,28 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip non-http(s) requests (chrome-extension, etc.)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Skip non-GET requests for caching
+  if (request.method !== 'GET') {
+    return;
+  }
+
   // Handle API requests
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful API responses
-          if (response.status === 200) {
+          // Cache successful API responses (only GET requests)
+          if (response.status === 200 && request.method === 'GET') {
             const responseClone = response.clone();
             caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseClone);
+              cache.put(request, responseClone).catch((error) => {
+                console.warn('Failed to cache API response:', error);
+              });
             });
           }
           return response;
@@ -84,14 +96,16 @@ self.addEventListener('fetch', (event) => {
 
         return fetch(request)
           .then((response) => {
-            // Don't cache non-successful responses
+            // Don't cache non-successful responses or non-basic types
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
             const responseToCache = response.clone();
             caches.open(DYNAMIC_CACHE).then((cache) => {
-              cache.put(request, responseToCache);
+              cache.put(request, responseToCache).catch((error) => {
+                console.warn('Failed to cache response:', error);
+              });
             });
 
             return response;
