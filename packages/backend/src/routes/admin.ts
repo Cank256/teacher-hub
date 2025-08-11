@@ -367,7 +367,7 @@ router.get('/users', userActionTrackingMiddleware('view_admin_users', 'navigatio
 /**
  * Create a new user
  */
-router.post('/users', userActionTrackingMiddleware('create_admin_user', 'user_management'), async (req, res) => {
+router.post('/users', userActionTrackingMiddleware('create_admin_user', 'navigation'), async (req, res) => {
   try {
     const { name, email, role, status, password } = req.body;
 
@@ -437,7 +437,7 @@ router.post('/users', userActionTrackingMiddleware('create_admin_user', 'user_ma
 /**
  * Update a user
  */
-router.put('/users/:id', userActionTrackingMiddleware('update_admin_user', 'user_management'), async (req, res) => {
+router.put('/users/:id', userActionTrackingMiddleware('update_admin_user', 'navigation'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, role, status } = req.body;
@@ -529,7 +529,7 @@ router.put('/users/:id', userActionTrackingMiddleware('update_admin_user', 'user
 /**
  * Archive a user
  */
-router.put('/users/:id/archive', userActionTrackingMiddleware('archive_admin_user', 'user_management'), async (req, res) => {
+router.put('/users/:id/archive', userActionTrackingMiddleware('archive_admin_user', 'navigation'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -600,7 +600,7 @@ router.get('/users/statistics', userActionTrackingMiddleware('view_user_statisti
         pending: parseInt(stats.pending),
         archived: parseInt(stats.archived)
       },
-      growth: growth.map(row => ({
+      growth: growth.map((row: any) => ({
         date: row.date,
         count: parseInt(row.count)
       }))
@@ -803,7 +803,7 @@ router.get('/content', userActionTrackingMiddleware('view_admin_content', 'navig
 /**
  * Create new content
  */
-router.post('/content', userActionTrackingMiddleware('create_admin_content', 'content_management'), async (req, res) => {
+router.post('/content', userActionTrackingMiddleware('create_admin_content', 'content'), async (req, res) => {
   try {
     const { title, type, author, status, category, subjects, gradeLevels, description } = req.body;
 
@@ -889,7 +889,7 @@ router.post('/content', userActionTrackingMiddleware('create_admin_content', 'co
 /**
  * Update content
  */
-router.put('/content/:id', userActionTrackingMiddleware('update_admin_content', 'content_management'), async (req, res) => {
+router.put('/content/:id', userActionTrackingMiddleware('update_admin_content', 'content'), async (req, res) => {
   try {
     const { id } = req.params;
     const { title, type, author, status, category, subjects, gradeLevels } = req.body;
@@ -999,7 +999,7 @@ router.put('/content/:id', userActionTrackingMiddleware('update_admin_content', 
 /**
  * Archive content
  */
-router.put('/content/:id/archive', userActionTrackingMiddleware('archive_admin_content', 'content_management'), async (req, res) => {
+router.put('/content/:id/archive', userActionTrackingMiddleware('archive_admin_content', 'content'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -1033,7 +1033,7 @@ router.put('/content/:id/archive', userActionTrackingMiddleware('archive_admin_c
 /**
  * Publish content
  */
-router.put('/content/:id/publish', userActionTrackingMiddleware('publish_admin_content', 'content_management'), async (req, res) => {
+router.put('/content/:id/publish', userActionTrackingMiddleware('publish_admin_content', 'content'), async (req, res) => {
   try {
     const { id } = req.params;
 
