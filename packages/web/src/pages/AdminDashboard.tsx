@@ -3,50 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { adminService, AdminDashboardData } from '../services/adminService';
 
-interface AdminMetrics {
-  totalUsers: number;
-  activeUsers: number;
-  errorRate: number;
-  avgResponseTime: number;
-  systemStatus: string;
-  criticalErrors: number;
-  totalContent: number;
-  publishedContent: number;
-  pendingContent: number;
-  totalRevenue: number;
-  monthlyGrowth: number;
-  serverLoad: number;
-}
-
-interface SystemHealth {
-  status: string;
-  uptime: number;
-  memoryUsage: number;
-  cpuUsage: number;
-  diskUsage: number;
-  networkLatency: number;
-}
-
-interface RecentActivity {
-  id: string;
-  type: 'user_registration' | 'content_published' | 'error' | 'login';
-  message: string;
-  timestamp: string;
-  severity?: 'low' | 'medium' | 'high';
-}
-
-interface AdminDashboardData {
-  overview: AdminMetrics;
-  systemHealth: SystemHealth;
-  errors: any;
-  performance: any;
-  analytics: any;
-  dailyActiveUsers: Array<{ date: string; count: number }>;
-  recentErrors: any[];
-  recentActivity: RecentActivity[];
-  timestamp: string;
-}
-
 export const AdminDashboard: React.FC = () => {
   const { t } = useTranslation();
   const [dashboardData, setDashboardData] = useState<AdminDashboardData | null>(null);

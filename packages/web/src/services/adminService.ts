@@ -32,6 +32,11 @@ export interface AdminDashboardData {
     timestamp: string;
     severity?: 'low' | 'medium' | 'high';
   }>;
+  errors: any;
+  performance: any;
+  analytics: any;
+  dailyActiveUsers: Array<{ date: string; count: number }>;
+  recentErrors: any[];
   timestamp: string;
 }
 

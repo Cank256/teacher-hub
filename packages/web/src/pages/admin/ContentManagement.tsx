@@ -201,7 +201,6 @@ export const ContentManagement: React.FC = () => {
     }
   };
 
-  const totalContent = content.length;
   const publishedContent = content.filter(c => c.status === 'published').length;
   const pendingContent = content.filter(c => c.status === 'pending').length;
   const draftContent = content.filter(c => c.status === 'draft').length;

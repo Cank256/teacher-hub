@@ -92,7 +92,7 @@ export const Analytics: React.FC = () => {
           <option value="year">Last Year</option>
         </select>
       </div>
-      
+
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white shadow rounded-lg p-6">
@@ -228,8 +228,8 @@ export const Analytics: React.FC = () => {
                   <span className="text-sm text-gray-600">{device.percentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full" 
+                  <div
+                    className="bg-blue-600 h-2 rounded-full"
                     style={{ width: `${device.percentage}%` }}
                   ></div>
                 </div>
@@ -250,8 +250,8 @@ export const Analytics: React.FC = () => {
                   <span className="text-sm text-gray-600">{source.percentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full" 
+                  <div
+                    className="bg-green-600 h-2 rounded-full"
                     style={{ width: `${source.percentage}%` }}
                   ></div>
                 </div>
