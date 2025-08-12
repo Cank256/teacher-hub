@@ -97,7 +97,10 @@ class UserAnalytics {
       for (const eventId of eventIds) {
         const eventData = await redisClient.get(`analytics:${eventId}`);
         if (eventData) {
-          events.push(JSON.parse(eventData));
+          const event = JSON.parse(eventData);
+          // Convert timestamp string back to Date object
+          event.timestamp = new Date(event.timestamp);
+          events.push(event);
         }
       }
       return events;
@@ -292,7 +295,10 @@ class UserAnalytics {
       for (const eventId of eventIds) {
         const eventData = await redisClient.get(`analytics:${eventId}`);
         if (eventData) {
-          events.push(JSON.parse(eventData));
+          const event = JSON.parse(eventData);
+          // Convert timestamp string back to Date object
+          event.timestamp = new Date(event.timestamp);
+          events.push(event);
         }
       }
       return events;

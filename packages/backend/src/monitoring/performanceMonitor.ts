@@ -83,7 +83,10 @@ class PerformanceMonitor {
         for (const metricId of metricIds) {
           const metricData = await redisClient.get(`metric:${metricId}`);
           if (metricData) {
-            metrics.push(JSON.parse(metricData));
+            const metric = JSON.parse(metricData);
+            // Convert timestamp string back to Date object
+            metric.timestamp = new Date(metric.timestamp);
+            metrics.push(metric);
           }
         }
         return metrics;

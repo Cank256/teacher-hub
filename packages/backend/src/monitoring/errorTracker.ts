@@ -67,7 +67,10 @@ class ErrorTracker {
       for (const errorId of errorIds) {
         const errorData = await redisClient.get(`error:${errorId}`);
         if (errorData) {
-          errors.push(JSON.parse(errorData));
+          const error = JSON.parse(errorData);
+          // Convert timestamp string back to Date object
+          error.timestamp = new Date(error.timestamp);
+          errors.push(error);
         }
       }
 

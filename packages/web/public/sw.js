@@ -123,7 +123,7 @@ self.addEventListener('fetch', (event) => {
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
   console.log('Service Worker: Background sync', event.tag);
-  
+
   if (event.tag === 'background-sync') {
     event.waitUntil(
       // Process queued offline actions
@@ -135,7 +135,7 @@ self.addEventListener('sync', (event) => {
 // Push notification handling
 self.addEventListener('push', (event) => {
   console.log('Service Worker: Push notification received');
-  
+
   const options = {
     body: event.data ? event.data.text() : 'New update available',
     icon: '/icons/icon-192x192.png',
@@ -167,7 +167,7 @@ self.addEventListener('push', (event) => {
 // Notification click handling
 self.addEventListener('notificationclick', (event) => {
   console.log('Service Worker: Notification clicked');
-  
+
   event.notification.close();
 
   if (event.action === 'explore') {
@@ -182,7 +182,7 @@ async function processOfflineQueue() {
   try {
     // Get queued actions from IndexedDB or localStorage
     const queuedActions = await getQueuedActions();
-    
+
     for (const action of queuedActions) {
       try {
         await fetch(action.url, action.options);
