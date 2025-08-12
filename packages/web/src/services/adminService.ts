@@ -111,7 +111,12 @@ class AdminService {
       });
 
       if (!response.ok) {
-        throw new Error('Backend not available');
+        if (response.status === 401) {
+          console.warn('Authentication required for admin dashboard, using mock data');
+        } else {
+          console.warn(`Backend error (${response.status}), using mock data for admin dashboard`);
+        }
+        return this.getMockDashboardData();
       }
 
       return response.json();
@@ -147,10 +152,10 @@ class AdminService {
         networkLatency: 23
       },
       recentActivity: [
-        { id: '1', type: 'user_registration', message: 'New user registered: john.doe@example.com', timestamp: '2 minutes ago' },
-        { id: '2', type: 'content_published', message: 'New resource published: "Advanced React Patterns"', timestamp: '5 minutes ago' },
-        { id: '3', type: 'login', message: 'Admin login from IP: 192.168.1.100', timestamp: '8 minutes ago' },
-        { id: '4', type: 'error', message: 'Database connection timeout', timestamp: '15 minutes ago', severity: 'medium' }
+        { id: '1', type: 'user_registration', message: '[DEMO] New user registered: john.doe@example.com', timestamp: '2 minutes ago' },
+        { id: '2', type: 'content_published', message: '[DEMO] New resource published: "Advanced React Patterns"', timestamp: '5 minutes ago' },
+        { id: '3', type: 'login', message: '[DEMO] Admin login from IP: 192.168.1.100', timestamp: '8 minutes ago' },
+        { id: '4', type: 'error', message: '[DEMO] Database connection timeout', timestamp: '15 minutes ago', severity: 'medium' }
       ],
       errors: null,
       performance: null,
@@ -195,7 +200,12 @@ class AdminService {
       });
 
       if (!response.ok) {
-        throw new Error('Backend not available');
+        if (response.status === 401) {
+          console.warn('Authentication required for admin users, using mock data');
+        } else {
+          console.warn(`Backend error (${response.status}), using mock data for users`);
+        }
+        return this.getMockUsersData(params);
       }
 
       return response.json();
@@ -366,7 +376,12 @@ class AdminService {
       });
 
       if (!response.ok) {
-        throw new Error('Backend not available');
+        if (response.status === 401) {
+          console.warn('Authentication required for admin content, using mock data');
+        } else {
+          console.warn(`Backend error (${response.status}), using mock data for content`);
+        }
+        return this.getMockContentData(params);
       }
 
       return response.json();
@@ -529,7 +544,12 @@ class AdminService {
       });
 
       if (!response.ok) {
-        throw new Error('Backend not available');
+        if (response.status === 401) {
+          console.warn('Authentication required for admin analytics, using mock data');
+        } else {
+          console.warn(`Backend error (${response.status}), using mock data for analytics`);
+        }
+        return this.getMockAnalyticsData();
       }
 
       const result = await response.json();
