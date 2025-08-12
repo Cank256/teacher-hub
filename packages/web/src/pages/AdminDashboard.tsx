@@ -146,8 +146,8 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.totalUsers.toLocaleString()}</p>
-                <p className="text-sm text-green-600">+{dashboardData.overview.monthlyGrowth}% this month</p>
+                <p className="text-2xl font-bold text-gray-900">{(dashboardData.overview?.totalUsers || 0).toLocaleString()}</p>
+                <p className="text-sm text-green-600">+{dashboardData.overview?.monthlyGrowth || 0}% this month</p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full">
                 <span className="text-2xl">👥</span>
@@ -159,8 +159,8 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.activeUsers.toLocaleString()}</p>
-                <p className="text-sm text-gray-500">{Math.round((dashboardData.overview.activeUsers / dashboardData.overview.totalUsers) * 100)}% of total</p>
+                <p className="text-2xl font-bold text-gray-900">{(dashboardData.overview?.activeUsers || 0).toLocaleString()}</p>
+                <p className="text-sm text-gray-500">{Math.round(((dashboardData.overview?.activeUsers || 0) / (dashboardData.overview?.totalUsers || 1)) * 100)}% of total</p>
               </div>
               <div className="p-3 bg-green-100 rounded-full">
                 <span className="text-2xl">🟢</span>
@@ -172,8 +172,8 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Content</p>
-                <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.totalContent.toLocaleString()}</p>
-                <p className="text-sm text-blue-600">{dashboardData.overview.publishedContent} published</p>
+                <p className="text-2xl font-bold text-gray-900">{(dashboardData.overview?.totalContent || 0).toLocaleString()}</p>
+                <p className="text-sm text-blue-600">{dashboardData.overview?.publishedContent || 0} published</p>
               </div>
               <div className="p-3 bg-purple-100 rounded-full">
                 <span className="text-2xl">📚</span>
@@ -185,10 +185,10 @@ export const AdminDashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">System Status</p>
-                <p className={`text-2xl font-bold ${getStatusColor(dashboardData.overview.systemStatus).split(' ')[0]}`}>
-                  {dashboardData.overview.systemStatus.charAt(0).toUpperCase() + dashboardData.overview.systemStatus.slice(1)}
+                <p className={`text-2xl font-bold ${getStatusColor(dashboardData.overview?.systemStatus || 'unknown').split(' ')[0]}`}>
+                  {(dashboardData.overview?.systemStatus || 'unknown').charAt(0).toUpperCase() + (dashboardData.overview?.systemStatus || 'unknown').slice(1)}
                 </p>
-                <p className="text-sm text-gray-500">{dashboardData.systemHealth.uptime}% uptime</p>
+                <p className="text-sm text-gray-500">{dashboardData.systemHealth?.uptime || 0}% uptime</p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-full">
                 <span className="text-2xl">⚡</span>
@@ -208,10 +208,10 @@ export const AdminDashboard: React.FC = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${dashboardData.systemHealth.cpuUsage}%` }}
+                      style={{ width: `${dashboardData.systemHealth?.cpuUsage || 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-medium">{dashboardData.systemHealth.cpuUsage}%</span>
+                  <span className="text-sm font-medium">{dashboardData.systemHealth?.cpuUsage || 0}%</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
@@ -220,10 +220,10 @@ export const AdminDashboard: React.FC = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-green-600 h-2 rounded-full"
-                      style={{ width: `${dashboardData.systemHealth.memoryUsage}%` }}
+                      style={{ width: `${dashboardData.systemHealth?.memoryUsage || 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-medium">{dashboardData.systemHealth.memoryUsage}%</span>
+                  <span className="text-sm font-medium">{dashboardData.systemHealth?.memoryUsage || 0}%</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
@@ -232,15 +232,15 @@ export const AdminDashboard: React.FC = () => {
                   <div className="w-32 bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-yellow-600 h-2 rounded-full"
-                      style={{ width: `${dashboardData.systemHealth.diskUsage}%` }}
+                      style={{ width: `${dashboardData.systemHealth?.diskUsage || 0}%` }}
                     ></div>
                   </div>
-                  <span className="text-sm font-medium">{dashboardData.systemHealth.diskUsage}%</span>
+                  <span className="text-sm font-medium">{dashboardData.systemHealth?.diskUsage || 0}%</span>
                 </div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Network Latency</span>
-                <span className="text-sm font-medium">{dashboardData.systemHealth.networkLatency}ms</span>
+                <span className="text-sm font-medium">{dashboardData.systemHealth?.networkLatency || 0}ms</span>
               </div>
             </div>
           </div>
@@ -249,19 +249,19 @@ export const AdminDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Metrics</h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{dashboardData.overview.avgResponseTime}ms</p>
+                <p className="text-2xl font-bold text-blue-600">{(dashboardData.overview?.avgResponseTime || 0).toFixed(2)}ms</p>
                 <p className="text-sm text-gray-600">Avg Response Time</p>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
-                <p className="text-2xl font-bold text-red-600">{(dashboardData.overview.errorRate * 100).toFixed(2)}%</p>
+                <p className="text-2xl font-bold text-red-600">{((dashboardData.overview?.errorRate || 0) * 100).toFixed(2)}%</p>
                 <p className="text-sm text-gray-600">Error Rate</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{dashboardData.overview.serverLoad}%</p>
+                <p className="text-2xl font-bold text-green-600">{dashboardData.overview?.serverLoad || 0}%</p>
                 <p className="text-sm text-gray-600">Server Load</p>
               </div>
               <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">{dashboardData.overview.criticalErrors}</p>
+                <p className="text-2xl font-bold text-purple-600">{dashboardData.overview?.criticalErrors || 0}</p>
                 <p className="text-sm text-gray-600">Critical Errors</p>
               </div>
             </div>
@@ -273,7 +273,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
             <div className="space-y-3">
-              {dashboardData.recentActivity.map((activity) => (
+              {(dashboardData.recentActivity || []).map((activity) => (
                 <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
                   <span className="text-lg">{getActivityIcon(activity.type)}</span>
                   <div className="flex-1">
