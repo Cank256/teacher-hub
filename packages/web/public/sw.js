@@ -26,7 +26,7 @@ self.addEventListener('install', (event) => {
         console.error('Service Worker: Failed to cache static assets', error);
       })
   );
-  self.skipWaiting();
+  // self.skipWaiting(); // Commented out to prevent auto-refresh
 });
 
 // Activate event - clean up old caches

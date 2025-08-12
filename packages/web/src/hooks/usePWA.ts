@@ -86,7 +86,10 @@ export const usePWA = () => {
   };
 
   const reloadApp = () => {
-    window.location.reload();
+    // Give user a chance to save work before reloading
+    if (confirm('Update the app now? Any unsaved changes will be lost.')) {
+      window.location.reload();
+    }
   };
 
   return {

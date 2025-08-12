@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       strategies: 'injectManifest',
       srcDir: 'public',
       filename: 'sw.js',
@@ -15,7 +15,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5000000, // 5MB
       },
       devOptions: {
-        enabled: true,
+        enabled: false, // Disable PWA in development
         type: 'module'
       },
       workbox: {
