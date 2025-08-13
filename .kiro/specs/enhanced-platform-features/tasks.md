@@ -98,8 +98,8 @@
   - Create message status and notification endpoints
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8_
 
-- [ ] 6. Resource Sharing with Video Integration Backend
-- [ ] 6.1 File Security and Validation Service
+- [x] 6. Resource Sharing with Video Integration Backend
+- [x] 6.1 File Security and Validation Service
   - Create SecurityService for file scanning and validation
   - Implement virus scanning using ClamAV integration
   - Add file type and size validation
@@ -107,7 +107,7 @@
   - Implement secure file storage and access controls
   - _Requirements: 4.2, 4.6, 4.9_
 
-- [ ] 6.2 YouTube API Integration Service
+- [x] 6.2 YouTube API Integration Service
   - Create YouTubeService for video upload and management
   - Implement OAuth 2.0 authentication with YouTube API
   - Add video upload functionality with unlisted privacy
@@ -115,7 +115,7 @@
   - Implement video deletion and cleanup procedures
   - _Requirements: 4.3, 4.4, 4.5_
 
-- [ ] 6.3 Enhanced Resource Service
+- [x] 6.3 Enhanced Resource Service
   - Extend existing ResourceService with video integration
   - Implement resource upload with security scanning
   - Add YouTube video processing workflow
@@ -123,7 +123,7 @@
   - Implement resource access controls and permissions
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8_
 
-- [ ] 6.4 Resource API Routes
+- [x] 6.4 Resource API Routes
   - Extend resource endpoints with video upload support
   - Create file upload endpoints with security validation
   - Add YouTube integration endpoints

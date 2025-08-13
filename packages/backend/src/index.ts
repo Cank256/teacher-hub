@@ -12,6 +12,7 @@ import governmentRoutes from './routes/government';
 import messageRoutes from './routes/messages';
 import communityRoutes from './routes/communities';
 import postRoutes from './routes/posts';
+import resourceRoutes from './routes/resources';
 import monitoringRoutes from './routes/monitoring';
 import adminRoutes from './routes/admin';
 import roleManagementRoutes from './routes/roleManagement';
@@ -80,6 +81,9 @@ app.use('/api/communities', communityRoutes);
 
 // Post routes
 app.use('/api/posts', postRoutes);
+
+// Resource routes
+app.use('/api/resources', resourceRoutes);
 
 // Monitoring routes
 app.use('/api/monitoring', monitoringRoutes);
