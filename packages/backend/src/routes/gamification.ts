@@ -1,7 +1,7 @@
 import express from 'express';
 import { GamificationService } from '../services/gamificationService';
 import { authMiddleware } from '../middleware/auth';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 const router = express.Router();
 const gamificationService = new GamificationService();

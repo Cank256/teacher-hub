@@ -99,7 +99,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900">Page Views</h3>
-              <p className="text-2xl font-bold text-blue-600">{analyticsData.pageViews.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-blue-600">{(analyticsData.pageViews || 0).toLocaleString()}</p>
               <p className="text-sm text-green-600">+12% from last month</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-full">
@@ -112,7 +112,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900">Unique Visitors</h3>
-              <p className="text-2xl font-bold text-green-600">{analyticsData.uniqueVisitors.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-600">{(analyticsData.uniqueVisitors || 0).toLocaleString()}</p>
               <p className="text-sm text-green-600">+8% from last month</p>
             </div>
             <div className="p-3 bg-green-100 rounded-full">
@@ -125,7 +125,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900">Conversion Rate</h3>
-              <p className="text-2xl font-bold text-purple-600">{analyticsData.conversionRate}%</p>
+              <p className="text-2xl font-bold text-purple-600">{analyticsData.conversionRate || 0}%</p>
               <p className="text-sm text-green-600">+0.5% from last month</p>
             </div>
             <div className="p-3 bg-purple-100 rounded-full">
@@ -138,7 +138,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-gray-900">Total Revenue</h3>
-              <p className="text-2xl font-bold text-yellow-600">${analyticsData.totalRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-yellow-600">${(analyticsData.totalRevenue || 0).toLocaleString()}</p>
               <p className="text-sm text-green-600">+18% from last month</p>
             </div>
             <div className="p-3 bg-yellow-100 rounded-full">
@@ -152,25 +152,25 @@ export const Analytics: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="font-medium text-gray-900 mb-2">Bounce Rate</h3>
-          <p className="text-2xl font-bold text-red-600">{analyticsData.bounceRate}%</p>
+          <p className="text-2xl font-bold text-red-600">{analyticsData.bounceRate || 0}%</p>
           <p className="text-sm text-green-600">-3% from last month</p>
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="font-medium text-gray-900 mb-2">Avg. Session Duration</h3>
-          <p className="text-2xl font-bold text-blue-600">{analyticsData.avgSession}</p>
+          <p className="text-2xl font-bold text-blue-600">{analyticsData.avgSession || '0m 0s'}</p>
           <p className="text-sm text-green-600">+15% from last month</p>
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="font-medium text-gray-900 mb-2">User Retention</h3>
-          <p className="text-2xl font-bold text-green-600">{analyticsData.userRetention}%</p>
+          <p className="text-2xl font-bold text-green-600">{analyticsData.userRetention || 0}%</p>
           <p className="text-sm text-green-600">+5% from last month</p>
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="font-medium text-gray-900 mb-2">Mobile Traffic</h3>
-          <p className="text-2xl font-bold text-purple-600">{analyticsData.mobileTraffic}%</p>
+          <p className="text-2xl font-bold text-purple-600">{analyticsData.mobileTraffic || 0}%</p>
           <p className="text-sm text-green-600">+2% from last month</p>
         </div>
       </div>
@@ -181,15 +181,15 @@ export const Analytics: React.FC = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Pages</h3>
           <div className="space-y-3">
-            {analyticsData.topPages.map((page, index) => (
+            {(analyticsData.topPages || []).map((page, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{page.page}</p>
-                  <p className="text-sm text-gray-600">{page.views.toLocaleString()} views</p>
+                  <p className="text-sm text-gray-600">{(page.views || 0).toLocaleString()} views</p>
                 </div>
-                <div className={`flex items-center space-x-1 ${getChangeColor(page.change)}`}>
-                  <span>{getChangeIcon(page.change)}</span>
-                  <span className="text-sm font-medium">{Math.abs(page.change)}%</span>
+                <div className={`flex items-center space-x-1 ${getChangeColor(page.change || 0)}`}>
+                  <span>{getChangeIcon(page.change || 0)}</span>
+                  <span className="text-sm font-medium">{Math.abs(page.change || 0)}%</span>
                 </div>
               </div>
             ))}
@@ -200,17 +200,17 @@ export const Analytics: React.FC = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">User Demographics</h3>
           <div className="space-y-3">
-            {analyticsData.userDemographics.map((demo, index) => (
+            {(analyticsData.userDemographics || []).map((demo, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-blue-600">{demo.country.slice(0, 2).toUpperCase()}</span>
+                    <span className="text-xs font-medium text-blue-600">{(demo.country || '').slice(0, 2).toUpperCase()}</span>
                   </div>
-                  <span className="font-medium text-gray-900">{demo.country}</span>
+                  <span className="font-medium text-gray-900">{demo.country || 'Unknown'}</span>
                 </div>
                 <div className="text-right">
-                  <p className="font-medium text-gray-900">{demo.users.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600">{demo.percentage}%</p>
+                  <p className="font-medium text-gray-900">{(demo.users || 0).toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">{demo.percentage || 0}%</p>
                 </div>
               </div>
             ))}
@@ -221,19 +221,19 @@ export const Analytics: React.FC = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Breakdown</h3>
           <div className="space-y-4">
-            {analyticsData.deviceBreakdown.map((device, index) => (
+            {(analyticsData.deviceBreakdown || []).map((device, index) => (
               <div key={index}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-900">{device.device}</span>
-                  <span className="text-sm text-gray-600">{device.percentage}%</span>
+                  <span className="text-sm font-medium text-gray-900">{device.device || 'Unknown'}</span>
+                  <span className="text-sm text-gray-600">{device.percentage || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${device.percentage}%` }}
+                    style={{ width: `${device.percentage || 0}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{device.users.toLocaleString()} users</p>
+                <p className="text-xs text-gray-500 mt-1">{(device.users || 0).toLocaleString()} users</p>
               </div>
             ))}
           </div>
@@ -243,19 +243,19 @@ export const Analytics: React.FC = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Traffic Sources</h3>
           <div className="space-y-4">
-            {analyticsData.trafficSources.map((source, index) => (
+            {(analyticsData.trafficSources || []).map((source, index) => (
               <div key={index}>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-900">{source.source}</span>
-                  <span className="text-sm text-gray-600">{source.percentage}%</span>
+                  <span className="text-sm font-medium text-gray-900">{source.source || 'Unknown'}</span>
+                  <span className="text-sm text-gray-600">{source.percentage || 0}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-green-600 h-2 rounded-full"
-                    style={{ width: `${source.percentage}%` }}
+                    style={{ width: `${source.percentage || 0}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{source.users.toLocaleString()} users</p>
+                <p className="text-xs text-gray-500 mt-1">{(source.users || 0).toLocaleString()} users</p>
               </div>
             ))}
           </div>

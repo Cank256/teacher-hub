@@ -11,10 +11,11 @@ import contentRoutes from './routes/content';
 import governmentRoutes from './routes/government';
 import messageRoutes from './routes/messages';
 import communityRoutes from './routes/communities';
+import postRoutes from './routes/posts';
 import monitoringRoutes from './routes/monitoring';
 import adminRoutes from './routes/admin';
 import roleManagementRoutes from './routes/roleManagement';
-import { SocketServer } from './messaging/socketServer';
+import { EnhancedSocketServer } from './messaging/socketServer';
 import { redisClient } from './cache/redisClient';
 import logger from './utils/logger';
 import { 
@@ -77,6 +78,9 @@ app.use('/api/messages', messageRoutes);
 // Community routes
 app.use('/api/communities', communityRoutes);
 
+// Post routes
+app.use('/api/posts', postRoutes);
+
 // Monitoring routes
 app.use('/api/monitoring', monitoringRoutes);
 
@@ -114,7 +118,7 @@ app.use((_req, res) => {
 const httpServer = createServer(app);
 
 // Initialize WebSocket server
-const socketServer = new SocketServer(httpServer);
+const socketServer = new EnhancedSocketServer(httpServer);
 
 // Initialize Redis connection
 async function initializeServices() {

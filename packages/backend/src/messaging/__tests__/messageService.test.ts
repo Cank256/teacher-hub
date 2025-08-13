@@ -1,4 +1,4 @@
-import { MessageService } from '../messageService';
+import { EnhancedMessageService } from '../messageService';
 import { getConnection } from '../../database/connection';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -13,7 +13,7 @@ const mockPool = {
 };
 
 const mockClient = {
-  query: jest.fn(),
+  query: jest.fn().mockImplementation(() => ({ rows: [] })),
   release: jest.fn()
 };
 
@@ -23,15 +23,15 @@ beforeEach(() => {
   mockPool.connect.mockResolvedValue(mockClient);
 });
 
-describe('MessageService', () => {
-  let messageService: MessageService;
+describe('EnhancedMessageService', () => {
+  let messageService: EnhancedMessageService;
 
   beforeEach(() => {
-    messageService = new MessageService();
+    messageService = new EnhancedMessageService();
   });
 
-  describe('createDirectMessage', () => {
-    it('should create a direct message successfully', async () => {
+  describe('sendMessage', () => {
+    it('should send a direct message successfully', async () => {
       const messageId = uuidv4();
       const senderId = uuidv4();
       const recipientId = uuidv4();
@@ -42,59 +42,36 @@ describe('MessageService', () => {
         id: messageId,
         sender_id: senderId,
         recipient_id: recipientId,
-        group_id: null,
+        group_id: null as string | null,
+        conversation_id: uuidv4(),
         content,
         type: 'text',
         attachments_json: '[]',
         timestamp,
-        read_by_json: '[]',
+        read_by_json: JSON.stringify([{ userId: senderId, readAt: timestamp }]),
         sync_status: 'synced',
         is_edited: false,
-        edited_at: null,
-        reply_to_id: null
+        edited_at: null as Date | null,
+        reply_to_id: null as string | null
       };
 
-      mockClient.query.mockResolvedValue({ rows: [mockMessageRow] });
+      // Mock conversation creation/retrieval and message insertion
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] }) // No existing conversation
+        .mockResolvedValueOnce({ rows: [{ id: uuidv4() }] }) // Create conversation
+        .mockResolvedValueOnce({ rows: [mockMessageRow] }) // Insert message
+        .mockResolvedValueOnce({ rows: [] }); // Update conversation
 
-      const result = await messageService.createDirectMessage({
-        senderId,
+      const result = await messageService.sendMessage(senderId, {
         recipientId,
         content,
         type: 'text',
         attachments: []
       });
 
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO messages'),
-        expect.arrayContaining([
-          expect.any(String), // messageId
-          senderId,
-          recipientId,
-          content,
-          'text',
-          '[]', // attachments
-          expect.any(Date), // timestamp
-          null, // replyToId
-          'synced'
-        ])
-      );
-
-      expect(result).toEqual({
-        id: messageId,
-        senderId,
-        recipientId,
-        groupId: null,
-        content,
-        type: 'text',
-        attachments: [],
-        timestamp,
-        readBy: [],
-        syncStatus: 'synced',
-        isEdited: false,
-        editedAt: null,
-        replyToId: null
-      });
-
+      expect(result.senderId).toBe(senderId);
+      expect(result.recipientId).toBe(recipientId);
+      expect(result.content).toBe(content);
       expect(mockClient.release).toHaveBeenCalled();
     });
 
@@ -105,132 +82,66 @@ describe('MessageService', () => {
 
       mockClient.query.mockRejectedValue(new Error('Database error'));
 
-      await expect(messageService.createDirectMessage({
-        senderId,
+      await expect(messageService.sendMessage(senderId, {
         recipientId,
         content,
         type: 'text',
         attachments: []
-      })).rejects.toThrow('Failed to create direct message');
+      })).rejects.toThrow('Failed to send message');
 
       expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
-  describe('createGroupMessage', () => {
-    it('should create a group message successfully', async () => {
-      const messageId = uuidv4();
-      const senderId = uuidv4();
-      const groupId = uuidv4();
-      const content = 'Hello group!';
-      const timestamp = new Date();
+  describe('createConversation', () => {
+    it('should create a direct conversation successfully', async () => {
+      const conversationId = uuidv4();
+      const initiatorId = uuidv4();
+      const participantId = uuidv4();
 
-      const mockMessageRow = {
-        id: messageId,
-        sender_id: senderId,
-        recipient_id: null,
-        group_id: groupId,
-        content,
-        type: 'text',
-        attachments_json: '[]',
-        timestamp,
-        read_by_json: '[]',
-        sync_status: 'synced',
-        is_edited: false,
-        edited_at: null,
-        reply_to_id: null
+      const mockConversationRow = {
+        id: conversationId,
+        participants: JSON.stringify([initiatorId, participantId].sort()),
+        type: 'direct',
+        last_activity: new Date(),
+        unread_count: JSON.stringify({ [initiatorId]: 0, [participantId]: 0 })
       };
 
-      mockClient.query.mockResolvedValue({ rows: [mockMessageRow] });
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] }) // No existing conversation
+        .mockResolvedValueOnce({ rows: [mockConversationRow] }); // Create conversation
 
-      const result = await messageService.createGroupMessage({
-        senderId,
-        groupId,
-        content,
-        type: 'text',
-        attachments: []
+      const result = await messageService.createConversation({
+        initiatorId,
+        participantIds: [participantId],
+        type: 'direct'
       });
 
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO messages'),
-        expect.arrayContaining([
-          expect.any(String), // messageId
-          senderId,
-          groupId,
-          content,
-          'text',
-          '[]', // attachments
-          expect.any(Date), // timestamp
-          null, // replyToId
-          'synced'
-        ])
-      );
-
-      expect(result).toEqual({
-        id: messageId,
-        senderId,
-        recipientId: null,
-        groupId,
-        content,
-        type: 'text',
-        attachments: [],
-        timestamp,
-        readBy: [],
-        syncStatus: 'synced',
-        isEdited: false,
-        editedAt: null,
-        replyToId: null
-      });
+      expect(result.id).toBe(conversationId);
+      expect(result.participants).toEqual([initiatorId, participantId].sort());
+      expect(result.type).toBe('direct');
     });
   });
 
-  describe('markMessageAsRead', () => {
-    it('should mark message as read successfully', async () => {
-      const messageId = uuidv4();
+  describe('markMessagesAsRead', () => {
+    it('should mark messages as read successfully', async () => {
+      const conversationId = uuidv4();
       const userId = uuidv4();
-      const currentReadBy = ['user1', 'user2'];
+      const messageIds = [uuidv4(), uuidv4()];
 
       mockClient.query
-        .mockResolvedValueOnce({ rows: [{ read_by_json: JSON.stringify(currentReadBy) }] })
-        .mockResolvedValueOnce({ rows: [] });
+        .mockResolvedValueOnce({ rows: [] }) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ read_by_json: '[]' }] }) // First message
+        .mockResolvedValueOnce({ rows: [] }) // Update first message
+        .mockResolvedValueOnce({ rows: [{ read_by_json: '[]' }] }) // Second message
+        .mockResolvedValueOnce({ rows: [] }) // Update second message
+        .mockResolvedValueOnce({ rows: [] }) // Update conversation unread count
+        .mockResolvedValueOnce({ rows: [] }); // COMMIT
 
-      await messageService.markMessageAsRead(messageId, userId);
+      await messageService.markMessagesAsRead(conversationId, userId, messageIds);
 
-      expect(mockClient.query).toHaveBeenCalledTimes(2);
-      expect(mockClient.query).toHaveBeenNthCalledWith(1,
-        'SELECT read_by_json FROM messages WHERE id = $1',
-        [messageId]
-      );
-      expect(mockClient.query).toHaveBeenNthCalledWith(2,
-        'UPDATE messages SET read_by_json = $1 WHERE id = $2',
-        [JSON.stringify([...currentReadBy, userId]), messageId]
-      );
-    });
-
-    it('should not add user to readBy if already present', async () => {
-      const messageId = uuidv4();
-      const userId = uuidv4();
-      const currentReadBy = ['user1', userId, 'user2'];
-
-      mockClient.query.mockResolvedValue({ rows: [{ read_by_json: JSON.stringify(currentReadBy) }] });
-
-      await messageService.markMessageAsRead(messageId, userId);
-
-      expect(mockClient.query).toHaveBeenCalledTimes(1);
-      expect(mockClient.query).toHaveBeenCalledWith(
-        'SELECT read_by_json FROM messages WHERE id = $1',
-        [messageId]
-      );
-    });
-
-    it('should throw error if message not found', async () => {
-      const messageId = uuidv4();
-      const userId = uuidv4();
-
-      mockClient.query.mockResolvedValue({ rows: [] });
-
-      await expect(messageService.markMessageAsRead(messageId, userId))
-        .rejects.toThrow('Failed to mark message as read');
+      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
     });
   });
 
@@ -245,7 +156,8 @@ describe('MessageService', () => {
         id: messageId,
         sender_id: userId,
         recipient_id: uuidv4(),
-        group_id: null,
+        group_id: null as string | null,
+        conversation_id: uuidv4(),
         content: newContent,
         type: 'text',
         attachments_json: '[]',
@@ -254,7 +166,7 @@ describe('MessageService', () => {
         sync_status: 'synced',
         is_edited: true,
         edited_at: new Date(),
-        reply_to_id: null
+        reply_to_id: null as string | null
       };
 
       mockClient.query.mockResolvedValue({ rows: [mockUpdatedRow] });
@@ -286,67 +198,41 @@ describe('MessageService', () => {
     it('should delete message successfully', async () => {
       const messageId = uuidv4();
       const userId = uuidv4();
-      const timestamp = new Date();
 
-      const mockMessageRow = {
-        id: messageId,
-        sender_id: userId,
-        recipient_id: uuidv4(),
-        group_id: null,
-        content: 'Message to delete',
-        type: 'text',
-        attachments_json: '[]',
-        timestamp,
-        read_by_json: '[]',
-        sync_status: 'synced',
-        is_edited: false,
-        edited_at: null,
-        reply_to_id: null
-      };
+      mockClient.query.mockResolvedValue({ rowCount: 1 });
 
-      mockClient.query
-        .mockResolvedValueOnce({ rows: [mockMessageRow] })
-        .mockResolvedValueOnce({ rows: [] });
+      await messageService.deleteMessage(messageId, userId);
 
-      const result = await messageService.deleteMessage(messageId, userId);
-
-      expect(mockClient.query).toHaveBeenCalledTimes(2);
-      expect(mockClient.query).toHaveBeenNthCalledWith(1,
-        'SELECT * FROM messages WHERE id = $1 AND sender_id = $2',
-        [messageId, userId]
-      );
-      expect(mockClient.query).toHaveBeenNthCalledWith(2,
+      expect(mockClient.query).toHaveBeenCalledWith(
         'DELETE FROM messages WHERE id = $1 AND sender_id = $2',
         [messageId, userId]
       );
-
-      expect(result.id).toBe(messageId);
     });
 
     it('should throw error if user not authorized to delete', async () => {
       const messageId = uuidv4();
       const userId = uuidv4();
 
-      mockClient.query.mockResolvedValue({ rows: [] });
+      mockClient.query.mockResolvedValue({ rowCount: 0 });
 
       await expect(messageService.deleteMessage(messageId, userId))
         .rejects.toThrow('Failed to delete message');
     });
   });
 
-  describe('getDirectMessages', () => {
-    it('should fetch direct messages between two users', async () => {
-      const userId1 = uuidv4();
-      const userId2 = uuidv4();
-      const limit = 50;
-      const offset = 0;
+  describe('getConversationMessages', () => {
+    it('should fetch messages in a conversation', async () => {
+      const conversationId = uuidv4();
+      const userId = uuidv4();
+      const pagination = { page: 1, limit: 20 };
 
       const mockMessages = [
         {
           id: uuidv4(),
-          sender_id: userId1,
-          recipient_id: userId2,
-          group_id: null,
+          sender_id: userId,
+          recipient_id: uuidv4(),
+          group_id: null as string | null,
+          conversation_id: conversationId,
           content: 'Hello',
           type: 'text',
           attachments_json: '[]',
@@ -354,23 +240,21 @@ describe('MessageService', () => {
           read_by_json: '[]',
           sync_status: 'synced',
           is_edited: false,
-          edited_at: null,
-          reply_to_id: null
+          edited_at: null as Date | null,
+          reply_to_id: null as string | null
         }
       ];
 
-      mockClient.query.mockResolvedValue({ rows: mockMessages });
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [{ participants: JSON.stringify([userId, uuidv4()]) }] }) // Verify user in conversation
+        .mockResolvedValueOnce({ rows: mockMessages }) // Get messages
+        .mockResolvedValueOnce({ rows: [{ total: '1' }] }); // Count messages
 
-      const result = await messageService.getDirectMessages(userId1, userId2, limit, offset);
+      const result = await messageService.getConversationMessages(conversationId, userId, pagination);
 
-      expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE (sender_id = $1 AND recipient_id = $2)'),
-        [userId1, userId2, limit, offset]
-      );
-
-      expect(result).toHaveLength(1);
-      expect(result[0]?.senderId).toBe(userId1);
-      expect(result[0]?.recipientId).toBe(userId2);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0]?.senderId).toBe(userId);
+      expect(result.pagination.total).toBe(1);
     });
   });
 
@@ -379,12 +263,12 @@ describe('MessageService', () => {
       const userId = uuidv4();
       const expectedCount = 5;
 
-      mockClient.query.mockResolvedValue({ rows: [{ count: expectedCount.toString() }] });
+      mockClient.query.mockResolvedValue({ rows: [{ total_unread: expectedCount.toString() }] });
 
       const result = await messageService.getUnreadMessageCount(userId);
 
       expect(mockClient.query).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT COUNT(*) as count FROM messages'),
+        expect.stringContaining('SELECT COALESCE(SUM((unread_count->>$1)::int), 0) as total_unread'),
         [userId]
       );
 

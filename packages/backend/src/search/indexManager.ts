@@ -50,7 +50,7 @@ export class IndexManager {
       for (const [name, index] of Object.entries(INDICES)) {
         try {
           const exists = await client.indices.exists({ index });
-          health[name] = exists.body;
+          health[name] = exists;
         } catch (error) {
           health[name] = false;
         }

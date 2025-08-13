@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import { Message } from '../types';
+import { EnhancedMessage } from '../types';
 import logger from '../utils/logger';
 
 export class MessageQueue {
@@ -44,7 +44,7 @@ export class MessageQueue {
     }
   }
 
-  async queueMessage(message: Message): Promise<void> {
+  async queueMessage(message: EnhancedMessage): Promise<void> {
     if (!this.isConnected) {
       logger.warn('Redis not connected, cannot queue message');
       return;
@@ -74,7 +74,7 @@ export class MessageQueue {
     }
   }
 
-  async getQueuedMessages(userId: string): Promise<Message[]> {
+  async getQueuedMessages(userId: string): Promise<EnhancedMessage[]> {
     if (!this.isConnected) {
       logger.warn('Redis not connected, cannot get queued messages');
       return [];
@@ -84,7 +84,7 @@ export class MessageQueue {
       const queueKey = `message_queue:${userId}`;
       const messageStrings = await this.redis.lRange(queueKey, 0, -1);
       
-      const messages: Message[] = messageStrings.map(messageString => {
+      const messages: EnhancedMessage[] = messageStrings.map(messageString => {
         const messageData = JSON.parse(messageString);
         // Remove queuedAt field as it's not part of Message interface
         const { queuedAt, ...message } = messageData;

@@ -1,8 +1,9 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
-import { MessageService } from './messageService';
+import { EnhancedMessageService } from './messageService';
 import { MessageQueue } from './messageQueue';
+import { SendMessageRequest } from '../types';
 import logger from '../utils/logger';
 
 export interface AuthenticatedSocket extends Socket {
@@ -14,11 +15,13 @@ export interface AuthenticatedSocket extends Socket {
   };
 }
 
-export class SocketServer {
+export class EnhancedSocketServer {
   private io: SocketIOServer;
-  private messageService: MessageService;
+  private messageService: EnhancedMessageService;
   private messageQueue: MessageQueue;
   private connectedUsers: Map<string, string> = new Map(); // userId -> socketId
+  private userPresence: Map<string, { status: string; lastSeen: Date }> = new Map();
+  private typingUsers: Map<string, Set<string>> = new Map(); // conversationId -> Set of userIds
 
   constructor(httpServer: HTTPServer) {
     this.io = new SocketIOServer(httpServer, {
@@ -30,7 +33,7 @@ export class SocketServer {
       transports: ['websocket', 'polling']
     });
 
-    this.messageService = new MessageService();
+    this.messageService = new EnhancedMessageService();
     this.messageQueue = new MessageQueue();
     this.setupMiddleware();
     this.setupEventHandlers();
@@ -68,149 +71,191 @@ export class SocketServer {
     this.io.on('connection', (socket: any) => {
       logger.info(`User ${socket.userProfile.fullName} connected with socket ${socket.id}`);
       
-      // Track connected user
+      // Track connected user and presence
       this.connectedUsers.set(socket.userId, socket.id);
+      this.userPresence.set(socket.userId, { status: 'online', lastSeen: new Date() });
 
       // Join user to their personal room for direct messages
       socket.join(`user:${socket.userId}`);
 
-      // Handle joining group rooms
-      socket.on('join_group', async (groupId: string) => {
+      // Broadcast user online status
+      socket.broadcast.emit('user_presence_updated', {
+        userId: socket.userId,
+        status: 'online',
+        lastSeen: new Date()
+      });
+
+      // Handle joining conversation rooms
+      socket.on('join_conversation', async (conversationId: string) => {
         try {
-          // TODO: Verify user is member of the group before allowing join
-          socket.join(`group:${groupId}`);
-          logger.info(`User ${socket.userId} joined group ${groupId}`);
+          // TODO: Verify user is participant in the conversation
+          socket.join(`conversation:${conversationId}`);
+          logger.info(`User ${socket.userId} joined conversation ${conversationId}`);
           
-          // Notify other group members
-          socket.to(`group:${groupId}`).emit('user_joined_group', {
+          // Notify other participants
+          socket.to(`conversation:${conversationId}`).emit('user_joined_conversation', {
             userId: socket.userId,
             userName: socket.userProfile.fullName,
-            groupId,
+            conversationId,
             timestamp: new Date()
           });
         } catch (error) {
-          logger.error('Error joining group:', error);
-          socket.emit('group_error', { error: 'Failed to join group' });
+          logger.error('Error joining conversation:', error);
+          socket.emit('conversation_error', { error: 'Failed to join conversation' });
         }
       });
 
-      // Handle leaving group rooms
-      socket.on('leave_group', (groupId: string) => {
-        socket.leave(`group:${groupId}`);
-        logger.info(`User ${socket.userId} left group ${groupId}`);
+      // Handle leaving conversation rooms
+      socket.on('leave_conversation', (conversationId: string) => {
+        socket.leave(`conversation:${conversationId}`);
+        logger.info(`User ${socket.userId} left conversation ${conversationId}`);
         
-        // Notify other group members
-        socket.to(`group:${groupId}`).emit('user_left_group', {
+        // Stop typing if user was typing
+        this.handleTypingStop(conversationId, socket.userId);
+        
+        // Notify other participants
+        socket.to(`conversation:${conversationId}`).emit('user_left_conversation', {
           userId: socket.userId,
           userName: socket.userProfile.fullName,
-          groupId,
+          conversationId,
           timestamp: new Date()
         });
       });
 
-      // Handle direct messages
-      socket.on('send_direct_message', async (data: {
-        recipientId: string;
-        content: string;
-        type: 'text' | 'file' | 'image';
-        attachments?: any[];
-        replyToId?: string;
-      }) => {
+      // Handle sending messages (unified for direct and group)
+      socket.on('send_message', async (data: SendMessageRequest & { conversationId?: string }) => {
         try {
-          const message = await this.messageService.createDirectMessage({
-            senderId: socket.userId,
-            recipientId: data.recipientId,
-            content: data.content,
-            type: data.type,
-            attachments: data.attachments || [],
-            replyToId: data.replyToId
-          });
+          const message = await this.messageService.sendMessage(socket.userId, data);
 
-          // Send to recipient if online
-          this.io.to(`user:${data.recipientId}`).emit('new_message', message);
+          // Determine the room to broadcast to
+          let room: string;
+          if (data.conversationId) {
+            room = `conversation:${data.conversationId}`;
+          } else if (data.recipientId) {
+            room = `user:${data.recipientId}`;
+          } else if (data.groupId) {
+            room = `group:${data.groupId}`;
+          } else {
+            throw new Error('Invalid message target');
+          }
+
+          // Broadcast to conversation participants
+          this.io.to(room).emit('new_message', message);
           
           // Send confirmation to sender
-          socket.emit('message_sent', { messageId: message.id, status: 'delivered' });
+          socket.emit('message_sent', { 
+            messageId: message.id, 
+            status: 'delivered',
+            timestamp: message.timestamp
+          });
 
-          // Queue message for offline users
-          if (!this.connectedUsers.has(data.recipientId)) {
+          // Send delivery receipts to sender
+          this.sendDeliveryReceipt(message, socket.userId);
+
+          // Queue message for offline users if direct message
+          if (data.recipientId && !this.connectedUsers.has(data.recipientId)) {
             await this.messageQueue.queueMessage(message);
           }
 
-          logger.info(`Direct message sent from ${socket.userId} to ${data.recipientId}`);
+          logger.info(`Message sent by ${socket.userId} in ${room}`);
         } catch (error) {
-          logger.error('Error sending direct message:', error);
+          logger.error('Error sending message:', error);
           socket.emit('message_error', { error: 'Failed to send message' });
         }
       });
 
-      // Handle group messages
-      socket.on('send_group_message', async (data: {
-        groupId: string;
+      // Handle message replies
+      socket.on('reply_to_message', async (data: {
+        originalMessageId: string;
         content: string;
-        type: 'text' | 'file' | 'image';
         attachments?: any[];
-        replyToId?: string;
       }) => {
         try {
-          const message = await this.messageService.createGroupMessage({
-            senderId: socket.userId,
-            groupId: data.groupId,
-            content: data.content,
-            type: data.type,
-            attachments: data.attachments || [],
-            replyToId: data.replyToId
+          const message = await this.messageService.replyToMessage(
+            socket.userId, 
+            data.originalMessageId, 
+            data.content, 
+            data.attachments || []
+          );
+
+          // Broadcast reply to conversation
+          const room = message.recipientId ? `user:${message.recipientId}` : `group:${message.groupId}`;
+          this.io.to(room).emit('new_message', message);
+          
+          socket.emit('message_sent', { 
+            messageId: message.id, 
+            status: 'delivered',
+            isReply: true
           });
 
-          // Send to all group members
-          this.io.to(`group:${data.groupId}`).emit('new_message', message);
-          
-          // Send confirmation to sender
-          socket.emit('message_sent', { messageId: message.id, status: 'delivered' });
-
-          logger.info(`Group message sent by ${socket.userId} to group ${data.groupId}`);
+          logger.info(`Reply sent by ${socket.userId}`);
         } catch (error) {
-          logger.error('Error sending group message:', error);
-          socket.emit('message_error', { error: 'Failed to send message' });
+          logger.error('Error sending reply:', error);
+          socket.emit('message_error', { error: 'Failed to send reply' });
         }
       });
 
-      // Handle message read receipts
-      socket.on('mark_message_read', async (data: { messageId: string }) => {
+      // Handle message read receipts (enhanced)
+      socket.on('mark_messages_read', async (data: { 
+        conversationId: string; 
+        messageIds: string[] 
+      }) => {
         try {
-          await this.messageService.markMessageAsRead(data.messageId, socket.userId);
+          await this.messageService.markMessagesAsRead(
+            data.conversationId, 
+            socket.userId, 
+            data.messageIds
+          );
           
-          // Notify sender about read receipt
-          const message = await this.messageService.getMessageById(data.messageId);
-          if (message) {
-            this.io.to(`user:${message.senderId}`).emit('message_read', {
-              messageId: data.messageId,
-              readBy: socket.userId,
-              timestamp: new Date()
-            });
-          }
+          // Notify conversation participants about read receipts
+          socket.to(`conversation:${data.conversationId}`).emit('messages_read', {
+            conversationId: data.conversationId,
+            messageIds: data.messageIds,
+            readBy: socket.userId,
+            readAt: new Date()
+          });
+
+          socket.emit('messages_marked_read', {
+            conversationId: data.conversationId,
+            count: data.messageIds.length
+          });
         } catch (error) {
-          logger.error('Error marking message as read:', error);
+          logger.error('Error marking messages as read:', error);
+          socket.emit('read_receipt_error', { error: 'Failed to mark messages as read' });
         }
       });
 
-      // Handle typing indicators
-      socket.on('typing_start', (data: { recipientId?: string; groupId?: string }) => {
-        const room = data.recipientId ? `user:${data.recipientId}` : `group:${data.groupId}`;
-        socket.to(room).emit('user_typing', {
+      // Handle typing indicators (enhanced)
+      socket.on('typing_start', (data: { conversationId: string }) => {
+        this.handleTypingStart(data.conversationId, socket.userId, socket.userProfile.fullName);
+      });
+
+      socket.on('typing_stop', (data: { conversationId: string }) => {
+        this.handleTypingStop(data.conversationId, socket.userId);
+      });
+
+      // Handle presence status updates
+      socket.on('update_presence', (data: { status: 'online' | 'away' | 'busy' | 'invisible' }) => {
+        this.userPresence.set(socket.userId, { 
+          status: data.status, 
+          lastSeen: new Date() 
+        });
+        
+        socket.broadcast.emit('user_presence_updated', {
           userId: socket.userId,
-          userName: socket.userProfile.fullName,
-          isTyping: true
+          status: data.status,
+          lastSeen: new Date()
         });
       });
 
-      socket.on('typing_stop', (data: { recipientId?: string; groupId?: string }) => {
-        const room = data.recipientId ? `user:${data.recipientId}` : `group:${data.groupId}`;
-        socket.to(room).emit('user_typing', {
-          userId: socket.userId,
-          userName: socket.userProfile.fullName,
-          isTyping: false
-        });
+      // Handle presence queries
+      socket.on('get_user_presence', (data: { userIds: string[] }) => {
+        const presenceData = data.userIds.map(userId => ({
+          userId,
+          ...this.getUserPresence(userId)
+        }));
+        
+        socket.emit('user_presence_data', presenceData);
       });
 
       // Handle message editing
@@ -232,11 +277,15 @@ export class SocketServer {
       // Handle message deletion
       socket.on('delete_message', async (data: { messageId: string }) => {
         try {
-          const message = await this.messageService.deleteMessage(data.messageId, socket.userId);
+          await this.messageService.deleteMessage(data.messageId, socket.userId);
           
-          // Broadcast deletion to relevant room
-          const room = message.recipientId ? `user:${message.recipientId}` : `group:${message.groupId}`;
-          this.io.to(room).emit('message_deleted', { messageId: data.messageId });
+          // Broadcast deletion to relevant room - we need to get the message first
+          // Since we can't get it after deletion, we'll broadcast to user's conversations
+          socket.broadcast.emit('message_deleted', { 
+            messageId: data.messageId,
+            deletedBy: socket.userId,
+            timestamp: new Date()
+          });
           
           socket.emit('message_deleted_confirm', { messageId: data.messageId, status: 'success' });
         } catch (error) {
@@ -245,140 +294,45 @@ export class SocketServer {
         }
       });
 
-      // Handle group moderation actions
-      socket.on('moderate_group_message', async (data: {
-        messageId: string;
-        groupId: string;
-        action: 'delete' | 'flag' | 'warn';
-        reason?: string;
-      }) => {
-        try {
-          // TODO: Verify user is moderator/admin of the group
-          const message = await this.messageService.getMessageById(data.messageId);
-          
-          if (!message || message.groupId !== data.groupId) {
-            socket.emit('moderation_error', { error: 'Message not found or not in specified group' });
-            return;
-          }
-
-          if (data.action === 'delete') {
-            await this.messageService.deleteMessage(data.messageId, socket.userId);
-            
-            // Notify group about message deletion
-            this.io.to(`group:${data.groupId}`).emit('message_moderated', {
-              messageId: data.messageId,
-              action: 'deleted',
-              moderatorId: socket.userId,
-              reason: data.reason,
-              timestamp: new Date()
-            });
-          }
-
-          socket.emit('moderation_success', { 
-            messageId: data.messageId, 
-            action: data.action 
-          });
-
-          logger.info(`Message ${data.messageId} ${data.action}ed by moderator ${socket.userId} in group ${data.groupId}`);
-        } catch (error) {
-          logger.error('Error moderating message:', error);
-          socket.emit('moderation_error', { error: 'Failed to moderate message' });
-        }
-      });
-
-      // Handle group member management
-      socket.on('manage_group_member', async (data: {
-        groupId: string;
-        targetUserId: string;
-        action: 'kick' | 'ban' | 'mute' | 'unmute';
-        duration?: number; // in minutes for temporary actions
-        reason?: string;
-      }) => {
-        try {
-          // TODO: Verify user is moderator/admin of the group
-          // TODO: Implement member management logic
-          
-          // Notify the target user
-          this.io.to(`user:${data.targetUserId}`).emit('group_member_action', {
-            groupId: data.groupId,
-            action: data.action,
-            moderatorId: socket.userId,
-            reason: data.reason,
-            duration: data.duration,
-            timestamp: new Date()
-          });
-
-          // Notify group members about the action
-          this.io.to(`group:${data.groupId}`).emit('group_moderation_action', {
-            targetUserId: data.targetUserId,
-            action: data.action,
-            moderatorId: socket.userId,
-            reason: data.reason,
-            timestamp: new Date()
-          });
-
-          socket.emit('member_management_success', {
-            targetUserId: data.targetUserId,
-            action: data.action
-          });
-
-          logger.info(`User ${data.targetUserId} ${data.action}ed by moderator ${socket.userId} in group ${data.groupId}`);
-        } catch (error) {
-          logger.error('Error managing group member:', error);
-          socket.emit('member_management_error', { error: 'Failed to manage group member' });
-        }
-      });
-
-      // Handle group announcements (admin/moderator only)
-      socket.on('send_group_announcement', async (data: {
-        groupId: string;
-        content: string;
-        priority: 'low' | 'medium' | 'high';
-      }) => {
-        try {
-          // TODO: Verify user is moderator/admin of the group
-          
-          const announcement = await this.messageService.createGroupMessage({
-            senderId: socket.userId,
-            groupId: data.groupId,
-            content: data.content,
-            type: 'text',
-            attachments: []
-          });
-
-          // Send announcement to all group members with special formatting
-          this.io.to(`group:${data.groupId}`).emit('group_announcement', {
-            ...announcement,
-            isAnnouncement: true,
-            priority: data.priority,
-            announcerName: socket.userProfile.fullName
-          });
-
-          socket.emit('announcement_sent', { 
-            messageId: announcement.id, 
-            status: 'delivered' 
-          });
-
-          logger.info(`Announcement sent by ${socket.userId} to group ${data.groupId}`);
-        } catch (error) {
-          logger.error('Error sending announcement:', error);
-          socket.emit('announcement_error', { error: 'Failed to send announcement' });
-        }
-      });
-
-      // Handle user presence
-      socket.on('update_presence', (status: 'online' | 'away' | 'busy') => {
-        socket.broadcast.emit('user_presence_updated', {
-          userId: socket.userId,
-          status,
-          lastSeen: new Date()
+      // Handle notification acknowledgments
+      socket.on('notification_read', (data: { notificationId: string }) => {
+        // Mark notification as read
+        socket.emit('notification_acknowledged', { 
+          notificationId: data.notificationId,
+          timestamp: new Date()
         });
       });
+
+      // Handle connection quality reporting
+      socket.on('connection_quality', (data: { quality: 'good' | 'poor' | 'disconnected' }) => {
+        logger.info(`Connection quality for user ${socket.userId}: ${data.quality}`);
+        
+        // Could be used for adaptive features or monitoring
+        socket.emit('quality_acknowledged', { 
+          quality: data.quality,
+          timestamp: new Date()
+        });
+      });
+
+
 
       // Handle disconnection
       socket.on('disconnect', (reason: any) => {
         logger.info(`User ${socket.userProfile.fullName} disconnected: ${reason}`);
+        
+        // Clean up user data
         this.connectedUsers.delete(socket.userId);
+        this.userPresence.set(socket.userId, { 
+          status: 'offline', 
+          lastSeen: new Date() 
+        });
+        
+        // Stop typing in all conversations
+        this.typingUsers.forEach((typingSet, conversationId) => {
+          if (typingSet.has(socket.userId)) {
+            this.handleTypingStop(conversationId, socket.userId);
+          }
+        });
         
         // Broadcast user offline status
         socket.broadcast.emit('user_presence_updated', {
@@ -409,6 +363,79 @@ export class SocketServer {
     }
   }
 
+  // Helper method to handle typing start
+  private handleTypingStart(conversationId: string, userId: string, userName: string) {
+    if (!this.typingUsers.has(conversationId)) {
+      this.typingUsers.set(conversationId, new Set());
+    }
+    
+    const typingSet = this.typingUsers.get(conversationId)!;
+    typingSet.add(userId);
+    
+    // Broadcast typing indicator to conversation participants
+    this.io.to(`conversation:${conversationId}`).emit('user_typing', {
+      conversationId,
+      userId,
+      userName,
+      isTyping: true,
+      timestamp: new Date()
+    });
+    
+    // Auto-stop typing after 10 seconds
+    setTimeout(() => {
+      if (typingSet.has(userId)) {
+        this.handleTypingStop(conversationId, userId);
+      }
+    }, 10000);
+  }
+
+  // Helper method to handle typing stop
+  private handleTypingStop(conversationId: string, userId: string) {
+    const typingSet = this.typingUsers.get(conversationId);
+    if (typingSet && typingSet.has(userId)) {
+      typingSet.delete(userId);
+      
+      // Broadcast typing stop to conversation participants
+      this.io.to(`conversation:${conversationId}`).emit('user_typing', {
+        conversationId,
+        userId,
+        isTyping: false,
+        timestamp: new Date()
+      });
+      
+      // Clean up empty typing sets
+      if (typingSet.size === 0) {
+        this.typingUsers.delete(conversationId);
+      }
+    }
+  }
+
+  // Helper method to send delivery receipts
+  private sendDeliveryReceipt(message: any, senderId: string) {
+    // Send delivery receipt to sender
+    const senderSocketId = this.connectedUsers.get(senderId);
+    if (senderSocketId) {
+      this.io.to(senderSocketId).emit('message_delivered', {
+        messageId: message.id,
+        deliveredAt: new Date(),
+        status: 'delivered'
+      });
+    }
+  }
+
+  // Helper method to get user presence
+  private getUserPresence(userId: string): { status: string; lastSeen: Date; isOnline: boolean } {
+    const presence = this.userPresence.get(userId);
+    const isOnline = this.connectedUsers.has(userId);
+    
+    return {
+      status: isOnline ? (presence?.status || 'online') : 'offline',
+      lastSeen: presence?.lastSeen || new Date(),
+      isOnline
+    };
+  }
+
+  // Public methods
   public getConnectedUsers(): string[] {
     return Array.from(this.connectedUsers.keys());
   }
@@ -417,10 +444,36 @@ export class SocketServer {
     return this.connectedUsers.has(userId);
   }
 
+  public getUserPresenceStatus(userId: string) {
+    return this.getUserPresence(userId);
+  }
+
+  public getTypingUsers(conversationId: string): string[] {
+    const typingSet = this.typingUsers.get(conversationId);
+    return typingSet ? Array.from(typingSet) : [];
+  }
+
   public sendNotificationToUser(userId: string, notification: any) {
     const socketId = this.connectedUsers.get(userId);
     if (socketId) {
       this.io.to(socketId).emit('notification', notification);
+    }
+  }
+
+  public broadcastToConversation(conversationId: string, event: string, data: any) {
+    this.io.to(`conversation:${conversationId}`).emit(event, data);
+  }
+
+  public sendMessageNotification(userId: string, message: any) {
+    const socketId = this.connectedUsers.get(userId);
+    if (socketId) {
+      this.io.to(socketId).emit('new_message_notification', {
+        messageId: message.id,
+        senderId: message.senderId,
+        content: message.content.substring(0, 100), // Preview
+        timestamp: message.timestamp,
+        conversationId: message.conversationId
+      });
     }
   }
 }
