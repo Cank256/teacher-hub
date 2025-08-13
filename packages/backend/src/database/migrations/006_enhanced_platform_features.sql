@@ -65,6 +65,50 @@ CREATE TABLE user_searches (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Admin actions table for tracking administrative actions and moderation
+CREATE TABLE admin_actions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    admin_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action VARCHAR(50) NOT NULL CHECK (action IN (
+        'approve_post', 'flag_post', 'delete_post',
+        'approve_comment', 'delete_comment',
+        'approve_community', 'suspend_community', 'delete_community',
+        'approve_resource', 'flag_resource', 'delete_resource',
+        'approve_message', 'delete_message', 'flag_message', 'report_message',
+        'ban_user', 'unban_user', 'verify_user'
+    )),
+    target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('post', 'comment', 'community', 'user', 'resource', 'message')),
+    target_id VARCHAR(255) NOT NULL,
+    reason TEXT NOT NULL,
+    details_json JSONB DEFAULT '{}'::jsonb,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Moderation queue table for content review workflow
+CREATE TABLE moderation_queue (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    item_type VARCHAR(20) NOT NULL CHECK (item_type IN ('post', 'comment', 'resource', 'community', 'message')),
+    item_id UUID NOT NULL,
+    report_reason TEXT NOT NULL,
+    reported_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'resolved', 'escalated')),
+    assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+    resolution_action VARCHAR(20) CHECK (resolution_action IN ('approve', 'reject', 'escalate')),
+    resolution_reason TEXT,
+    resolution_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP
+);
+
+-- User activity log table for tracking user actions and analytics
+CREATE TABLE user_activity_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    activity VARCHAR(100) NOT NULL,
+    details_json JSONB DEFAULT '{}'::jsonb,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Conversations table for enhanced messaging system
 CREATE TABLE conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -149,6 +193,26 @@ CREATE INDEX idx_user_searches_searcher_id ON user_searches(searcher_id);
 CREATE INDEX idx_user_searches_search_type ON user_searches(search_type);
 CREATE INDEX idx_user_searches_created_at ON user_searches(created_at DESC);
 CREATE INDEX idx_user_searches_query_trgm ON user_searches USING GIN(search_query gin_trgm_ops);
+
+-- Admin actions table indexes
+CREATE INDEX idx_admin_actions_admin_id ON admin_actions(admin_id);
+CREATE INDEX idx_admin_actions_action ON admin_actions(action);
+CREATE INDEX idx_admin_actions_target_type ON admin_actions(target_type);
+CREATE INDEX idx_admin_actions_target_id ON admin_actions(target_id);
+CREATE INDEX idx_admin_actions_timestamp ON admin_actions(timestamp DESC);
+
+-- Moderation queue table indexes
+CREATE INDEX idx_moderation_queue_item_type ON moderation_queue(item_type);
+CREATE INDEX idx_moderation_queue_item_id ON moderation_queue(item_id);
+CREATE INDEX idx_moderation_queue_status ON moderation_queue(status);
+CREATE INDEX idx_moderation_queue_assigned_to ON moderation_queue(assigned_to);
+CREATE INDEX idx_moderation_queue_reported_by ON moderation_queue(reported_by);
+CREATE INDEX idx_moderation_queue_created_at ON moderation_queue(created_at DESC);
+
+-- User activity log table indexes
+CREATE INDEX idx_user_activity_log_user_id ON user_activity_log(user_id);
+CREATE INDEX idx_user_activity_log_activity ON user_activity_log(activity);
+CREATE INDEX idx_user_activity_log_timestamp ON user_activity_log(timestamp DESC);
 
 -- Conversations table indexes
 CREATE INDEX idx_conversations_participants_gin ON conversations USING GIN(participants);
