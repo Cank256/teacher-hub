@@ -1,20 +1,19 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY packages/backend/package*.json ./
-COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install
 
 # Copy source code
 COPY packages/backend/src ./src
 COPY packages/backend/tsconfig.json ./
-
-# Install dev dependencies for building
-RUN npm ci
 
 # Build the application
 RUN npm run build

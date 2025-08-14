@@ -130,16 +130,21 @@ const socketServer = new EnhancedSocketServer(httpServer);
 
 // Initialize services
 async function initializeServices() {
+  // Initialize database connection
   try {
-    // Initialize database connection (singleton pattern handles this automatically)
     await db.query('SELECT 1'); // Test database connection
     logger.info('Database connection verified');
-    
-    // Initialize Redis connection
+  } catch (error) {
+    logger.error('Failed to connect to database:', error);
+    // Continue without database - some features will be disabled
+  }
+  
+  // Initialize Redis connection
+  try {
     await redisClient.connect();
     logger.info('Redis connection established');
   } catch (error) {
-    logger.error('Failed to initialize services:', error);
+    logger.error('Failed to connect to Redis:', error);
     // Continue without Redis - caching will be disabled
   }
 }

@@ -16,6 +16,11 @@ services:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - teacher-hub-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teacher_hub_user -d teacher_hub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Redis Cache
   redis:
@@ -27,6 +32,11 @@ services:
       - redis_data:/data
     networks:
       - teacher-hub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # Elasticsearch
   elasticsearch:
@@ -63,12 +73,16 @@ services:
       - ./packages/backend:/app
       - /app/node_modules
     depends_on:
-      - postgres
-      - redis
-      - elasticsearch
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
     networks:
       - teacher-hub-network
     command: npm run dev
+    restart: unless-stopped
 
   # Web Application
   web:

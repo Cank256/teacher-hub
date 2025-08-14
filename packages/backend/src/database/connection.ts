@@ -14,20 +14,41 @@ class DatabaseConnection {
   private static instance: DatabaseConnection;
 
   private constructor() {
-    const config: DatabaseConfig = {
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'teacher_hub',
-      user: process.env.DB_USER || 'teacher_hub_user',
-      password: process.env.DB_PASSWORD || 'teacher_hub_password',
-      // Connection pool settings
-      max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum number of clients in the pool
-      min: parseInt(process.env.DB_POOL_MIN || '5'), // Minimum number of clients in the pool
-      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'), // Close idle clients after 30 seconds
-      connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '10000'), // Return error after 10 seconds if connection could not be established
-      maxUses: parseInt(process.env.DB_MAX_USES || '7500'), // Close (and replace) a connection after it has been used 7500 times
-      allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow the process to exit when all clients are idle
-    };
+    // Parse DATABASE_URL if provided, otherwise use individual env vars
+    let config: DatabaseConfig;
+
+    if (process.env.DATABASE_URL) {
+      const url = new URL(process.env.DATABASE_URL);
+      config = {
+        host: url.hostname,
+        port: parseInt(url.port) || 5432,
+        database: url.pathname.slice(1), // Remove leading slash
+        user: url.username,
+        password: url.password,
+        // Connection pool settings
+        max: parseInt(process.env.DB_POOL_MAX || '20'),
+        min: parseInt(process.env.DB_POOL_MIN || '5'),
+        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+        connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '5000'),
+        maxUses: parseInt(process.env.DB_MAX_USES || '7500'),
+        allowExitOnIdle: process.env.NODE_ENV !== 'production',
+      };
+    } else {
+      config = {
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '5432'),
+        database: process.env.DB_NAME || 'teacher_hub',
+        user: process.env.DB_USER || 'teacher_hub_user',
+        password: process.env.DB_PASSWORD || 'teacher_hub_password',
+        // Connection pool settings
+        max: parseInt(process.env.DB_POOL_MAX || '20'),
+        min: parseInt(process.env.DB_POOL_MIN || '5'),
+        idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+        connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '5000'),
+        maxUses: parseInt(process.env.DB_MAX_USES || '7500'),
+        allowExitOnIdle: process.env.NODE_ENV !== 'production',
+      };
+    }
 
     this.pool = new Pool(config);
 
@@ -48,8 +69,7 @@ class DatabaseConnection {
       logger.error('Unexpected error on idle client', err);
     });
 
-    // Test the connection
-    this.testConnection();
+    // Don't test connection in constructor to avoid blocking startup
   }
 
   public static getInstance(): DatabaseConnection {
