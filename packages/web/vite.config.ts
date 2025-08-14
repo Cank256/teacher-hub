@@ -73,7 +73,7 @@ export default defineConfig({
       },
     },
     hmr: {
-      port: 3002,
+      host: '0.0.0.0',
     },
   },
   test: {
