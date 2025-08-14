@@ -41,8 +41,8 @@ function App() {
     // Initialize authentication service
     authService.init();
 
-    // Register service worker
-    if ('serviceWorker' in navigator) {
+    // Register service worker only in production
+    if ('serviceWorker' in navigator && import.meta.env.PROD) {
       window.addEventListener('load', async () => {
         try {
           const registration = await navigator.serviceWorker.register('/sw.js');

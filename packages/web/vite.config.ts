@@ -56,24 +56,24 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8001',
+        target: 'http://backend:3001',
         changeOrigin: true,
         secure: false,
       },
       '/uploads': {
-        target: 'http://localhost:8001',
+        target: 'http://backend:3001',
         changeOrigin: true,
         secure: false,
       },
       '/socket.io': {
-        target: 'http://localhost:8001',
+        target: 'http://backend:3001',
         changeOrigin: true,
         secure: false,
         ws: true,
       },
     },
     hmr: {
-      port: 3001,
+      port: 3002,
     },
   },
   test: {

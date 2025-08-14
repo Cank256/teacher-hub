@@ -1,6 +1,6 @@
 import { authService } from './authService';
 
-const BACKEND_URL = import.meta.env.REACT_BACKEND_URL || "http://localhost:8001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 export interface AdminDashboardData {
   overview: {

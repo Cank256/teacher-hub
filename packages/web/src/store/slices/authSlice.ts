@@ -35,7 +35,7 @@ const initialState: AuthState = {
   lastActivity: null,
 };
 
-const BACKEND_URL = import.meta.env.REACT_BACKEND_URL || "http://localhost:8001";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
 // Async thunks for authentication actions
 export const loginUser = createAsyncThunk(
