@@ -1300,9 +1300,9 @@ export class AdminService {
       const query = `
         SELECT 
           (SELECT COUNT(*) FROM moderation_queue WHERE status = 'pending') as pending_moderations,
-          (SELECT COUNT(*) FROM admin_actions WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '30 days') as total_actions,
-          (SELECT COUNT(*) FROM admin_actions WHERE action LIKE '%flag%' AND timestamp > CURRENT_TIMESTAMP - INTERVAL '30 days') as flagged_content,
-          (SELECT COUNT(DISTINCT admin_id) FROM admin_actions WHERE timestamp > CURRENT_TIMESTAMP - INTERVAL '7 days') as active_admins
+          (SELECT COUNT(*) FROM admin_actions WHERE created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as total_actions,
+          (SELECT COUNT(*) FROM admin_actions WHERE action_type LIKE '%flag%' AND created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as flagged_content,
+          (SELECT COUNT(DISTINCT admin_id) FROM admin_actions WHERE created_at > CURRENT_TIMESTAMP - INTERVAL '7 days') as active_admins
       `;
 
       const result = await this.db.query(query);

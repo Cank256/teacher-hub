@@ -18,6 +18,7 @@ import adminRoutes from './routes/admin';
 import roleManagementRoutes from './routes/roleManagement';
 import { EnhancedSocketServer } from './messaging/socketServer';
 import { redisClient } from './cache/redisClient';
+import { db, getConnection } from './database/connection';
 import logger from './utils/logger';
 import { 
   requestTrackingMiddleware, 
@@ -44,6 +45,9 @@ app.use(adaptiveCompressionMiddleware());
 // Add monitoring middleware
 app.use(requestTrackingMiddleware);
 app.use(performanceTrackingMiddleware);
+
+// Set up database connection in app.locals for middleware access
+app.locals.db = getConnection();
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -124,13 +128,18 @@ const httpServer = createServer(app);
 // Initialize WebSocket server
 const socketServer = new EnhancedSocketServer(httpServer);
 
-// Initialize Redis connection
+// Initialize services
 async function initializeServices() {
   try {
+    // Initialize database connection (singleton pattern handles this automatically)
+    await db.query('SELECT 1'); // Test database connection
+    logger.info('Database connection verified');
+    
+    // Initialize Redis connection
     await redisClient.connect();
     logger.info('Redis connection established');
   } catch (error) {
-    logger.error('Failed to connect to Redis:', error);
+    logger.error('Failed to initialize services:', error);
     // Continue without Redis - caching will be disabled
   }
 }
@@ -147,13 +156,23 @@ httpServer.listen(PORT, async () => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  await redisClient.disconnect();
+  try {
+    await redisClient.disconnect();
+    await db.close();
+  } catch (error) {
+    logger.error('Error during shutdown:', error);
+  }
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
-  await redisClient.disconnect();
+  try {
+    await redisClient.disconnect();
+    await db.close();
+  } catch (error) {
+    logger.error('Error during shutdown:', error);
+  }
   process.exit(0);
 });
 

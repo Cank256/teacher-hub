@@ -14,7 +14,7 @@ const adminMiddleware = async (req: any, res: any, next: any) => {
     const db: Pool = req.app.locals.db;
     const adminService = new AdminService(db);
     
-    const isAdmin = await adminService.isUserAdmin(req.user.id);
+    const isAdmin = await adminService.isUserAdmin(req.user.userId);
     if (!isAdmin) {
       return res.status(403).json({ 
         error: 'INSUFFICIENT_PERMISSIONS',
@@ -22,7 +22,7 @@ const adminMiddleware = async (req: any, res: any, next: any) => {
       });
     }
 
-    req.userRole = await adminService.getUserRole(req.user.id);
+    req.userRole = await adminService.getUserRole(req.user.userId);
     next();
   } catch (error) {
     logger.error('Error checking admin permissions:', error);
@@ -118,7 +118,7 @@ router.post('/posts/:postId/moderate', async (req: any, res) => {
     const db: Pool = req.app.locals.db;
     const adminService = new AdminService(db);
 
-    await adminService.moderatePost(postId, req.user.id, action, reason);
+    await adminService.moderatePost(postId, req.user.userId, action, reason);
 
     res.json({ 
       success: true,
@@ -187,7 +187,7 @@ router.post('/communities/:communityId/moderate', async (req: any, res) => {
     const db: Pool = req.app.locals.db;
     const adminService = new AdminService(db);
 
-    await adminService.moderateCommunity(communityId, req.user.id, action, reason);
+    await adminService.moderateCommunity(communityId, req.user.userId, action, reason);
 
     res.json({ 
       success: true,
@@ -249,7 +249,7 @@ router.post('/messages/:messageId/moderate', async (req: any, res) => {
     const db: Pool = req.app.locals.db;
     const adminService = new AdminService(db);
 
-    await adminService.moderateMessage(messageId, req.user.id, action, reason);
+    await adminService.moderateMessage(messageId, req.user.userId, action, reason);
 
     res.json({ 
       success: true,
@@ -318,7 +318,7 @@ router.post('/resources/:resourceId/moderate', async (req: any, res) => {
     const db: Pool = req.app.locals.db;
     const adminService = new AdminService(db);
 
-    await adminService.moderateResource(resourceId, req.user.id, action, reason);
+    await adminService.moderateResource(resourceId, req.user.userId, action, reason);
 
     res.json({ 
       success: true,
@@ -546,7 +546,7 @@ router.post('/moderation-queue/:itemId/assign', async (req: any, res) => {
     const { moderatorId } = req.body;
 
     // If no moderatorId provided, assign to current user
-    const assigneeId = moderatorId || req.user.id;
+    const assigneeId = moderatorId || req.user.userId;
 
     const db: Pool = req.app.locals.db;
     const moderationService = new ModerationQueueService(db);
@@ -590,7 +590,7 @@ router.post('/moderation-queue/:itemId/resolve', async (req: any, res) => {
     const db: Pool = req.app.locals.db;
     const moderationService = new ModerationQueueService(db);
 
-    await moderationService.resolveItem(itemId, req.user.id, resolution);
+    await moderationService.resolveItem(itemId, req.user.userId, resolution);
 
     res.json({ 
       success: true,
@@ -675,7 +675,7 @@ router.post('/report', async (req: any, res) => {
       itemType,
       itemId,
       reason,
-      req.user.id,
+      req.user.userId,
       additionalDetails
     );
 
