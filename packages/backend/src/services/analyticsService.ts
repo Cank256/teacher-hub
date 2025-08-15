@@ -16,11 +16,17 @@ export class AnalyticsService {
 
   async getPlatformAnalytics(dateRange?: DateRange): Promise<PlatformAnalytics> {
     try {
-      let dateFilter = '';
       const queryParams: any[] = [];
+      let postsFilter = '';
+      let communitiesFilter = 'WHERE is_active = true';
+      let resourcesFilter = 'WHERE is_active = true';
+      let messagesFilter = '';
 
       if (dateRange) {
-        dateFilter = 'WHERE created_at BETWEEN $1 AND $2';
+        postsFilter = 'WHERE created_at BETWEEN $1 AND $2';
+        communitiesFilter = 'WHERE is_active = true AND created_at BETWEEN $1 AND $2';
+        resourcesFilter = 'WHERE is_active = true AND created_at BETWEEN $1 AND $2';
+        messagesFilter = 'WHERE created_at BETWEEN $1 AND $2';
         queryParams.push(dateRange.startDate, dateRange.endDate);
       }
 
@@ -28,10 +34,10 @@ export class AnalyticsService {
         SELECT 
           (SELECT COUNT(*) FROM users WHERE is_active = true) as total_users,
           (SELECT COUNT(*) FROM users WHERE is_active = true AND last_login_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as active_users,
-          (SELECT COUNT(*) FROM posts ${dateFilter}) as total_posts,
-          (SELECT COUNT(*) FROM communities WHERE is_active = true ${dateFilter}) as total_communities,
-          (SELECT COUNT(*) FROM resources WHERE is_active = true ${dateFilter}) as total_resources,
-          (SELECT COUNT(*) FROM messages ${dateFilter}) as total_messages,
+          (SELECT COUNT(*) FROM posts ${postsFilter}) as total_posts,
+          (SELECT COUNT(*) FROM communities ${communitiesFilter}) as total_communities,
+          (SELECT COUNT(*) FROM resources ${resourcesFilter}) as total_resources,
+          (SELECT COUNT(*) FROM messages ${messagesFilter}) as total_messages,
           (SELECT COUNT(*) FROM users WHERE is_active = true AND last_login_at > CURRENT_TIMESTAMP - INTERVAL '1 day') as daily_active_users,
           (SELECT COUNT(*) FROM users WHERE is_active = true AND last_login_at > CURRENT_TIMESTAMP - INTERVAL '7 days') as weekly_active_users,
           (SELECT COUNT(*) FROM users WHERE is_active = true AND last_login_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as monthly_active_users
@@ -108,7 +114,7 @@ export class AnalyticsService {
           SELECT unnest(
             CASE 
               WHEN subjects_json::text = 'null' OR subjects_json::text = '[]' THEN ARRAY[]::text[]
-              ELSE ARRAY(SELECT json_array_elements_text(subjects_json))
+              ELSE ARRAY(SELECT jsonb_array_elements_text(subjects_json))
             END
           ) as subject
           FROM users 
@@ -185,7 +191,7 @@ export class AnalyticsService {
           SELECT unnest(
             CASE 
               WHEN tags::text = 'null' OR tags::text = '[]' THEN ARRAY[]::text[]
-              ELSE ARRAY(SELECT json_array_elements_text(tags))
+              ELSE ARRAY(SELECT jsonb_array_elements_text(tags))
             END
           ) as tag
           FROM posts 

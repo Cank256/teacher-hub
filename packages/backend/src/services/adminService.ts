@@ -1301,7 +1301,7 @@ export class AdminService {
         SELECT 
           (SELECT COUNT(*) FROM moderation_queue WHERE status = 'pending') as pending_moderations,
           (SELECT COUNT(*) FROM admin_actions WHERE created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as total_actions,
-          (SELECT COUNT(*) FROM admin_actions WHERE action_type LIKE '%flag%' AND created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as flagged_content,
+          (SELECT COUNT(*) FROM admin_actions WHERE action LIKE '%flag%' AND created_at > CURRENT_TIMESTAMP - INTERVAL '30 days') as flagged_content,
           (SELECT COUNT(DISTINCT admin_id) FROM admin_actions WHERE created_at > CURRENT_TIMESTAMP - INTERVAL '7 days') as active_admins
       `;
 
