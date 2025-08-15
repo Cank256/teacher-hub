@@ -4,3 +4,8 @@ export { CommunityModerationPanel } from './CommunityModerationPanel';
 export { MessageModerationPanel } from './MessageModerationPanel';
 export { ResourceModerationPanel } from './ResourceModerationPanel';
 export { BulkModerationActions } from './BulkModerationActions';
+export { AnalyticsDashboard } from './AnalyticsDashboard';
+export { UserEngagementReport } from './UserEngagementReport';
+export { ContentPerformanceReport } from './ContentPerformanceReport';
+export { CommunityHealthMetrics } from './CommunityHealthMetrics';
+export { ModerationQueue } from './ModerationQueue';
