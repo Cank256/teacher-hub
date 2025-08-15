@@ -10,6 +10,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { PublicRoute } from './components/auth/PublicRoute';
 import { AuthRedirectHandler } from './components/auth/AuthRedirectHandler';
 import { Dashboard } from './pages/Dashboard';
+import { Posts } from './pages/Posts';
 import { Resources } from './pages/Resources';
 import { Communities } from './pages/Communities';
 import { Messages } from './pages/Messages';
@@ -156,6 +157,13 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Dashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } />
+              <Route path="/posts" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Posts />
                   </Layout>
                 </ProtectedRoute>
               } />

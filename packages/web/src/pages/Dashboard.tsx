@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { PostCard } from '../components/posts/PostCard';
 import { useOffline } from '../hooks/useOffline';
 
 export const Dashboard: React.FC = () => {
@@ -10,30 +11,95 @@ export const Dashboard: React.FC = () => {
     resourcesShared: 24,
     totalDownloads: 156,
     communitiesJoined: 3,
-    unreadMessages: 5
+    unreadMessages: 5,
+    postsCreated: 8,
+    totalLikes: 42
   });
 
   const [recentActivity, setRecentActivity] = useState([
     {
       id: 1,
+      type: 'post_created',
+      title: 'Created post: "New Teaching Methods for Mathematics"',
+      timestamp: '1 hour ago',
+      icon: '📝'
+    },
+    {
+      id: 2,
       type: 'resource_shared',
       title: 'Mathematics Worksheets for Primary 5',
       timestamp: '2 hours ago',
       icon: '📚'
     },
     {
-      id: 2,
+      id: 3,
       type: 'message_received',
       title: 'New message from Sarah Nakato',
       timestamp: '4 hours ago',
       icon: '💬'
     },
     {
-      id: 3,
+      id: 4,
       type: 'community_joined',
       title: 'Joined Science Teachers Network',
       timestamp: '1 day ago',
       icon: '👥'
+    }
+  ]);
+
+  const [recentPosts, setRecentPosts] = useState([
+    {
+      id: '1',
+      authorId: 'user1',
+      title: 'Quick Tips for Teaching Fractions',
+      content: 'Here are some visual methods I use to help students understand fractions better. Using pizza slices and pie charts really helps!',
+      mediaAttachments: [],
+      tags: ['mathematics', 'fractions', 'teaching-tips'],
+      visibility: 'public' as const,
+      likeCount: 8,
+      commentCount: 3,
+      isPinned: false,
+      createdAt: new Date('2024-01-15T08:30:00Z'),
+      updatedAt: new Date('2024-01-15T08:30:00Z'),
+      author: {
+        id: 'user1',
+        fullName: 'Mary Achieng',
+        profileImageUrl: undefined,
+        verificationStatus: 'verified' as const
+      },
+      isLiked: false,
+      isBookmarked: false
+    },
+    {
+      id: '2',
+      authorId: 'user2',
+      title: 'Science Experiment: Volcano Eruption',
+      content: 'My students loved this volcano experiment! Great for teaching about chemical reactions. Here\'s how to do it safely in the classroom.',
+      mediaAttachments: [
+        {
+          id: 'media1',
+          type: 'image' as const,
+          url: '/api/placeholder/300/200',
+          thumbnailUrl: '/api/placeholder/300/200',
+          filename: 'volcano-experiment.jpg',
+          size: 512000
+        }
+      ],
+      tags: ['science', 'chemistry', 'experiments'],
+      visibility: 'public' as const,
+      likeCount: 15,
+      commentCount: 7,
+      isPinned: false,
+      createdAt: new Date('2024-01-14T16:45:00Z'),
+      updatedAt: new Date('2024-01-14T16:45:00Z'),
+      author: {
+        id: 'user2',
+        fullName: 'James Okello',
+        profileImageUrl: undefined,
+        verificationStatus: 'verified' as const
+      },
+      isLiked: true,
+      isBookmarked: false
     }
   ]);
 
@@ -64,7 +130,19 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <Card padding="sm">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary-600">{stats.postsCreated}</p>
+            <p className="text-sm text-gray-600">Posts Created</p>
+          </div>
+        </Card>
+        <Card padding="sm">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-primary-600">{stats.totalLikes}</p>
+            <p className="text-sm text-gray-600">Total Likes</p>
+          </div>
+        </Card>
         <Card padding="sm">
           <div className="text-center">
             <p className="text-2xl font-bold text-primary-600">{stats.resourcesShared}</p>
@@ -93,38 +171,90 @@ export const Dashboard: React.FC = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Activity */}
+        {/* Recent Posts */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Recent Posts</CardTitle>
+                <div className="flex space-x-2">
+                  <Link to="/posts">
+                    <Button variant="outline" size="sm">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Create Post
+                    </Button>
+                  </Link>
+                  <Link to="/posts">
+                    <Button variant="ghost" size="sm">View All</Button>
+                  </Link>
+                </div>
+              </div>
             </CardHeader>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-md transition-colors">
-                  <span className="text-lg">{activity.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                  </div>
-                </div>
+              {recentPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  author={post.author}
+                  currentUserId="current-user"
+                  isLiked={post.isLiked}
+                  compact={true}
+                  showActions={true}
+                  onLike={(postId) => {
+                    setRecentPosts(prev => prev.map(p => 
+                      p.id === postId 
+                        ? { ...p, isLiked: true, likeCount: p.likeCount + 1 }
+                        : p
+                    ));
+                  }}
+                  onUnlike={(postId) => {
+                    setRecentPosts(prev => prev.map(p => 
+                      p.id === postId 
+                        ? { ...p, isLiked: false, likeCount: Math.max(0, p.likeCount - 1) }
+                        : p
+                    ));
+                  }}
+                  onComment={(postId) => console.log('Comment on post:', postId)}
+                  onShare={(postId) => console.log('Share post:', postId)}
+                  onBookmark={(postId) => {
+                    setRecentPosts(prev => prev.map(p => 
+                      p.id === postId 
+                        ? { ...p, isBookmarked: !p.isBookmarked }
+                        : p
+                    ));
+                  }}
+                />
               ))}
-              <div className="pt-2">
-                <Button variant="ghost" size="sm" className="w-full">
-                  View All Activity
-                </Button>
-              </div>
             </div>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div>
+        {/* Quick Actions & Recent Activity */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
           <Card>
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <div className="space-y-3">
+              <Link to="/posts" className="block">
+                <div className="p-3 rounded-md hover:bg-gray-50 transition-colors border border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-indigo-100 rounded-md flex items-center justify-center">
+                      <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">Create Post</p>
+                      <p className="text-sm text-gray-600">Share with community</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
               <Link to="/resources" className="block">
                 <div className="p-3 rounded-md hover:bg-gray-50 transition-colors border border-gray-200">
                   <div className="flex items-center space-x-3">
@@ -172,6 +302,29 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </Link>
+            </div>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-md transition-colors">
+                  <span className="text-lg">{activity.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                    <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2">
+                <Button variant="ghost" size="sm" className="w-full">
+                  View All Activity
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

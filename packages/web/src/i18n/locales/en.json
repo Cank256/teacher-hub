@@ -23,6 +23,7 @@
   },
   "navigation": {
     "dashboard": "Dashboard",
+    "posts": "Posts",
     "resources": "Resources",
     "communities": "Communities",
     "messages": "Messages",
