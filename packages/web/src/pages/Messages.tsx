@@ -2,58 +2,130 @@ import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { UserSearch, UserProfilePreview, ContactList, PrivacyControls, ConversationView, ConversationList, ConnectionStatus, TypingIndicator } from '../components/messaging';
+import { useRealTimeMessaging } from '../hooks/useRealTimeMessaging';
+
+interface UserSearchResult {
+  id: string;
+  fullName: string;
+  email: string;
+  profileImageUrl?: string;
+  subjects: string[];
+  gradeLevels: string[];
+  schoolLocation: {
+    district: string;
+    region: string;
+  };
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+  bio?: string;
+  yearsExperience: number;
+  createdAt: Date;
+}
+
+interface Conversation {
+  id: string;
+  participants: string[];
+  type: 'direct' | 'group';
+  lastMessage?: any;
+  lastActivity: Date;
+  unreadCount: { [userId: string]: number };
+  name?: string;
+}
 
 export const Messages: React.FC = () => {
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState<string | null>(null);
+  const [showContactList, setShowContactList] = useState(false);
+  const [showPrivacyControls, setShowPrivacyControls] = useState(false);
+  
+  // Mock current user ID - in real implementation, this would come from auth context
+  const currentUserId = 'current-user-id';
 
-  const conversations = [
-    {
-      id: 1,
-      name: 'Sarah Nakato',
-      lastMessage: 'Thanks for sharing those math resources!',
-      timestamp: '2 hours ago',
-      unread: true
+  // Real-time messaging hook
+  const {
+    connectionStatus,
+    sendMessage: sendRealtimeMessage,
+    markMessageAsRead,
+    sendTypingIndicator,
+    getTypingUsers,
+    getUserPresence,
+    getUnreadCount,
+    isConnected
+  } = useRealTimeMessaging({
+    currentUserId,
+    conversationId: selectedConversation?.id,
+    onNewMessage: (message) => {
+      console.log('New message received:', message);
+      // In real implementation, this would update the messages state
     },
-    {
-      id: 2,
-      name: 'Mathematics Teachers Group',
-      lastMessage: 'New curriculum guidelines discussion',
-      timestamp: '1 day ago',
-      unread: false
+    onTypingUpdate: (typing) => {
+      console.log('Typing update:', typing);
     },
-    {
-      id: 3,
-      name: 'John Mukasa',
-      lastMessage: 'How do you handle large class sizes?',
-      timestamp: '3 days ago',
-      unread: false
+    onPresenceUpdate: (presence) => {
+      console.log('Presence update:', presence);
     }
-  ];
+  });
 
-  const messages = [
-    {
-      id: 1,
-      sender: 'Sarah Nakato',
-      content: 'Hi! I saw your post about fraction teaching methods.',
-      timestamp: '10:30 AM',
-      isOwn: false
-    },
-    {
-      id: 2,
-      sender: 'You',
-      content: 'Yes! I find visual aids really help students understand fractions better.',
-      timestamp: '10:35 AM',
-      isOwn: true
-    },
-    {
-      id: 3,
-      sender: 'Sarah Nakato',
-      content: 'Thanks for sharing those math resources!',
-      timestamp: '2:15 PM',
-      isOwn: false
+  // Message handling functions
+  const handleSendMessage = (content: string, attachments?: File[], replyToId?: string) => {
+    console.log('Sending message:', { content, attachments, replyToId });
+    // Send via real-time service
+    sendRealtimeMessage(content, attachments, replyToId);
+  };
+
+  const handleEditMessage = (messageId: string, newContent: string) => {
+    console.log('Editing message:', messageId, newContent);
+    // In real implementation, this would edit the message via API
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    console.log('Deleting message:', messageId);
+    // In real implementation, this would delete the message via API
+  };
+
+  const handleMarkAsRead = (messageIds: string[]) => {
+    console.log('Marking messages as read:', messageIds);
+    // In real implementation, this would mark messages as read via API
+  };
+
+  const handleUserSelect = (user: UserSearchResult) => {
+    // Add user to contacts if not already there
+    const existingContacts = JSON.parse(localStorage.getItem('userContacts') || '[]');
+    const isAlreadyContact = existingContacts.some((contact: any) => contact.id === user.id);
+    
+    if (!isAlreadyContact) {
+      const newContact = { ...user, isFavorite: false };
+      const updatedContacts = [...existingContacts, newContact];
+      localStorage.setItem('userContacts', JSON.stringify(updatedContacts));
     }
-  ];
+    
+    // Start a new conversation with the user
+    // In a real implementation, this would create a conversation via API
+    console.log('Starting conversation with:', user.fullName);
+    setShowUserSearch(false);
+  };
+
+  const handleStartConversation = (user: UserSearchResult) => {
+    // Start conversation logic
+    console.log('Starting conversation with:', user.fullName);
+    setShowUserProfile(null);
+  };
+
+  const handleAddToFavorites = (user: UserSearchResult) => {
+    const existingContacts = JSON.parse(localStorage.getItem('userContacts') || '[]');
+    const updatedContacts = existingContacts.map((contact: any) =>
+      contact.id === user.id ? { ...contact, isFavorite: true } : contact
+    );
+    
+    // If user is not in contacts, add them as a favorite
+    if (!existingContacts.some((contact: any) => contact.id === user.id)) {
+      updatedContacts.push({ ...user, isFavorite: true });
+    }
+    
+    localStorage.setItem('userContacts', JSON.stringify(updatedContacts));
+  };
 
   return (
     <div className="space-y-6">
@@ -64,99 +136,147 @@ export const Messages: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
+      {/* Connection Status */}
+      <ConnectionStatus
+        isConnected={connectionStatus.isConnected}
+        isConnecting={connectionStatus.isConnecting}
+        lastConnected={connectionStatus.lastConnected}
+        reconnectAttempts={connectionStatus.reconnectAttempts}
+        onReconnect={() => {
+          // Trigger reconnection
+          window.location.reload();
+        }}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
         {/* Conversations List */}
-        <Card className="lg:col-span-1" padding="none">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-900">Conversations</h2>
+        <div className="lg:col-span-1">
+          <ConversationList
+            currentUserId={currentUserId}
+            selectedConversationId={selectedConversation?.id}
+            onConversationSelect={setSelectedConversation}
+            onNewConversation={() => setShowUserSearch(true)}
+          />
+          
+          {/* Quick Actions */}
+          <div className="mt-4 flex space-x-2">
+            <Button
+              onClick={() => setShowContactList(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span>Contacts</span>
+            </Button>
+            
+            <Button
+              onClick={() => setShowPrivacyControls(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span>Privacy</span>
+            </Button>
           </div>
-          <div className="overflow-y-auto">
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  selectedConversation === conversation.id ? 'bg-primary-50' : ''
-                }`}
-                onClick={() => setSelectedConversation(conversation.id)}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {conversation.name}
-                      </p>
-                      {conversation.unread && (
-                        <div className="w-2 h-2 bg-primary-600 rounded-full"></div>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 truncate">
-                      {conversation.lastMessage}
-                    </p>
-                    <p className="text-xs text-gray-500">{conversation.timestamp}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        </div>
 
         {/* Chat Area */}
-        <Card className="lg:col-span-2" padding="none">
+        <div className="lg:col-span-2">
           {selectedConversation ? (
-            <div className="flex flex-col h-full">
-              {/* Chat Header */}
-              <div className="p-4 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900">
-                  {conversations.find(c => c.id === selectedConversation)?.name}
-                </h3>
-              </div>
-
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        message.isOwn
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-gray-100 text-gray-900'
-                      }`}
-                    >
-                      <p className="text-sm">{message.content}</p>
-                      <p className={`text-xs mt-1 ${
-                        message.isOwn ? 'text-primary-100' : 'text-gray-500'
-                      }`}>
-                        {message.timestamp}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Message Input */}
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Type your message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className="flex-1"
-                  />
-                  <Button>Send</Button>
-                </div>
+            <div className="h-full flex flex-col">
+              <ConversationView
+                conversation={selectedConversation}
+                currentUserId={currentUserId}
+                onSendMessage={handleSendMessage}
+                onEditMessage={handleEditMessage}
+                onDeleteMessage={handleDeleteMessage}
+                onMarkAsRead={handleMarkAsRead}
+                onTypingIndicator={sendTypingIndicator}
+              />
+              
+              {/* Typing Indicator */}
+              <div className="px-4 pb-2">
+                <TypingIndicator
+                  typingUsers={getTypingUsers()}
+                  getUserName={(userId) => `User ${userId}`} // In real app, get actual names
+                />
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-gray-600">Select a conversation to start messaging</p>
-            </div>
+            <Card className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-gray-600 mb-2">Select a conversation to start messaging</p>
+                <Button onClick={() => setShowUserSearch(true)} variant="outline">
+                  Find Teachers to Message
+                </Button>
+              </div>
+            </Card>
           )}
-        </Card>
+        </div>
       </div>
+
+      {/* User Search Modal */}
+      {showUserSearch && (
+        <UserSearch
+          onUserSelect={handleUserSelect}
+          onClose={() => setShowUserSearch(false)}
+        />
+      )}
+
+      {/* User Profile Preview Modal */}
+      {showUserProfile && (
+        <UserProfilePreview
+          userId={showUserProfile}
+          onClose={() => setShowUserProfile(null)}
+          onStartConversation={handleStartConversation}
+          onAddToFavorites={handleAddToFavorites}
+        />
+      )}
+
+      {/* Contact List Modal */}
+      {showContactList && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="w-full max-w-md h-[80vh]">
+            <ContactList
+              onContactSelect={(contact) => {
+                console.log('Selected contact:', contact.fullName);
+                setShowContactList(false);
+              }}
+              onStartConversation={(contact) => {
+                handleStartConversation(contact);
+                setShowContactList(false);
+              }}
+            />
+          </div>
+          <button
+            onClick={() => setShowContactList(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Privacy Controls Modal */}
+      {showPrivacyControls && (
+        <PrivacyControls
+          onClose={() => setShowPrivacyControls(false)}
+          onSave={(settings) => {
+            console.log('Privacy settings saved:', settings);
+          }}
+        />
+      )}
     </div>
   );
 };

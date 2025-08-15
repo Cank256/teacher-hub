@@ -136,45 +136,75 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('push', (event) => {
   console.log('Service Worker: Push notification received');
 
+  let notificationData = {
+    title: 'Teacher Hub',
+    body: 'New update available',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    data: {}
+  };
+
+  if (event.data) {
+    try {
+      notificationData = event.data.json();
+    } catch (error) {
+      notificationData.body = event.data.text();
+    }
+  }
+
   const options = {
-    body: event.data ? event.data.text() : 'New update available',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/badge-72x72.png',
+    body: notificationData.body,
+    icon: notificationData.icon || '/favicon.ico',
+    badge: notificationData.badge || '/favicon.ico',
     vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    },
-    actions: [
+    data: notificationData.data || {},
+    actions: notificationData.actions || [
       {
-        action: 'explore',
-        title: 'View',
-        icon: '/icons/checkmark.png'
+        action: 'view',
+        title: 'View'
       },
       {
         action: 'close',
-        title: 'Close',
-        icon: '/icons/xmark.png'
+        title: 'Close'
       }
-    ]
+    ],
+    requireInteraction: notificationData.requireInteraction || false,
+    silent: notificationData.silent || false,
+    tag: notificationData.tag
   };
 
   event.waitUntil(
-    self.registration.showNotification('Teacher Hub', options)
+    self.registration.showNotification(notificationData.title, options)
   );
 });
 
 // Notification click handling
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked');
+  console.log('Service Worker: Notification clicked', event.action);
 
   event.notification.close();
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
-  }
+  const action = event.action;
+  const data = event.notification.data;
+
+  // Send message to main thread
+  event.waitUntil(
+    clients.matchAll().then((clientList) => {
+      if (clientList.length > 0) {
+        clientList[0].postMessage({
+          type: 'notification-click',
+          action: action,
+          data: data
+        });
+        
+        if (action === 'view' || !action) {
+          return clientList[0].focus();
+        }
+      } else if (action === 'view' || !action) {
+        return clients.openWindow('/');
+      }
+    })
+  );
 });
 
 // Helper function to process offline queue

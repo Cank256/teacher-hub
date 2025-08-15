@@ -1,143 +1,309 @@
-class NotificationService {
-  private vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || ''; // This would come from environment variables
+interface NotificationOptions {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: any;
+  actions?: NotificationAction[];
+  requireInteraction?: boolean;
+  silent?: boolean;
+}
 
-  async requestPermission(): Promise<boolean> {
+interface NotificationAction {
+  action: string;
+  title: string;
+  icon?: string;
+}
+
+interface PushSubscription {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}
+
+class NotificationService {
+  private registration: ServiceWorkerRegistration | null = null;
+  private permission: NotificationPermission = 'default';
+
+  constructor() {
+    this.permission = Notification.permission;
+    this.initializeServiceWorker();
+  }
+
+  private async initializeServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      try {
+        this.registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service Worker registered successfully');
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+      }
+    }
+  }
+
+  async requestPermission(): Promise<NotificationPermission> {
     if (!('Notification' in window)) {
       console.warn('This browser does not support notifications');
-      return false;
+      return 'denied';
     }
 
-    if (Notification.permission === 'granted') {
-      return true;
+    if (this.permission === 'granted') {
+      return 'granted';
     }
 
-    if (Notification.permission === 'denied') {
-      return false;
+    if (this.permission === 'denied') {
+      return 'denied';
     }
 
     const permission = await Notification.requestPermission();
-    return permission === 'granted';
+    this.permission = permission;
+    return permission;
   }
 
-  async subscribeToPushNotifications(): Promise<PushSubscription | null> {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('Push messaging is not supported');
-      return null;
+  async showNotification(options: NotificationOptions): Promise<void> {
+    if (this.permission !== 'granted') {
+      console.warn('Notification permission not granted');
+      return;
     }
 
-    if (!this.vapidPublicKey) {
-      console.warn('VAPID public key not configured');
+    // Check if the page is visible - don't show notifications if user is actively using the app
+    if (document.visibilityState === 'visible' && document.hasFocus()) {
+      return;
+    }
+
+    try {
+      if (this.registration) {
+        // Use service worker to show notification (better for background)
+        await this.registration.showNotification(options.title, {
+          body: options.body,
+          icon: options.icon || '/favicon.ico',
+          badge: options.badge || '/favicon.ico',
+          tag: options.tag,
+          data: options.data,
+          actions: options.actions,
+          requireInteraction: options.requireInteraction || false,
+          silent: options.silent || false
+        });
+      } else {
+        // Fallback to regular notification
+        new Notification(options.title, {
+          body: options.body,
+          icon: options.icon || '/favicon.ico',
+          tag: options.tag,
+          data: options.data,
+          requireInteraction: options.requireInteraction || false,
+          silent: options.silent || false
+        });
+      }
+    } catch (error) {
+      console.error('Error showing notification:', error);
+    }
+  }
+
+  async showMessageNotification(senderName: string, message: string, conversationId: string): Promise<void> {
+    await this.showNotification({
+      title: `New message from ${senderName}`,
+      body: message.length > 100 ? `${message.substring(0, 100)}...` : message,
+      icon: '/favicon.ico',
+      tag: `message-${conversationId}`,
+      data: {
+        type: 'message',
+        conversationId,
+        senderName
+      },
+      actions: [
+        {
+          action: 'reply',
+          title: 'Reply'
+        },
+        {
+          action: 'view',
+          title: 'View'
+        }
+      ],
+      requireInteraction: false
+    });
+  }
+
+  async showTypingNotification(senderName: string, conversationId: string): Promise<void> {
+    // Only show typing notifications for direct messages, not groups
+    await this.showNotification({
+      title: `${senderName} is typing...`,
+      body: '',
+      icon: '/favicon.ico',
+      tag: `typing-${conversationId}`,
+      data: {
+        type: 'typing',
+        conversationId,
+        senderName
+      },
+      silent: true,
+      requireInteraction: false
+    });
+
+    // Auto-dismiss typing notification after 3 seconds
+    setTimeout(() => {
+      this.dismissNotification(`typing-${conversationId}`);
+    }, 3000);
+  }
+
+  dismissNotification(tag: string): void {
+    if (this.registration) {
+      this.registration.getNotifications({ tag }).then(notifications => {
+        notifications.forEach(notification => notification.close());
+      });
+    }
+  }
+
+  async subscribeToPush(): Promise<PushSubscription | null> {
+    if (!this.registration) {
+      console.error('Service Worker not registered');
       return null;
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
-      
-      // Check if already subscribed
-      const existingSubscription = await registration.pushManager.getSubscription();
-      if (existingSubscription) {
-        return existingSubscription;
-      }
-
-      // Subscribe to push notifications
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey)
+        applicationServerKey: this.urlBase64ToUint8Array(process.env.REACT_APP_VAPID_PUBLIC_KEY || '')
       });
 
       // Send subscription to server
       await this.sendSubscriptionToServer(subscription);
-      
-      return subscription;
+
+      return {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
+          auth: this.arrayBufferToBase64(subscription.getKey('auth')!)
+        }
+      };
     } catch (error) {
-      console.error('Failed to subscribe to push notifications:', error);
+      console.error('Error subscribing to push notifications:', error);
       return null;
     }
   }
 
-  async unsubscribeFromPushNotifications(): Promise<boolean> {
+  private async sendSubscriptionToServer(subscription: globalThis.PushSubscription): Promise<void> {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      
-      if (subscription) {
-        await subscription.unsubscribe();
-        await this.removeSubscriptionFromServer(subscription);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Failed to unsubscribe from push notifications:', error);
-      return false;
-    }
-  }
-
-  showLocalNotification(title: string, options?: NotificationOptions): void {
-    if (Notification.permission === 'granted') {
-      new Notification(title, {
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-        ...options
+      const token = localStorage.getItem('token');
+      await fetch('/api/notifications/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subscription: {
+            endpoint: subscription.endpoint,
+            keys: {
+              p256dh: this.arrayBufferToBase64(subscription.getKey('p256dh')!),
+              auth: this.arrayBufferToBase64(subscription.getKey('auth')!)
+            }
+          }
+        })
       });
+    } catch (error) {
+      console.error('Error sending subscription to server:', error);
     }
   }
 
   private urlBase64ToUint8Array(base64String: string): Uint8Array {
-    if (!base64String) {
-      throw new Error('Base64 string is empty or undefined');
-    }
-
-    // Validate base64 string format
-    if (!/^[A-Za-z0-9_-]+$/.test(base64String)) {
-      throw new Error('Invalid base64 string format');
-    }
-
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
       .replace(/-/g, '+')
       .replace(/_/g, '/');
 
-    try {
-      const rawData = window.atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
 
-      for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  private arrayBufferToBase64(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  }
+
+  // Check if notifications are supported
+  isSupported(): boolean {
+    return 'Notification' in window && 'serviceWorker' in navigator;
+  }
+
+  // Get current permission status
+  getPermission(): NotificationPermission {
+    return this.permission;
+  }
+
+  // Setup notification click handlers
+  setupNotificationHandlers(): void {
+    if (this.registration) {
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'notification-click') {
+          const { action, data } = event.data;
+          this.handleNotificationClick(action, data);
+        }
+      });
+    }
+  }
+
+  private handleNotificationClick(action: string, data: any): void {
+    switch (action) {
+      case 'reply':
+        // Open reply interface
+        window.focus();
+        window.location.hash = `#/messages/${data.conversationId}?reply=true`;
+        break;
+      case 'view':
+        // Open conversation
+        window.focus();
+        window.location.hash = `#/messages/${data.conversationId}`;
+        break;
+      default:
+        // Default action - just focus the window
+        window.focus();
+        break;
+    }
+  }
+
+  // Enable/disable notifications based on user preference
+  async setNotificationPreference(enabled: boolean): Promise<void> {
+    if (enabled) {
+      const permission = await this.requestPermission();
+      if (permission === 'granted') {
+        await this.subscribeToPush();
       }
-      return outputArray;
-    } catch (error) {
-      throw new Error(`Failed to decode base64 string: ${error}`);
+    } else {
+      // Unsubscribe from push notifications
+      if (this.registration) {
+        const subscription = await this.registration.pushManager.getSubscription();
+        if (subscription) {
+          await subscription.unsubscribe();
+        }
+      }
     }
+
+    // Save preference to localStorage
+    localStorage.setItem('notificationsEnabled', enabled.toString());
   }
 
-  private async sendSubscriptionToServer(subscription: PushSubscription): Promise<void> {
-    try {
-      await fetch('/api/notifications/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription)
-      });
-    } catch (error) {
-      console.error('Failed to send subscription to server:', error);
-    }
-  }
-
-  private async removeSubscriptionFromServer(subscription: PushSubscription): Promise<void> {
-    try {
-      await fetch('/api/notifications/unsubscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscription)
-      });
-    } catch (error) {
-      console.error('Failed to remove subscription from server:', error);
-    }
+  // Check if notifications are enabled by user
+  areNotificationsEnabled(): boolean {
+    return localStorage.getItem('notificationsEnabled') === 'true' && this.permission === 'granted';
   }
 }
 
+// Create singleton instance
 export const notificationService = new NotificationService();
+
+// Export types
+export type { NotificationOptions, NotificationAction, PushSubscription };
