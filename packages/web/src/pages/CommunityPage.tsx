@@ -1,220 +1,522 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle } from '../components/ui/Card';
+import { PostEditor, PostFeed } from '../components/posts';
+import { CommunitySettings, MemberManagement } from '../components/communities';
+
+interface Community {
+  id: string;
+  name: string;
+  description: string;
+  type: 'subject' | 'region' | 'grade' | 'general';
+  ownerId: string;
+  moderators: string[];
+  isPrivate: boolean;
+  requiresApproval: boolean;
+  rules: Array<{
+    id: string;
+    title: string;
+    description: string;
+    order: number;
+  }>;
+  imageUrl?: string;
+  memberCount: number;
+  postCount: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CommunityMembership {
+  id: string;
+  communityId: string;
+  userId: string;
+  role: 'member' | 'moderator' | 'owner';
+  status: 'active' | 'pending' | 'banned';
+  joinedAt: Date;
+}
+
+interface Post {
+  id: string;
+  authorId: string;
+  communityId?: string;
+  title: string;
+  content: string;
+  mediaAttachments: any[];
+  tags: string[];
+  visibility: 'public' | 'community' | 'followers';
+  likeCount: number;
+  commentCount: number;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface UserProfile {
+  id: string;
+  fullName: string;
+  email: string;
+  profileImageUrl?: string;
+  subjects: string[];
+  gradeLevels: string[];
+  verificationStatus: 'pending' | 'verified' | 'rejected';
+  bio?: string;
+  yearsExperience: number;
+}
+
+interface MemberWithProfile extends CommunityMembership {
+  user: UserProfile;
+}
 
 export const CommunityPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { communityId } = useParams<{ communityId: string }>();
+  const navigate = useNavigate();
+  
+  const [community, setCommunity] = useState<Community | null>(null);
+  const [membership, setMembership] = useState<CommunityMembership | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [members, setMembers] = useState<MemberWithProfile[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<MemberWithProfile[]>([]);
+  const [activeTab, setActiveTab] = useState<'posts' | 'members' | 'settings'>('posts');
+  const [showPostEditor, setShowPostEditor] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const communityStats = [
-    { label: t('communityPage.stats.teachers'), value: '5,000+' },
-    { label: t('communityPage.stats.resources'), value: '15,000+' },
-    { label: t('communityPage.stats.communities'), value: '200+' },
-    { label: t('communityPage.stats.districts'), value: '50+' }
-  ];
+  // Mock current user
+  const currentUserId = 'current-user';
+  const currentUser = {
+    id: currentUserId,
+    fullName: 'John Doe',
+    email: 'john@example.com',
+    subjects: ['Mathematics', 'Physics'],
+    gradeLevels: ['Secondary'],
+    verificationStatus: 'verified' as const
+  };
 
-  const featuredCommunities = [
+  // Mock data
+  const mockCommunity: Community = {
+    id: communityId || '1',
+    name: 'Mathematics Teachers Uganda',
+    description: 'Connect with math teachers across Uganda to share resources and teaching strategies.',
+    type: 'subject',
+    ownerId: 'owner1',
+    moderators: ['mod1', 'mod2'],
+    isPrivate: false,
+    requiresApproval: false,
+    rules: [
+      { id: '1', title: 'Be Respectful', description: 'Treat all members with respect and kindness.', order: 1 },
+      { id: '2', title: 'Stay On Topic', description: 'Keep discussions related to mathematics education.', order: 2 }
+    ],
+    imageUrl: undefined,
+    memberCount: 1250,
+    postCount: 450,
+    isActive: true,
+    createdAt: new Date('2024-01-15'),
+    updatedAt: new Date('2024-12-01')
+  };
+
+  const mockMembership: CommunityMembership = {
+    id: 'membership1',
+    communityId: communityId || '1',
+    userId: currentUserId,
+    role: 'member',
+    status: 'active',
+    joinedAt: new Date('2024-06-01')
+  };
+
+  const mockPosts: Post[] = [
     {
-      name: t('communityPage.featured.primaryEducation.name'),
-      description: t('communityPage.featured.primaryEducation.description'),
-      members: 1250,
-      category: 'Grade Level'
+      id: '1',
+      authorId: 'user1',
+      communityId: communityId,
+      title: 'New Teaching Method for Algebra',
+      content: 'I\'ve been experimenting with a visual approach to teaching algebra that has shown great results...',
+      mediaAttachments: [],
+      tags: ['algebra', 'teaching-methods'],
+      visibility: 'community',
+      likeCount: 15,
+      commentCount: 8,
+      isPinned: true,
+      createdAt: new Date('2024-12-07'),
+      updatedAt: new Date('2024-12-07')
     },
     {
-      name: t('communityPage.featured.mathematics.name'),
-      description: t('communityPage.featured.mathematics.description'),
-      members: 890,
-      category: 'Subject'
-    },
-    {
-      name: t('communityPage.featured.kampala.name'),
-      description: t('communityPage.featured.kampala.description'),
-      members: 650,
-      category: 'Regional'
-    },
-    {
-      name: t('communityPage.featured.science.name'),
-      description: t('communityPage.featured.science.description'),
-      members: 720,
-      category: 'Subject'
+      id: '2',
+      authorId: 'user2',
+      communityId: communityId,
+      title: 'Resource Sharing: Geometry Worksheets',
+      content: 'I\'ve created some interactive geometry worksheets that might be useful for your classes...',
+      mediaAttachments: [],
+      tags: ['geometry', 'worksheets', 'resources'],
+      visibility: 'community',
+      likeCount: 23,
+      commentCount: 12,
+      isPinned: false,
+      createdAt: new Date('2024-12-06'),
+      updatedAt: new Date('2024-12-06')
     }
   ];
 
-  const communityGuidelines = [
-    t('communityPage.guidelines.respectful'),
-    t('communityPage.guidelines.educational'),
-    t('communityPage.guidelines.constructive'),
-    t('communityPage.guidelines.authentic'),
-    t('communityPage.guidelines.supportive'),
-    t('communityPage.guidelines.professional')
-  ];
+  useEffect(() => {
+    // Mock API calls
+    const loadCommunityData = async () => {
+      setIsLoading(true);
+      try {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setCommunity(mockCommunity);
+        setMembership(mockMembership);
+        setPosts(mockPosts);
+        setMembers([]);
+        setPendingRequests([]);
+      } catch (error) {
+        console.error('Failed to load community data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            {t('communityPage.title')}
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            {t('communityPage.subtitle')}
-          </p>
-        </div>
+    if (communityId) {
+      loadCommunityData();
+    }
+  }, [communityId]);
 
-        {/* Community Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-          {communityStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm p-6 text-center">
-              <div className="text-3xl font-bold text-primary-600 mb-2">{stat.value}</div>
-              <div className="text-gray-600">{stat.label}</div>
-            </div>
-          ))}
-        </div>
+  const isOwner = membership?.role === 'owner';
+  const isModerator = membership?.role === 'moderator' || isOwner;
+  const isMember = membership?.status === 'active';
+  const canPost = isMember;
+  const canManage = isModerator;
 
-        {/* Join Community CTA */}
-        <div className="bg-primary-600 rounded-lg p-8 text-center text-white mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            {t('communityPage.joinCta.title')}
-          </h2>
-          <p className="text-xl mb-6 text-primary-100">
-            {t('communityPage.joinCta.subtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/auth/register"
-              className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-            >
-              {t('communityPage.joinCta.register')}
-            </Link>
-            <Link
-              to="/auth/login"
-              className="border border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-600"
-            >
-              {t('communityPage.joinCta.login')}
-            </Link>
-          </div>
-        </div>
+  const handleCreatePost = async (postData: any) => {
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Creating community post:', postData);
+      setShowPostEditor(false);
+      // Refresh posts
+    } catch (error) {
+      console.error('Failed to create post:', error);
+    }
+  };
 
-        {/* Featured Communities */}
-        <div className="mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
-            {t('communityPage.featured.title')}
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {featuredCommunities.map((community, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                      {community.name}
-                    </h3>
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-primary-100 text-primary-800">
-                      {community.category}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-primary-600">
-                      {community.members.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {t('communityPage.featured.members')}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  {community.description}
-                </p>
-                <Link
-                  to="/auth/register"
-                  className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  {t('communityPage.featured.joinCommunity')}
-                  <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
+  const handleUpdateCommunity = async (updates: any) => {
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Updating community:', updates);
+      if (community) {
+        setCommunity({ ...community, ...updates });
+      }
+    } catch (error) {
+      console.error('Failed to update community:', error);
+    }
+  };
 
-        {/* Community Benefits */}
-        <div className="bg-white rounded-lg shadow-sm p-8 mb-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 text-center">
-            {t('communityPage.benefits.title')}
-          </h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C20.832 18.477 19.246 18 17.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {t('communityPage.benefits.shareResources.title')}
-              </h3>
-              <p className="text-gray-600">
-                {t('communityPage.benefits.shareResources.description')}
-              </p>
-            </div>
+  const handleDeleteCommunity = async () => {
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('Deleting community');
+      navigate('/communities');
+    } catch (error) {
+      console.error('Failed to delete community:', error);
+    }
+  };
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {t('communityPage.benefits.collaborate.title')}
-              </h3>
-              <p className="text-gray-600">
-                {t('communityPage.benefits.collaborate.description')}
-              </p>
-            </div>
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'subject':
+        return 'bg-blue-100 text-blue-800';
+      case 'region':
+        return 'bg-green-100 text-green-800';
+      case 'grade':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {t('communityPage.benefits.grow.title')}
-              </h3>
-              <p className="text-gray-600">
-                {t('communityPage.benefits.grow.description')}
-              </p>
-            </div>
-          </div>
-        </div>
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'owner':
+        return 'bg-purple-100 text-purple-800';
+      case 'moderator':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
-        {/* Community Guidelines */}
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-            {t('communityPage.guidelines.title')}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            {t('communityPage.guidelines.subtitle')}
-          </p>
-          <div className="grid md:grid-cols-2 gap-4">
-            {communityGuidelines.map((guideline, index) => (
-              <div key={index} className="flex items-start">
-                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 mr-3">
-                  <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <p className="text-gray-700">{guideline}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">
-              <strong>{t('communityPage.guidelines.note.title')}</strong> {t('communityPage.guidelines.note.content')}
-            </p>
-          </div>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading community...</p>
         </div>
       </div>
+    );
+  }
+
+  if (!community) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Community Not Found</h1>
+        <p className="text-gray-600 mb-6">The community you're looking for doesn't exist or has been removed.</p>
+        <Button onClick={() => navigate('/communities')}>
+          Back to Communities
+        </Button>
+      </div>
+    );
+  }
+
+  if (!isMember && community.isPrivate) {
+    return (
+      <div className="text-center py-12">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Private Community</h1>
+        <p className="text-gray-600 mb-6">This is a private community. You need to be a member to view its content.</p>
+        <Button onClick={() => navigate('/communities')}>
+          Back to Communities
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Community Header */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start space-x-4">
+              {community.imageUrl ? (
+                <img
+                  src={community.imageUrl}
+                  alt={community.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-bold text-xl">
+                    {community.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">{community.name}</h1>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className={`px-2 py-1 text-xs rounded-full ${getTypeColor(community.type)}`}>
+                    {community.type.charAt(0).toUpperCase() + community.type.slice(1)}
+                  </span>
+                  {community.isPrivate && (
+                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                      Private
+                    </span>
+                  )}
+                  {membership && (
+                    <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(membership.role)}`}>
+                      {membership.role}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                  <span>{community.memberCount.toLocaleString()} members</span>
+                  <span>{community.postCount.toLocaleString()} posts</span>
+                  <span>Created {new Date(community.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/communities')}
+              >
+                ← Back
+              </Button>
+              {canPost && (
+                <Button onClick={() => setShowPostEditor(true)}>
+                  Create Post
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          <p className="text-gray-700 mb-4">{community.description}</p>
+
+          {/* Community Rules */}
+          {community.rules.length > 0 && (
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Community Rules</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {community.rules.map((rule, index) => (
+                  <div key={rule.id} className="text-sm">
+                    <span className="font-medium text-gray-900">
+                      {index + 1}. {rule.title}:
+                    </span>
+                    <span className="text-gray-600 ml-1">{rule.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'posts'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Posts ({posts.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'members'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Members ({community.memberCount})
+          </button>
+          {canManage && (
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'settings'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              {isOwner ? 'Settings' : 'Moderation'}
+            </button>
+          )}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'posts' && (
+        <div className="space-y-6">
+          {/* Post Editor Modal */}
+          {showPostEditor && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">Create Post in {community.name}</h2>
+                    <button
+                      onClick={() => setShowPostEditor(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <PostEditor
+                    onSubmit={handleCreatePost}
+                    onCancel={() => setShowPostEditor(false)}
+                    defaultCommunityId={community.id}
+                    defaultVisibility="community"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Posts Feed */}
+          <PostFeed
+            posts={posts}
+            currentUserId={currentUserId}
+            onLike={() => {}}
+            onComment={() => {}}
+            onShare={() => {}}
+            onBookmark={() => {}}
+            isLoading={false}
+          />
+        </div>
+      )}
+
+      {activeTab === 'members' && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Member Stats */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Member Stats</CardTitle>
+              </CardHeader>
+              <div className="p-6 space-y-4">
+                <div>
+                  <div className="text-2xl font-bold text-primary-600">{community.memberCount}</div>
+                  <div className="text-sm text-gray-600">Total Members</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-600">1</div>
+                  <div className="text-sm text-gray-600">Owner</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-600">{community.moderators.length}</div>
+                  <div className="text-sm text-gray-600">Moderators</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-600">{community.memberCount - 1 - community.moderators.length}</div>
+                  <div className="text-sm text-gray-600">Members</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Member List */}
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle>Community Members</CardTitle>
+              </CardHeader>
+              <div className="p-6">
+                <div className="text-center py-8">
+                  <p className="text-gray-600">Member list functionality will be implemented with the backend integration.</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && canManage && (
+        <div className="space-y-6">
+          {isOwner ? (
+            <CommunitySettings
+              community={community}
+              onUpdate={handleUpdateCommunity}
+              onDelete={handleDeleteCommunity}
+              isOwner={isOwner}
+              isLoading={false}
+            />
+          ) : (
+            <MemberManagement
+              communityId={community.id}
+              members={members}
+              pendingRequests={pendingRequests}
+              currentUserRole={membership?.role || 'member'}
+              onApproveMember={() => Promise.resolve()}
+              onRejectMember={() => Promise.resolve()}
+              onPromoteMember={() => Promise.resolve()}
+              onRemoveMember={() => Promise.resolve()}
+              onBanMember={() => Promise.resolve()}
+              onUnbanMember={() => Promise.resolve()}
+              onInviteMember={() => Promise.resolve()}
+              isLoading={false}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };
