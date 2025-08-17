@@ -1,217 +1,111 @@
 import { YouTubeService } from '../youtubeService';
-import { google } from 'googleapis';
-import * as fs from 'fs';
-import { logger } from '../../utils/logger';
+import { jest } from '@jest/globals';
 
-// Mock dependencies
-jest.mock('googleapis');
-jest.mock('fs');
-jest.mock('../../utils/logger');
-
-const mockGoogle = google as jest.Mocked<typeof google>;
-const mockFs = fs as jest.Mocked<typeof fs>;
-const mockLogger = logger as jest.Mocked<typeof logger>;
+// Mock Google APIs
+jest.mock('googleapis', () => ({
+  google: {
+    auth: {
+      OAuth2: jest.fn().mockImplementation(() => ({
+        setCredentials: jest.fn(),
+        getAccessToken: jest.fn()
+      }))
+    },
+    youtube: jest.fn().mockImplementation(() => ({
+      videos: {
+        insert: jest.fn(),
+        list: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn()
+      }
+    }))
+  }
+}));
 
 describe('YouTubeService', () => {
   let youtubeService: YouTubeService;
   let mockYouTube: any;
-  let mockOAuth2Client: any;
+  let mockAuth: any;
 
   beforeEach(() => {
-    // Mock OAuth2Client
-    mockOAuth2Client = {
+    const { google } = require('googleapis');
+    
+    mockAuth = {
       setCredentials: jest.fn(),
-      generateAuthUrl: jest.fn(),
-      getToken: jest.fn(),
-      credentials: {},
-      refreshAccessToken: jest.fn()
+      getAccessToken: jest.fn().mockResolvedValue({ token: 'mock-token' })
     };
-
-    // Mock YouTube API
+    
     mockYouTube = {
       videos: {
         insert: jest.fn(),
         list: jest.fn(),
         update: jest.fn(),
         delete: jest.fn()
-      },
-      channels: {
-        list: jest.fn()
       }
     };
 
-    // Mock google.auth.OAuth2
-    mockGoogle.auth = {
-      OAuth2: jest.fn().mockImplementation(() => mockOAuth2Client)
-    } as any;
+    google.auth.OAuth2.mockImplementation(() => mockAuth);
+    google.youtube.mockImplementation(() => mockYouTube);
 
-    // Mock google.youtube
-    mockGoogle.youtube = jest.fn().mockReturnValue(mockYouTube);
-
-    // Set up environment variables
-    process.env.YOUTUBE_CLIENT_ID = 'test_client_id';
-    process.env.YOUTUBE_CLIENT_SECRET = 'test_client_secret';
-    process.env.YOUTUBE_REDIRECT_URI = 'http://localhost:3000/auth/youtube/callback';
-    process.env.YOUTUBE_ACCESS_TOKEN = 'test_access_token';
-    process.env.YOUTUBE_REFRESH_TOKEN = 'test_refresh_token';
-
-    jest.clearAllMocks();
+    youtubeService = new YouTubeService();
   });
 
   afterEach(() => {
-    // Clean up environment variables
-    delete process.env.YOUTUBE_CLIENT_ID;
-    delete process.env.YOUTUBE_CLIENT_SECRET;
-    delete process.env.YOUTUBE_REDIRECT_URI;
-    delete process.env.YOUTUBE_ACCESS_TOKEN;
-    delete process.env.YOUTUBE_REFRESH_TOKEN;
-  });
-
-  describe('constructor', () => {
-    it('should initialize YouTube API successfully', () => {
-      youtubeService = new YouTubeService();
-
-      expect(mockGoogle.auth.OAuth2).toHaveBeenCalledWith(
-        'test_client_id',
-        'test_client_secret',
-        'http://localhost:3000/auth/youtube/callback'
-      );
-      expect(mockOAuth2Client.setCredentials).toHaveBeenCalledWith({
-        access_token: 'test_access_token',
-        refresh_token: 'test_refresh_token'
-      });
-      expect(mockGoogle.youtube).toHaveBeenCalledWith({
-        version: 'v3',
-        auth: mockOAuth2Client
-      });
-      expect(mockLogger.info).toHaveBeenCalledWith('YouTube API initialized successfully');
-    });
-
-    it('should handle initialization errors', () => {
-      mockGoogle.auth.OAuth2 = jest.fn().mockImplementation(() => {
-        throw new Error('OAuth2 initialization failed');
-      });
-
-      expect(() => new YouTubeService()).toThrow('YouTube API initialization failed');
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to initialize YouTube API:',
-        expect.any(Error)
-      );
-    });
-  });
-
-  describe('getAuthorizationUrl', () => {
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
-    it('should generate authorization URL', () => {
-      const expectedUrl = 'https://accounts.google.com/oauth/authorize?...';
-      mockOAuth2Client.generateAuthUrl.mockReturnValue(expectedUrl);
-
-      const result = youtubeService.getAuthorizationUrl();
-
-      expect(result).toBe(expectedUrl);
-      expect(mockOAuth2Client.generateAuthUrl).toHaveBeenCalledWith({
-        access_type: 'offline',
-        scope: [
-          'https://www.googleapis.com/auth/youtube.upload',
-          'https://www.googleapis.com/auth/youtube'
-        ],
-        prompt: 'consent'
-      });
-    });
-  });
-
-  describe('exchangeCodeForTokens', () => {
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
-    it('should exchange authorization code for tokens', async () => {
-      const mockTokens = {
-        access_token: 'new_access_token',
-        refresh_token: 'new_refresh_token'
-      };
-      mockOAuth2Client.getToken.mockResolvedValue({ tokens: mockTokens });
-
-      const result = await youtubeService.exchangeCodeForTokens('auth_code');
-
-      expect(result).toEqual(mockTokens);
-      expect(mockOAuth2Client.getToken).toHaveBeenCalledWith('auth_code');
-      expect(mockOAuth2Client.setCredentials).toHaveBeenCalledWith(mockTokens);
-      expect(mockLogger.info).toHaveBeenCalledWith('Successfully exchanged authorization code for tokens');
-    });
-
-    it('should handle token exchange errors', async () => {
-      mockOAuth2Client.getToken.mockRejectedValue(new Error('Token exchange failed'));
-
-      await expect(youtubeService.exchangeCodeForTokens('invalid_code'))
-        .rejects.toThrow('Token exchange failed');
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to exchange authorization code:',
-        expect.any(Error)
-      );
-    });
-
-    it('should handle missing tokens', async () => {
-      mockOAuth2Client.getToken.mockResolvedValue({ tokens: { access_token: 'token' } });
-
-      await expect(youtubeService.exchangeCodeForTokens('auth_code'))
-        .rejects.toThrow('Token exchange failed');
-    });
+    jest.clearAllMocks();
   });
 
   describe('uploadVideo', () => {
-    const videoFilePath = '/tmp/test_video.mp4';
-    const metadata = {
-      title: 'Test Video',
-      description: 'Test video description',
-      duration: 120,
-      thumbnailUrl: 'http://example.com/thumb.jpg',
-      privacy: 'unlisted' as const
-    };
-
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-      
-      // Mock file system
-      mockFs.existsSync = jest.fn().mockReturnValue(true);
-      mockFs.statSync = jest.fn().mockReturnValue({ size: 1024 * 1024 }); // 1MB
-      mockFs.createReadStream = jest.fn().mockReturnValue({} as any);
-
-      // Mock successful video upload
-      mockYouTube.videos.insert.mockResolvedValue({
-        data: { id: 'test_video_id' }
-      });
-
-      // Mock video status check
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            status: { uploadStatus: 'uploaded' },
-            processingDetails: { processingStatus: 'succeeded' }
-          }]
-        }
-      });
-    });
-
     it('should upload video successfully', async () => {
-      const result = await youtubeService.uploadVideo(videoFilePath, metadata);
+      const mockVideoFile = {
+        originalname: 'lesson.mp4',
+        mimetype: 'video/mp4',
+        size: 50 * 1024 * 1024,
+        buffer: Buffer.alloc(1024)
+      } as Express.Multer.File;
 
-      expect(result).toBe('test_video_id');
-      expect(mockFs.existsSync).toHaveBeenCalledWith(videoFilePath);
-      expect(mockFs.statSync).toHaveBeenCalledWith(videoFilePath);
+      const metadata = {
+        title: 'Math Lesson - Algebra Basics',
+        description: 'Introduction to algebraic concepts for Grade 9 students',
+        duration: 600,
+        thumbnailUrl: '',
+        privacy: 'unlisted' as const
+      };
+
+      const mockUploadResponse = {
+        data: {
+          id: 'youtube-video-123',
+          snippet: {
+            title: metadata.title,
+            description: metadata.description,
+            thumbnails: {
+              maxres: {
+                url: 'https://img.youtube.com/vi/youtube-video-123/maxresdefault.jpg'
+              }
+            }
+          },
+          status: {
+            privacyStatus: 'unlisted',
+            uploadStatus: 'uploaded'
+          },
+          contentDetails: {
+            duration: 'PT10M'
+          }
+        }
+      };
+
+      mockYouTube.videos.insert.mockResolvedValue(mockUploadResponse);
+
+      const result = await youtubeService.uploadVideo(mockVideoFile, metadata);
+
+      expect(result).toBe('youtube-video-123');
       expect(mockYouTube.videos.insert).toHaveBeenCalledWith({
+        auth: mockAuth,
         part: ['snippet', 'status'],
         requestBody: {
           snippet: {
             title: metadata.title,
             description: metadata.description,
-            tags: ['education', 'teacher', 'learning'],
-            categoryId: '27',
-            defaultLanguage: 'en',
-            defaultAudioLanguage: 'en'
+            tags: ['education', 'teaching', 'learning'],
+            categoryId: '27' // Education category
           },
           status: {
             privacyStatus: 'unlisted',
@@ -219,349 +113,299 @@ describe('YouTubeService', () => {
           }
         },
         media: {
-          body: expect.any(Object)
+          body: expect.any(Object) // Stream from buffer
         }
       });
-      expect(mockLogger.info).toHaveBeenCalledWith('Video uploaded successfully: test_video_id');
     });
 
-    it('should reject non-existent files', async () => {
-      mockFs.existsSync.mockReturnValue(false);
+    it('should handle upload failure', async () => {
+      const mockVideoFile = {
+        originalname: 'lesson.mp4',
+        mimetype: 'video/mp4',
+        size: 50 * 1024 * 1024,
+        buffer: Buffer.alloc(1024)
+      } as Express.Multer.File;
 
-      await expect(youtubeService.uploadVideo(videoFilePath, metadata))
-        .rejects.toThrow('Video file not found');
+      const metadata = {
+        title: 'Test Video',
+        description: 'Test description',
+        duration: 300,
+        thumbnailUrl: '',
+        privacy: 'unlisted' as const
+      };
+
+      mockYouTube.videos.insert.mockRejectedValue(new Error('YouTube API error'));
+
+      await expect(youtubeService.uploadVideo(mockVideoFile, metadata))
+        .rejects.toThrow('YouTube upload failed: YouTube API error');
     });
 
-    it('should reject files that are too large', async () => {
-      mockFs.statSync.mockReturnValue({ size: 3 * 1024 * 1024 * 1024 }); // 3GB
+    it('should validate video file size', async () => {
+      const oversizedVideoFile = {
+        originalname: 'huge-lesson.mp4',
+        mimetype: 'video/mp4',
+        size: 2 * 1024 * 1024 * 1024, // 2GB
+        buffer: Buffer.alloc(1024)
+      } as Express.Multer.File;
 
-      await expect(youtubeService.uploadVideo(videoFilePath, metadata))
+      const metadata = {
+        title: 'Test Video',
+        description: 'Test description',
+        duration: 300,
+        thumbnailUrl: '',
+        privacy: 'unlisted' as const
+      };
+
+      await expect(youtubeService.uploadVideo(oversizedVideoFile, metadata))
         .rejects.toThrow('Video file too large');
     });
 
-    it('should handle upload failures', async () => {
-      mockYouTube.videos.insert.mockResolvedValue({ data: {} });
+    it('should validate video duration', async () => {
+      const mockVideoFile = {
+        originalname: 'long-lesson.mp4',
+        mimetype: 'video/mp4',
+        size: 100 * 1024 * 1024,
+        buffer: Buffer.alloc(1024)
+      } as Express.Multer.File;
 
-      await expect(youtubeService.uploadVideo(videoFilePath, metadata))
-        .rejects.toThrow('Video upload failed - no video ID returned');
-    });
+      const metadata = {
+        title: 'Very Long Video',
+        description: 'Test description',
+        duration: 4 * 60 * 60, // 4 hours
+        thumbnailUrl: '',
+        privacy: 'unlisted' as const
+      };
 
-    it('should handle API errors', async () => {
-      mockYouTube.videos.insert.mockRejectedValue(new Error('API error'));
-
-      await expect(youtubeService.uploadVideo(videoFilePath, metadata))
-        .rejects.toThrow('Video upload failed: API error');
-      expect(mockLogger.error).toHaveBeenCalledWith('Video upload failed:', expect.any(Error));
+      await expect(youtubeService.uploadVideo(mockVideoFile, metadata))
+        .rejects.toThrow('Video duration exceeds limit');
     });
   });
 
   describe('getVideoStatus', () => {
-    const videoId = 'test_video_id';
+    it('should return video status successfully', async () => {
+      const videoId = 'youtube-video-123';
 
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
-    it('should return completed status for processed video', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
+      const mockStatusResponse = {
         data: {
           items: [{
-            status: { uploadStatus: 'uploaded' },
-            processingDetails: { processingStatus: 'succeeded' }
-          }]
-        }
-      });
-
-      const result = await youtubeService.getVideoStatus(videoId);
-
-      expect(result).toEqual({
-        status: 'completed',
-        progress: 100
-      });
-    });
-
-    it('should return processing status with progress', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            status: { uploadStatus: 'uploaded' },
-            processingDetails: { 
-              processingStatus: 'processing',
-              processingProgress: { partsProcessed: 50 }
+            id: videoId,
+            status: {
+              uploadStatus: 'processed',
+              privacyStatus: 'unlisted',
+              processingStatus: 'succeeded'
+            },
+            snippet: {
+              title: 'Math Lesson',
+              description: 'Algebra basics',
+              thumbnails: {
+                maxres: {
+                  url: 'https://img.youtube.com/vi/youtube-video-123/maxresdefault.jpg'
+                }
+              }
+            },
+            contentDetails: {
+              duration: 'PT10M'
             }
           }]
         }
-      });
+      };
+
+      mockYouTube.videos.list.mockResolvedValue(mockStatusResponse);
 
       const result = await youtubeService.getVideoStatus(videoId);
 
       expect(result).toEqual({
-        status: 'processing',
-        progress: 50
+        uploadStatus: 'processed',
+        processingStatus: 'succeeded',
+        privacyStatus: 'unlisted',
+        title: 'Math Lesson',
+        description: 'Algebra basics',
+        duration: 600, // Converted from PT10M
+        thumbnailUrl: 'https://img.youtube.com/vi/youtube-video-123/maxresdefault.jpg'
       });
     });
 
-    it('should return failed status for failed uploads', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
+    it('should handle video not found', async () => {
+      const videoId = 'non-existent-video';
+
+      const mockStatusResponse = {
         data: {
-          items: [{
-            status: { 
-              uploadStatus: 'failed',
-              rejectionReason: 'Copyright violation'
-            }
-          }]
+          items: []
         }
-      });
+      };
 
-      const result = await youtubeService.getVideoStatus(videoId);
+      mockYouTube.videos.list.mockResolvedValue(mockStatusResponse);
 
-      expect(result).toEqual({
-        status: 'failed',
-        error: 'Copyright violation'
-      });
+      await expect(youtubeService.getVideoStatus(videoId))
+        .rejects.toThrow('Video not found');
     });
 
-    it('should handle non-existent videos', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: { items: [] }
-      });
+    it('should handle API error', async () => {
+      const videoId = 'youtube-video-123';
 
-      const result = await youtubeService.getVideoStatus(videoId);
+      mockYouTube.videos.list.mockRejectedValue(new Error('API quota exceeded'));
 
-      expect(result.status).toBe('failed');
-      expect(result.error).toContain('Video not found');
-    });
-
-    it('should handle API errors', async () => {
-      mockYouTube.videos.list.mockRejectedValue(new Error('API error'));
-
-      const result = await youtubeService.getVideoStatus(videoId);
-
-      expect(result).toEqual({
-        status: 'failed',
-        error: 'API error'
-      });
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to get video status:', expect.any(Error));
+      await expect(youtubeService.getVideoStatus(videoId))
+        .rejects.toThrow('Failed to get video status: API quota exceeded');
     });
   });
 
   describe('updateVideoMetadata', () => {
-    const videoId = 'test_video_id';
-    const metadata = {
-      title: 'Updated Title',
-      description: 'Updated description'
-    };
-
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
     it('should update video metadata successfully', async () => {
-      mockYouTube.videos.update.mockResolvedValue({});
+      const videoId = 'youtube-video-123';
+      const updates = {
+        title: 'Updated Math Lesson',
+        description: 'Updated description with more details'
+      };
 
-      await youtubeService.updateVideoMetadata(videoId, metadata);
+      const mockUpdateResponse = {
+        data: {
+          id: videoId,
+          snippet: {
+            title: updates.title,
+            description: updates.description
+          }
+        }
+      };
+
+      mockYouTube.videos.update.mockResolvedValue(mockUpdateResponse);
+
+      await youtubeService.updateVideoMetadata(videoId, updates);
 
       expect(mockYouTube.videos.update).toHaveBeenCalledWith({
+        auth: mockAuth,
         part: ['snippet'],
         requestBody: {
           id: videoId,
           snippet: {
-            title: metadata.title,
-            description: metadata.description
+            title: updates.title,
+            description: updates.description
           }
         }
       });
-      expect(mockLogger.info).toHaveBeenCalledWith(`Video metadata updated: ${videoId}`);
     });
 
-    it('should handle update errors', async () => {
+    it('should handle update failure', async () => {
+      const videoId = 'youtube-video-123';
+      const updates = {
+        title: 'Updated Title'
+      };
+
       mockYouTube.videos.update.mockRejectedValue(new Error('Update failed'));
 
-      await expect(youtubeService.updateVideoMetadata(videoId, metadata))
+      await expect(youtubeService.updateVideoMetadata(videoId, updates))
         .rejects.toThrow('Failed to update video metadata: Update failed');
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to update video metadata:', expect.any(Error));
     });
   });
 
   describe('deleteVideo', () => {
-    const videoId = 'test_video_id';
-
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
     it('should delete video successfully', async () => {
-      mockYouTube.videos.delete.mockResolvedValue({});
+      const videoId = 'youtube-video-123';
+
+      mockYouTube.videos.delete.mockResolvedValue({ data: {} });
 
       await youtubeService.deleteVideo(videoId);
 
-      expect(mockYouTube.videos.delete).toHaveBeenCalledWith({ id: videoId });
-      expect(mockLogger.info).toHaveBeenCalledWith(`Video deleted: ${videoId}`);
+      expect(mockYouTube.videos.delete).toHaveBeenCalledWith({
+        auth: mockAuth,
+        id: videoId
+      });
     });
 
-    it('should handle deletion errors', async () => {
+    it('should handle deletion failure', async () => {
+      const videoId = 'youtube-video-123';
+
       mockYouTube.videos.delete.mockRejectedValue(new Error('Deletion failed'));
 
       await expect(youtubeService.deleteVideo(videoId))
         .rejects.toThrow('Failed to delete video: Deletion failed');
-      expect(mockLogger.error).toHaveBeenCalledWith('Failed to delete video:', expect.any(Error));
+    });
+
+    it('should handle video not found during deletion', async () => {
+      const videoId = 'non-existent-video';
+
+      const error = new Error('Video not found');
+      (error as any).code = 404;
+      mockYouTube.videos.delete.mockRejectedValue(error);
+
+      // Should not throw error for 404, as video is already gone
+      await expect(youtubeService.deleteVideo(videoId)).resolves.not.toThrow();
     });
   });
 
-  describe('getVideoThumbnail', () => {
-    const videoId = 'test_video_id';
+  describe('parseDuration', () => {
+    it('should parse ISO 8601 duration correctly', () => {
+      const testCases = [
+        { input: 'PT1M30S', expected: 90 },
+        { input: 'PT10M', expected: 600 },
+        { input: 'PT1H30M', expected: 5400 },
+        { input: 'PT2H15M30S', expected: 8130 },
+        { input: 'PT45S', expected: 45 }
+      ];
 
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
+      testCases.forEach(({ input, expected }) => {
+        expect(youtubeService.parseDuration(input)).toBe(expected);
+      });
     });
 
-    it('should return highest quality thumbnail', async () => {
-      const thumbnailUrl = 'https://img.youtube.com/vi/test/maxresdefault.jpg';
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            snippet: {
-              thumbnails: {
-                maxres: { url: thumbnailUrl }
-              }
-            }
-          }]
-        }
-      });
-
-      const result = await youtubeService.getVideoThumbnail(videoId);
-
-      expect(result).toBe(thumbnailUrl);
-    });
-
-    it('should fallback to lower quality thumbnails', async () => {
-      const thumbnailUrl = 'https://img.youtube.com/vi/test/hqdefault.jpg';
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            snippet: {
-              thumbnails: {
-                high: { url: thumbnailUrl }
-              }
-            }
-          }]
-        }
-      });
-
-      const result = await youtubeService.getVideoThumbnail(videoId);
-
-      expect(result).toBe(thumbnailUrl);
-    });
-
-    it('should handle videos without thumbnails', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            snippet: { thumbnails: {} }
-          }]
-        }
-      });
-
-      await expect(youtubeService.getVideoThumbnail(videoId))
-        .rejects.toThrow('No thumbnail available');
+    it('should handle invalid duration format', () => {
+      expect(youtubeService.parseDuration('invalid')).toBe(0);
+      expect(youtubeService.parseDuration('')).toBe(0);
+      expect(youtubeService.parseDuration(null as any)).toBe(0);
     });
   });
 
-  describe('getVideoDuration', () => {
-    const videoId = 'test_video_id';
+  describe('validateVideoFile', () => {
+    it('should accept valid video files', () => {
+      const validFiles = [
+        { mimetype: 'video/mp4', size: 100 * 1024 * 1024 },
+        { mimetype: 'video/avi', size: 50 * 1024 * 1024 },
+        { mimetype: 'video/quicktime', size: 200 * 1024 * 1024 },
+        { mimetype: 'video/x-msvideo', size: 75 * 1024 * 1024 }
+      ];
 
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
+      validFiles.forEach(file => {
+        expect(() => youtubeService.validateVideoFile(file as Express.Multer.File))
+          .not.toThrow();
+      });
     });
 
-    it('should parse duration correctly', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            contentDetails: {
-              duration: 'PT4M13S' // 4 minutes 13 seconds = 253 seconds
-            }
-          }]
-        }
+    it('should reject invalid video files', () => {
+      const invalidFiles = [
+        { mimetype: 'image/jpeg', size: 10 * 1024 * 1024 },
+        { mimetype: 'application/pdf', size: 5 * 1024 * 1024 },
+        { mimetype: 'video/mp4', size: 2 * 1024 * 1024 * 1024 } // Too large
+      ];
+
+      invalidFiles.forEach(file => {
+        expect(() => youtubeService.validateVideoFile(file as Express.Multer.File))
+          .toThrow();
       });
-
-      const result = await youtubeService.getVideoDuration(videoId);
-
-      expect(result).toBe(253);
-    });
-
-    it('should handle hours in duration', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            contentDetails: {
-              duration: 'PT1H30M45S' // 1 hour 30 minutes 45 seconds = 5445 seconds
-            }
-          }]
-        }
-      });
-
-      const result = await youtubeService.getVideoDuration(videoId);
-
-      expect(result).toBe(5445);
-    });
-
-    it('should handle videos without duration', async () => {
-      mockYouTube.videos.list.mockResolvedValue({
-        data: {
-          items: [{
-            contentDetails: {}
-          }]
-        }
-      });
-
-      await expect(youtubeService.getVideoDuration(videoId))
-        .rejects.toThrow('Duration not available');
     });
   });
 
-  describe('validateCredentials', () => {
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
+  describe('generateVideoTags', () => {
+    it('should generate appropriate tags for educational content', () => {
+      const title = 'Math Lesson - Algebra Basics for Grade 9';
+      const description = 'Introduction to algebraic concepts and equations';
+
+      const tags = youtubeService.generateVideoTags(title, description);
+
+      expect(tags).toContain('education');
+      expect(tags).toContain('teaching');
+      expect(tags).toContain('learning');
+      expect(tags).toContain('math');
+      expect(tags).toContain('algebra');
+      expect(tags.length).toBeLessThanOrEqual(10); // YouTube limit
     });
 
-    it('should return true for valid credentials', async () => {
-      mockYouTube.channels.list.mockResolvedValue({});
+    it('should handle empty title and description', () => {
+      const tags = youtubeService.generateVideoTags('', '');
 
-      const result = await youtubeService.validateCredentials();
-
-      expect(result).toBe(true);
-      expect(mockYouTube.channels.list).toHaveBeenCalledWith({
-        part: ['snippet'],
-        mine: true
-      });
-    });
-
-    it('should return false for invalid credentials', async () => {
-      mockYouTube.channels.list.mockRejectedValue(new Error('Invalid credentials'));
-
-      const result = await youtubeService.validateCredentials();
-
-      expect(result).toBe(false);
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'YouTube API credentials validation failed:',
-        expect.any(Error)
-      );
-    });
-  });
-
-  describe('getQuotaUsage', () => {
-    beforeEach(() => {
-      youtubeService = new YouTubeService();
-    });
-
-    it('should return quota usage information', async () => {
-      const result = await youtubeService.getQuotaUsage();
-
-      expect(result).toEqual({
-        used: 0,
-        limit: 10000
-      });
+      expect(tags).toContain('education');
+      expect(tags).toContain('teaching');
+      expect(tags).toContain('learning');
+      expect(tags.length).toBeGreaterThan(0);
     });
   });
 });
