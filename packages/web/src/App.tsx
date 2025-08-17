@@ -35,6 +35,8 @@ import { PWAInstallPrompt } from './components/ui/PWAInstallPrompt';
 import { PWAStatus } from './components/ui/PWAStatus';
 import { notificationService } from './services/notificationService';
 import { authService } from './services/authService';
+import './utils/testUser'; // Import test user utilities for development
+import './services/simpleWebSocketService'; // Import simple WebSocket testing
 import './i18n';
 
 function App() {

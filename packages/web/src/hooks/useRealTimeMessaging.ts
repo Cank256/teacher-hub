@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { websocketService, TypingIndicator, PresenceUpdate, ReadReceipt } from '../services/websocketService';
 import { notificationService } from '../services/notificationService';
+import { tokenStorage } from '../utils/tokenStorage';
 
 interface Message {
   id: string;
@@ -75,8 +76,14 @@ export const useRealTimeMessaging = ({
   // Initialize WebSocket connection
   useEffect(() => {
     const initializeConnection = async () => {
-      const token = localStorage.getItem('token');
-      if (!token || !currentUserId) return;
+      const token = tokenStorage.getToken();
+      console.log('Retrieved token for WebSocket:', token ? `${token.substring(0, 20)}...` : 'null');
+      console.log('Current user ID:', currentUserId);
+      
+      if (!token || !currentUserId) {
+        console.log('Missing token or user ID, skipping WebSocket connection');
+        return;
+      }
 
       try {
         setConnectionStatus(prev => ({ ...prev, isConnecting: true }));
@@ -246,7 +253,12 @@ export const useRealTimeMessaging = ({
   const sendMessage = useCallback((content: string, attachments?: File[], replyToId?: string) => {
     if (!conversationId) return;
 
-    websocketService.sendMessage(conversationId, content, attachments, replyToId);
+    websocketService.sendMessage({
+      conversationId,
+      content,
+      attachments,
+      replyToId
+    });
     
     // Stop typing indicator when sending message
     if (isTypingRef.current) {
@@ -286,7 +298,7 @@ export const useRealTimeMessaging = ({
   const markMessageAsRead = useCallback((messageId: string) => {
     if (!conversationId) return;
 
-    websocketService.markMessageAsRead(messageId, conversationId);
+    websocketService.markMessagesAsRead(conversationId, [messageId]);
     
     // Update local unread count
     setUnreadCounts(prev => ({
@@ -296,7 +308,7 @@ export const useRealTimeMessaging = ({
   }, [conversationId]);
 
   // Update presence status
-  const updatePresence = useCallback((status: 'online' | 'offline' | 'away') => {
+  const updatePresence = useCallback((status: 'online' | 'away' | 'busy' | 'invisible') => {
     websocketService.updatePresence(status);
   }, []);
 

@@ -7,6 +7,8 @@ import userReducer from './slices/userSlice';
 import resourcesReducer from './slices/resourcesSlice';
 import messagesReducer from './slices/messagesSlice';
 import offlineReducer from './slices/offlineSlice';
+import postsReducer from './slices/postsSlice';
+import communitiesReducer from './slices/communitiesSlice';
 
 const persistConfig = {
   key: 'root',
@@ -20,6 +22,8 @@ const rootReducer = {
   resources: resourcesReducer,
   messages: messagesReducer,
   offline: offlineReducer,
+  posts: postsReducer,
+  communities: communitiesReducer,
 };
 
 export const store = configureStore({

@@ -5,6 +5,7 @@ import {Platform, Dimensions} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import {DashboardScreen} from '../screens/main/DashboardScreen';
+import {PostsScreen} from '../screens/main/PostsScreen';
 import {ResourcesScreen} from '../screens/main/ResourcesScreen';
 import {MessagesScreen} from '../screens/main/MessagesScreen';
 import {CommunitiesScreen} from '../screens/main/CommunitiesScreen';
@@ -15,6 +16,7 @@ const {width} = Dimensions.get('window');
 
 export type MainTabParamList = {
   Dashboard: undefined;
+  Posts: undefined;
   Resources: undefined;
   Messages: undefined;
   Communities: undefined;
@@ -43,6 +45,9 @@ const MainTabs: React.FC = () => {
           switch (route.name) {
             case 'Dashboard':
               iconName = 'dashboard';
+              break;
+            case 'Posts':
+              iconName = 'article';
               break;
             case 'Resources':
               iconName = 'library-books';
@@ -90,6 +95,13 @@ const MainTabs: React.FC = () => {
         options={{
           tabBarLabel: 'Home',
           tabBarTestID: 'dashboard-tab',
+        }}
+      />
+      <Tab.Screen 
+        name="Posts" 
+        component={PostsScreen}
+        options={{
+          tabBarTestID: 'posts-tab',
         }}
       />
       <Tab.Screen 

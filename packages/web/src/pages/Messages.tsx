@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useAppSelector } from '../store/hooks';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { UserSearch, UserProfilePreview, ContactList, PrivacyControls, ConversationView, ConversationList, ConnectionStatus, TypingIndicator } from '../components/messaging';
 import { useRealTimeMessaging } from '../hooks/useRealTimeMessaging';
+import { WebSocketDebug } from '../components/debug/WebSocketDebug';
 
 interface UserSearchResult {
   id: string;
@@ -40,10 +42,11 @@ export const Messages: React.FC = () => {
   const [showContactList, setShowContactList] = useState(false);
   const [showPrivacyControls, setShowPrivacyControls] = useState(false);
   
-  // Mock current user ID - in real implementation, this would come from auth context
-  const currentUserId = 'current-user-id';
+  // Get current user from auth state
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const currentUserId = user?.id;
 
-  // Real-time messaging hook
+  // Real-time messaging hook - only initialize if user is authenticated
   const {
     connectionStatus,
     sendMessage: sendRealtimeMessage,
@@ -54,7 +57,7 @@ export const Messages: React.FC = () => {
     getUnreadCount,
     isConnected
   } = useRealTimeMessaging({
-    currentUserId,
+    currentUserId: currentUserId || '',
     conversationId: selectedConversation?.id,
     onNewMessage: (message) => {
       console.log('New message received:', message);
@@ -126,6 +129,23 @@ export const Messages: React.FC = () => {
     
     localStorage.setItem('userContacts', JSON.stringify(updatedContacts));
   };
+
+  // Show loading or redirect if not authenticated
+  if (!isAuthenticated || !currentUserId) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Please log in to access messaging features
+          </p>
+        </div>
+        <Card className="p-6 text-center">
+          <p className="text-gray-600">You need to be logged in to send and receive messages.</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -277,6 +297,9 @@ export const Messages: React.FC = () => {
           }}
         />
       )}
+
+      {/* Debug component - remove in production */}
+      <WebSocketDebug />
     </div>
   );
 };

@@ -1,3 +1,6 @@
+import { io, Socket } from 'socket.io-client';
+import { tokenStorage } from '../utils/tokenStorage';
+
 interface WebSocketMessage {
   type: 'message' | 'typing' | 'presence' | 'read_receipt' | 'notification';
   data: any;
@@ -31,11 +34,10 @@ interface MessageDelivery {
 type WebSocketEventHandler = (data: any) => void;
 
 class WebSocketService {
-  private ws: WebSocket | null = null;
+  private socket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
   private eventHandlers: Map<string, WebSocketEventHandler[]> = new Map();
   private isConnecting = false;
   private currentUserId: string | null = null;
@@ -58,7 +60,7 @@ class WebSocketService {
 
   connect(userId: string, token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (this.socket && this.socket.connected) {
         resolve();
         return;
       }
@@ -68,48 +70,58 @@ class WebSocketService {
         return;
       }
 
+      // Validate token before attempting connection
+      if (!token || token.trim() === '') {
+        reject(new Error('Invalid or missing authentication token'));
+        return;
+      }
+
       this.isConnecting = true;
       this.currentUserId = userId;
 
       try {
-        const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws?token=${token}&userId=${userId}`;
-        this.ws = new WebSocket(wsUrl);
+        // Get backend URL from environment or default to localhost
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+        
+        console.log('Attempting Socket.IO connection to:', backendUrl);
+        console.log('User ID:', userId);
+        console.log('Token length:', token.length);
+        console.log('Token preview:', token.substring(0, 20) + '...');
+        
+        this.socket = io(backendUrl, {
+          auth: {
+            token: token
+          },
+          transports: ['websocket', 'polling'],
+          autoConnect: false
+        });
 
-        this.ws.onopen = () => {
-          console.log('WebSocket connected');
+        this.socket.on('connect', () => {
+          console.log('Socket.IO connected');
           this.isConnecting = false;
           this.reconnectAttempts = 0;
-          this.startHeartbeat();
           this.emit('connect', { userId });
           resolve();
-        };
+        });
 
-        this.ws.onmessage = (event) => {
-          try {
-            const message: WebSocketMessage = JSON.parse(event.data);
-            this.handleMessage(message);
-          } catch (error) {
-            console.error('Error parsing WebSocket message:', error);
-          }
-        };
-
-        this.ws.onclose = (event) => {
-          console.log('WebSocket disconnected:', event.code, event.reason);
+        this.socket.on('disconnect', (reason) => {
+          console.log('Socket.IO disconnected:', reason);
           this.isConnecting = false;
-          this.stopHeartbeat();
-          this.emit('disconnect', { code: event.code, reason: event.reason });
-          
-          if (!event.wasClean && this.reconnectAttempts < this.maxReconnectAttempts) {
-            this.scheduleReconnect();
-          }
-        };
+          this.emit('disconnect', { reason });
+        });
 
-        this.ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+        this.socket.on('connect_error', (error) => {
+          console.error('Socket.IO connection error:', error);
           this.isConnecting = false;
           this.emit('error', error);
           reject(error);
-        };
+        });
+
+        // Set up Socket.IO event listeners
+        this.setupSocketEventListeners();
+
+        // Connect the socket
+        this.socket.connect();
 
       } catch (error) {
         this.isConnecting = false;
@@ -119,114 +131,197 @@ class WebSocketService {
   }
 
   disconnect() {
-    if (this.ws) {
-      this.ws.close(1000, 'User disconnected');
-      this.ws = null;
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
     }
-    this.stopHeartbeat();
     this.currentUserId = null;
   }
 
-  private scheduleReconnect() {
-    this.reconnectAttempts++;
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    
-    console.log(`Scheduling reconnect attempt ${this.reconnectAttempts} in ${delay}ms`);
-    
-    setTimeout(() => {
-      if (this.currentUserId) {
-        const token = localStorage.getItem('token');
-        if (token) {
-          this.connect(this.currentUserId, token).catch(console.error);
-        }
-      }
-    }, delay);
-  }
+  private setupSocketEventListeners() {
+    if (!this.socket) return;
 
-  private startHeartbeat() {
-    this.heartbeatInterval = setInterval(() => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.send('ping', {});
-      }
-    }, 30000); // Send ping every 30 seconds
-  }
+    // Message events
+    this.socket.on('new_message', (data) => {
+      this.emit('message', data);
+    });
 
-  private stopHeartbeat() {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-  }
+    this.socket.on('message_sent', (data) => {
+      this.emit('message_sent', data);
+    });
 
-  private handleMessage(message: WebSocketMessage) {
-    switch (message.type) {
-      case 'message':
-        this.emit('message', message.data);
-        break;
-      case 'typing':
-        this.emit('typing', message.data as TypingIndicator);
-        break;
-      case 'presence':
-        this.emit('presence', message.data as PresenceUpdate);
-        break;
-      case 'read_receipt':
-        this.emit('read_receipt', message.data as ReadReceipt);
-        break;
-      case 'notification':
-        this.emit('notification', message.data);
-        break;
-      default:
-        console.log('Unknown message type:', message.type);
-    }
-  }
+    this.socket.on('message_delivered', (data) => {
+      this.emit('message_delivered', data);
+    });
 
-  private send(type: string, data: any) {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      const message: WebSocketMessage = {
-        type: type as any,
-        data,
-        timestamp: new Date()
-      };
-      this.ws.send(JSON.stringify(message));
-    } else {
-      console.warn('WebSocket not connected, cannot send message');
-    }
+    this.socket.on('messages_read', (data) => {
+      this.emit('messages_read', data);
+    });
+
+    // Typing indicators
+    this.socket.on('user_typing', (data) => {
+      this.emit('typing', data);
+    });
+
+    // Presence updates
+    this.socket.on('user_presence_updated', (data) => {
+      this.emit('presence', data);
+    });
+
+    this.socket.on('user_presence_data', (data) => {
+      this.emit('presence_data', data);
+    });
+
+    // Conversation events
+    this.socket.on('user_joined_conversation', (data) => {
+      this.emit('user_joined', data);
+    });
+
+    this.socket.on('user_left_conversation', (data) => {
+      this.emit('user_left', data);
+    });
+
+    // Notifications
+    this.socket.on('notification', (data) => {
+      this.emit('notification', data);
+    });
+
+    this.socket.on('new_message_notification', (data) => {
+      this.emit('message_notification', data);
+    });
+
+    // Message updates
+    this.socket.on('message_updated', (data) => {
+      this.emit('message_updated', data);
+    });
+
+    this.socket.on('message_deleted', (data) => {
+      this.emit('message_deleted', data);
+    });
+
+    // Error handling
+    this.socket.on('conversation_error', (data) => {
+      this.emit('error', data);
+    });
+
+    this.socket.on('message_error', (data) => {
+      this.emit('error', data);
+    });
+
+    // Queued messages for when user comes online
+    this.socket.on('queued_messages', (data) => {
+      this.emit('queued_messages', data);
+    });
   }
 
   // Public methods for sending different types of messages
-  sendMessage(conversationId: string, content: string, attachments?: any[], replyToId?: string) {
-    this.send('message', {
-      conversationId,
-      content,
-      attachments,
-      replyToId,
-      timestamp: new Date()
-    });
+  sendMessage(data: {
+    conversationId?: string;
+    recipientId?: string;
+    groupId?: string;
+    content: string;
+    attachments?: any[];
+    replyToId?: string;
+  }) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('send_message', data);
+    } else {
+      console.warn('Socket not connected, cannot send message');
+    }
+  }
+
+  replyToMessage(originalMessageId: string, content: string, attachments?: any[]) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('reply_to_message', {
+        originalMessageId,
+        content,
+        attachments
+      });
+    } else {
+      console.warn('Socket not connected, cannot send reply');
+    }
+  }
+
+  editMessage(messageId: string, newContent: string) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('edit_message', {
+        messageId,
+        newContent
+      });
+    } else {
+      console.warn('Socket not connected, cannot edit message');
+    }
+  }
+
+  deleteMessage(messageId: string) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('delete_message', { messageId });
+    } else {
+      console.warn('Socket not connected, cannot delete message');
+    }
+  }
+
+  joinConversation(conversationId: string) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('join_conversation', conversationId);
+    } else {
+      console.warn('Socket not connected, cannot join conversation');
+    }
+  }
+
+  leaveConversation(conversationId: string) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('leave_conversation', conversationId);
+    } else {
+      console.warn('Socket not connected, cannot leave conversation');
+    }
   }
 
   sendTypingIndicator(conversationId: string, isTyping: boolean) {
-    this.send('typing', {
-      conversationId,
-      isTyping,
-      userId: this.currentUserId
-    });
+    if (this.socket && this.socket.connected) {
+      if (isTyping) {
+        this.socket.emit('typing_start', { conversationId });
+      } else {
+        this.socket.emit('typing_stop', { conversationId });
+      }
+    } else {
+      console.warn('Socket not connected, cannot send typing indicator');
+    }
   }
 
-  updatePresence(status: 'online' | 'offline' | 'away') {
-    this.send('presence', {
-      userId: this.currentUserId,
-      status,
-      timestamp: new Date()
-    });
+  updatePresence(status: 'online' | 'away' | 'busy' | 'invisible') {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('update_presence', { status });
+    } else {
+      console.warn('Socket not connected, cannot update presence');
+    }
   }
 
-  markMessageAsRead(messageId: string, conversationId: string) {
-    this.send('read_receipt', {
-      messageId,
-      conversationId,
-      userId: this.currentUserId,
-      readAt: new Date()
-    });
+  getUserPresence(userIds: string[]) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('get_user_presence', { userIds });
+    } else {
+      console.warn('Socket not connected, cannot get user presence');
+    }
+  }
+
+  markMessagesAsRead(conversationId: string, messageIds: string[]) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('mark_messages_read', {
+        conversationId,
+        messageIds
+      });
+    } else {
+      console.warn('Socket not connected, cannot mark messages as read');
+    }
+  }
+
+  acknowledgeNotification(notificationId: string) {
+    if (this.socket && this.socket.connected) {
+      this.socket.emit('notification_read', { notificationId });
+    } else {
+      console.warn('Socket not connected, cannot acknowledge notification');
+    }
   }
 
   // Event handling methods
@@ -262,24 +357,15 @@ class WebSocketService {
 
   // Utility methods
   isConnected(): boolean {
-    return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
+    return this.socket !== null && this.socket.connected;
   }
 
   getConnectionState(): string {
-    if (!this.ws) return 'disconnected';
+    if (!this.socket) return 'disconnected';
     
-    switch (this.ws.readyState) {
-      case WebSocket.CONNECTING:
-        return 'connecting';
-      case WebSocket.OPEN:
-        return 'connected';
-      case WebSocket.CLOSING:
-        return 'closing';
-      case WebSocket.CLOSED:
-        return 'closed';
-      default:
-        return 'unknown';
-    }
+    if (this.socket.connected) return 'connected';
+    if (this.isConnecting) return 'connecting';
+    return 'disconnected';
   }
 }
 
