@@ -1,0 +1,1 @@
+export { PostsFeedScreen } from './PostsFeedScreen';

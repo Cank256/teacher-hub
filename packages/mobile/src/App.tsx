@@ -1,35 +1,53 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AuthProvider, useAuth } from '@/contexts';
+import { NavigationContainer } from '@/navigation';
 
+// Main App Component with Navigation
+const AppContent: React.FC = () => {
+  const { isAuthenticated, isFirstLaunch, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer
+      isAuthenticated={isAuthenticated}
+      isFirstLaunch={isFirstLaunch}
+    />
+  );
+};
+
+// Root App Component with Providers
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Teacher Hub Mobile</Text>
-      <Text style={styles.subtitle}>
-        Built with React Native New Architecture & Hermes
-      </Text>
-      <StatusBar style="auto" />
-    </View>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppContent />
+          <StatusBar style="auto" />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 });

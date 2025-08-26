@@ -1,0 +1,1 @@
+export { ResourcesListScreen } from './ResourcesListScreen';

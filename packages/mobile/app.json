@@ -20,6 +20,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.teacherhub.mobile",
       "buildNumber": "1",
+      "associatedDomains": [
+        "applinks:teacherhub.ug",
+        "applinks:app.teacherhub.ug"
+      ],
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to capture profile pictures and scan documents for credential verification.",
         "NSPhotoLibraryUsageDescription": "This app accesses your photo library to select profile pictures and educational resources.",
@@ -36,6 +40,26 @@
       "edgeToEdgeEnabled": true,
       "package": "com.teacherhub.mobile",
       "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "teacherhub.ug"
+            },
+            {
+              "scheme": "https",
+              "host": "app.teacherhub.ug"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -51,8 +75,14 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "scheme": "teacherhub",
     "plugins": [
-      "expo-router"
+      [
+        "expo-linking",
+        {
+          "scheme": "teacherhub"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

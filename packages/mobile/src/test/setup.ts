@@ -13,6 +13,31 @@ jest.mock('expo', () => ({
   default: {},
 }));
 
+// Mock Expo Linking
+jest.mock('expo-linking', () => ({
+  createURL: jest.fn((path: string) => `exp://localhost:8081/${path}`),
+  getInitialURL: jest.fn(() => Promise.resolve(null)),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+}));
+
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  setItem: jest.fn(() => Promise.resolve()),
+  getItem: jest.fn(() => Promise.resolve(null)),
+  removeItem: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: ({ children }: any) => children,
+  useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+// Mock react-native-screens
+jest.mock('react-native-screens', () => ({
+  enableScreens: jest.fn(),
+}));
+
 // Mock React Native modules
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');

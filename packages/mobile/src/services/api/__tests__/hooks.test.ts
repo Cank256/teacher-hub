@@ -4,7 +4,7 @@
 
 import { renderHook, waitFor } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import {
   useApiQuery,
   usePaginatedQuery,
@@ -15,6 +15,7 @@ import {
   useRetryFailedQueries
 } from '../hooks'
 import { ApiClient } from '../apiClient'
+import { queryClient } from '../queryClient'
 
 // Mock React Native modules
 jest.mock('@react-native-community/netinfo', () => ({
@@ -63,8 +64,8 @@ const createWrapper = () => {
   })
 
   return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
+    <QueryClientProvider client= { queryClient } >
+    { children }
     </QueryClientProvider>
   )
 }
@@ -260,124 +261,124 @@ describe('API Hooks', () => {
       })
 
       const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>
-          {children}
+        <QueryClientProvider client= { queryClient } >
+        { children }
         </QueryClientProvider>
       )
 
-      // Set initial data
-      const queryKey = ['posts']
-      const initialData = [{ id: 1, title: 'Post 1' }]
-      queryClient.setQueryData(queryKey, initialData)
+    // Set initial data
+    const queryKey = ['posts']
+    const initialData = [{ id: 1, title: 'Post 1' }]
+    queryClient.setQueryData(queryKey, initialData)
 
-      const mockResponse = { data: { id: 2, title: 'New Post' }, success: true }
-      const mutationFn = jest.fn().mockResolvedValue(mockResponse)
+    const mockResponse = { data: { id: 2, title: 'New Post' }, success: true }
+    const mutationFn = jest.fn().mockResolvedValue(mockResponse)
 
-      const updateFn = (oldData: any[], variables: any) => [
-        ...oldData,
-        { id: 'temp', title: variables.title }
-      ]
+    const updateFn = (oldData: any[], variables: any) => [
+      ...oldData,
+      { id: 'temp', title: variables.title }
+    ]
 
-      const { result } = renderHook(
-        () => useOptimisticMutation(mutationFn, {
-          queryKey,
-          updateFn
-        }),
-        { wrapper }
-      )
+    const { result } = renderHook(
+      () => useOptimisticMutation(mutationFn, {
+        queryKey,
+        updateFn
+      }),
+      { wrapper }
+    )
 
-      // Execute mutation
-      result.current.mutate({ title: 'New Post' })
+    // Execute mutation
+    result.current.mutate({ title: 'New Post' })
 
-      // Check optimistic update
-      const optimisticData = queryClient.getQueryData(queryKey)
-      expect(optimisticData).toEqual([
-        { id: 1, title: 'Post 1' },
-        { id: 'temp', title: 'New Post' }
-      ])
+    // Check optimistic update
+    const optimisticData = queryClient.getQueryData(queryKey)
+    expect(optimisticData).toEqual([
+      { id: 1, title: 'Post 1' },
+      { id: 'temp', title: 'New Post' }
+    ])
 
-      await waitFor(() => {
-        expect(result.current.isSuccess).toBe(true)
-      })
-    })
-
-    it('should rollback on error', async () => {
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: { retry: false },
-          mutations: { retry: false }
-        }
-      })
-
-      const wrapper = ({ children }: { children: ReactNode }) => (
-        <QueryClientProvider client={queryClient}>
-          {children}
-        </QueryClientProvider>
-      )
-
-      const queryKey = ['posts']
-      const initialData = [{ id: 1, title: 'Post 1' }]
-      queryClient.setQueryData(queryKey, initialData)
-
-      const mockError = new Error('Mutation failed')
-      const mutationFn = jest.fn().mockRejectedValue(mockError)
-
-      const updateFn = (oldData: any[], variables: any) => [
-        ...oldData,
-        { id: 'temp', title: variables.title }
-      ]
-
-      const { result } = renderHook(
-        () => useOptimisticMutation(mutationFn, {
-          queryKey,
-          updateFn
-        }),
-        { wrapper }
-      )
-
-      result.current.mutate({ title: 'New Post' })
-
-      await waitFor(() => {
-        expect(result.current.isError).toBe(true)
-      })
-
-      // Check rollback
-      const rolledBackData = queryClient.getQueryData(queryKey)
-      expect(rolledBackData).toEqual(initialData)
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true)
     })
   })
 
-  describe('useBackgroundSync', () => {
-    it('should provide sync functions', () => {
-      const { result } = renderHook(() => useBackgroundSync(), {
-        wrapper: createWrapper()
-      })
-
-      expect(typeof result.current.syncAll).toBe('function')
-      expect(typeof result.current.syncFeature).toBe('function')
-      expect(typeof result.current.invalidateAll).toBe('function')
-      expect(typeof result.current.clearCache).toBe('function')
+  it('should rollback on error', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
+      }
     })
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client= { queryClient } >
+      { children }
+      </QueryClientProvider>
+    )
+
+  const queryKey = ['posts']
+  const initialData = [{ id: 1, title: 'Post 1' }]
+  queryClient.setQueryData(queryKey, initialData)
+
+  const mockError = new Error('Mutation failed')
+  const mutationFn = jest.fn().mockRejectedValue(mockError)
+
+  const updateFn = (oldData: any[], variables: any) => [
+    ...oldData,
+    { id: 'temp', title: variables.title }
+  ]
+
+  const { result } = renderHook(
+    () => useOptimisticMutation(mutationFn, {
+      queryKey,
+      updateFn
+    }),
+    { wrapper }
+  )
+
+  result.current.mutate({ title: 'New Post' })
+
+  await waitFor(() => {
+    expect(result.current.isError).toBe(true)
   })
 
-  describe('useRetryFailedQueries', () => {
-    it('should provide retry functions', () => {
-      const { result } = renderHook(() => useRetryFailedQueries(), {
-        wrapper: createWrapper()
-      })
-
-      expect(typeof result.current.retryFailed).toBe('function')
-      expect(typeof result.current.getFailedQueriesCount).toBe('function')
-    })
-
-    it('should count failed queries', () => {
-      const { result } = renderHook(() => useRetryFailedQueries(), {
-        wrapper: createWrapper()
-      })
-
-      const count = result.current.getFailedQueriesCount()
-      expect(typeof count).toBe('number')
-      expect(count).toBeGreaterThanOrEqual(0)
-    })
+  // Check rollback
+  const rolledBackData = queryClient.getQueryData(queryKey)
+  expect(rolledBackData).toEqual(initialData)
+})
   })
+
+describe('useBackgroundSync', () => {
+  it('should provide sync functions', () => {
+    const { result } = renderHook(() => useBackgroundSync(), {
+      wrapper: createWrapper()
+    })
+
+    expect(typeof result.current.syncAll).toBe('function')
+    expect(typeof result.current.syncFeature).toBe('function')
+    expect(typeof result.current.invalidateAll).toBe('function')
+    expect(typeof result.current.clearCache).toBe('function')
+  })
+})
+
+describe('useRetryFailedQueries', () => {
+  it('should provide retry functions', () => {
+    const { result } = renderHook(() => useRetryFailedQueries(), {
+      wrapper: createWrapper()
+    })
+
+    expect(typeof result.current.retryFailed).toBe('function')
+    expect(typeof result.current.getFailedQueriesCount).toBe('function')
+  })
+
+  it('should count failed queries', () => {
+    const { result } = renderHook(() => useRetryFailedQueries(), {
+      wrapper: createWrapper()
+    })
+
+    const count = result.current.getFailedQueriesCount()
+    expect(typeof count).toBe('number')
+    expect(count).toBeGreaterThanOrEqual(0)
+  })
+})
 })
