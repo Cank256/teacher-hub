@@ -47,6 +47,29 @@ module.exports = {
       },
     },
     {
+      files: ['packages/mobile/**/*.{ts,tsx}'],
+      env: {
+        'react-native/react-native': true,
+        es6: true,
+        jest: true,
+      },
+      extends: [
+        'expo',
+        'prettier',
+      ],
+      plugins: ['react', 'react-hooks', 'react-native'],
+      settings: {
+        react: {
+          version: 'detect',
+        },
+      },
+      rules: {
+        'react/react-in-jsx-scope': 'off',
+        'react/prop-types': 'off',
+        'no-console': 'warn',
+      },
+    },
+    {
       files: ['packages/backend/**/*.ts'],
       env: {
         node: true,

@@ -1,16 +1,20 @@
 module.exports = {
   root: true,
-  extends: ['@react-native'],
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint'],
-  overrides: [
-    {
-      files: ['*.ts', '*.tsx'],
-      rules: {
-        '@typescript-eslint/no-shadow': ['error'],
-        'no-shadow': 'off',
-        'no-undef': 'off',
-      },
-    },
+  extends: ['expo'],
+  rules: {
+    // Disable problematic rules for now
+    '@typescript-eslint/no-empty-object-type': 'off',
+    '@typescript-eslint/no-wrapper-object-types': 'off',
+    '@typescript-eslint/no-require-imports': 'off',
+    'import/no-unresolved': 'off',
+    'no-var': 'off', // Allow var in type declarations
+  },
+  ignorePatterns: [
+    'node_modules/',
+    'dist/',
+    'coverage/',
+    '.expo/',
+    'ios/',
+    'android/',
   ],
 };

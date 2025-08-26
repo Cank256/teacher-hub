@@ -25,5 +25,6 @@
     {
       "path": "./packages/mobile"
     }
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }
