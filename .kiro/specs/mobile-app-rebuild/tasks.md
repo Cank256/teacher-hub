@@ -8,7 +8,7 @@
   - Commit changes with message: "feat: initial project setup with New Architecture and TypeScript"
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [-] 2. Development Environment and Tooling
+- [x] 2. Development Environment and Tooling
   - Configure EAS Build with GitHub Actions CI/CD pipeline
   - Set up testing framework with Jest, React Testing Library, and Detox
   - Implement pre-commit hooks for linting, testing, and formatting
@@ -17,7 +17,7 @@
   - Commit changes with message: "feat: configure development tooling and CI/CD pipeline"
   - _Requirements: 12.6, 12.7, 13.1, 13.6_
 
-- [ ] 3. Core Storage and Data Layer
+- [x] 3. Core Storage and Data Layer
   - Implement MMKV service for key-value storage with TypeScript interfaces
   - Set up SQLite database with migration system and repository pattern
   - Create secure storage service using Keychain (iOS) and Keystore (Android)
@@ -26,7 +26,7 @@
   - Commit changes with message: "feat: implement core storage layer with MMKV, SQLite, and secure storage"
   - _Requirements: 9.1, 9.3, 11.1, 11.2_
 
-- [ ] 4. Authentication System Foundation
+- [x] 4. Authentication System Foundation
   - Create authentication service with login, registration, and token management
   - Implement secure token storage using Keychain/Keystore
   - Set up Google OAuth integration with proper error handling
