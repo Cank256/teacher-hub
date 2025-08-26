@@ -5,14 +5,14 @@
 
 import { DatabaseService } from '../storage/types'
 import { StorageService } from '../storage/types'
-import { 
-  OfflineOperation, 
-  OperationType, 
-  ResourceType, 
-  SyncPriority, 
-  SyncError, 
+import {
+  OfflineOperation,
+  OperationType,
+  ResourceType,
+  SyncPriority,
+  SyncError,
   SyncErrorType,
-  ConflictResolutionStrategy 
+  ConflictResolutionStrategy
 } from './types'
 
 export class OperationQueue {
@@ -44,18 +44,18 @@ export class OperationQueue {
       id: this.generateOperationId(),
       type,
       resourceType,
-      resourceId: options.resourceId,
       data,
       priority: options.priority ?? SyncPriority.MEDIUM,
       retryCount: 0,
       maxRetries: options.maxRetries ?? 3,
       createdAt: new Date(),
       scheduledAt: new Date(),
-      conflictResolution: options.conflictResolution
+      ...(options.resourceId && { resourceId: options.resourceId }),
+      ...(options.conflictResolution && { conflictResolution: options.conflictResolution })
     }
 
     await this.saveOperation(operation)
-    
+
     // Trigger processing if not already running
     if (!this.isProcessing) {
       this.processQueue()
@@ -75,7 +75,7 @@ export class OperationQueue {
       ORDER BY priority DESC, created_at ASC
       ${limit ? `LIMIT ${limit}` : ''}
     `
-    
+
     const rows = await this.db.query<any>(sql)
     return (rows || []).map(row => this.mapRowToOperation(row))
   }
@@ -89,7 +89,7 @@ export class OperationQueue {
       WHERE retry_count >= max_retries
       ORDER BY created_at DESC
     `
-    
+
     const rows = await this.db.query<any>(sql)
     return (rows || []).map(row => this.mapRowToOperation(row))
   }
@@ -100,7 +100,7 @@ export class OperationQueue {
   async getOperation(id: string): Promise<OfflineOperation | null> {
     const sql = 'SELECT * FROM offline_operations WHERE id = ?'
     const row = await this.db.queryFirst<any>(sql, [id])
-    
+
     return row ? this.mapRowToOperation(row) : null
   }
 
@@ -108,8 +108,8 @@ export class OperationQueue {
    * Update operation retry count and error message
    */
   async updateOperationRetry(
-    id: string, 
-    error?: string, 
+    id: string,
+    error?: string,
     scheduleNextRetry = true
   ): Promise<void> {
     const operation = await this.getOperation(id)
@@ -117,7 +117,7 @@ export class OperationQueue {
 
     const retryCount = operation.retryCount + 1
     const nextRetryDelay = this.calculateRetryDelay(retryCount)
-    const scheduledAt = scheduleNextRetry 
+    const scheduledAt = scheduleNextRetry
       ? new Date(Date.now() + nextRetryDelay)
       : new Date()
 
@@ -126,7 +126,7 @@ export class OperationQueue {
       SET retry_count = ?, error_message = ?, scheduled_at = ?, last_attempt_at = datetime('now')
       WHERE id = ?
     `
-    
+
     await this.db.execute(sql, [
       retryCount,
       error || null,
@@ -231,7 +231,7 @@ export class OperationQueue {
 
     while (hasMoreOperations) {
       const operations = await this.getPendingOperations(batchSize)
-      
+
       if (operations.length === 0) {
         hasMoreOperations = false
         break
@@ -298,16 +298,16 @@ export class OperationQueue {
       id: row.id,
       type: row.operation_type,
       resourceType: row.resource_type,
-      resourceId: row.resource_id,
       data: row.data ? JSON.parse(row.data) : {},
       priority: row.priority,
       retryCount: row.retry_count,
       maxRetries: row.max_retries,
       createdAt: new Date(row.created_at),
       scheduledAt: new Date(row.scheduled_at),
-      lastAttemptAt: row.last_attempt_at ? new Date(row.last_attempt_at) : undefined,
-      errorMessage: row.error_message,
-      conflictResolution: row.conflict_resolution
+      ...(row.resource_id && { resourceId: row.resource_id }),
+      ...(row.last_attempt_at && { lastAttemptAt: new Date(row.last_attempt_at) }),
+      ...(row.error_message && { errorMessage: row.error_message }),
+      ...(row.conflict_resolution && { conflictResolution: row.conflict_resolution })
     }
   }
 
