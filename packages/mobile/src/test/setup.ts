@@ -7,44 +7,20 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
-// Mock Animated API
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
-// Mock AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
-
-// Mock Expo modules
-jest.mock('expo-constants', () => ({
-  default: {
-    expoConfig: {
-      name: 'Teacher Hub',
-      slug: 'teacher-hub-mobile',
-    },
+// Mock NativeModules
+jest.mock('react-native/Libraries/BatchedBridge/NativeModules', () => ({
+  UIManager: {
+    RCTView: () => {},
+  },
+  PlatformConstants: {
+    OS: 'ios',
+  },
+  RNCNetInfo: {
+    getCurrentState: jest.fn(() => Promise.resolve()),
+    addListener: jest.fn(),
+    removeListeners: jest.fn(),
   },
 }));
-
-jest.mock('expo-status-bar', () => ({
-  StatusBar: 'StatusBar',
-}));
-
-// Mock navigation
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      dispatch: jest.fn(),
-    }),
-    useRoute: () => ({
-      params: {},
-    }),
-    useFocusEffect: jest.fn(),
-  };
-});
 
 // Global test utilities
 (global as any).__DEV__ = true;

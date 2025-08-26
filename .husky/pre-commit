@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if mobile files are staged
+if git diff --cached --name-only | grep -q "^packages/mobile/"; then
+  echo "Running pre-commit hooks for mobile package..."
+  cd packages/mobile
+  npx lint-staged
+  npm run type-check
+fi

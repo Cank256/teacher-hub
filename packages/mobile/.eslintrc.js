@@ -7,6 +7,7 @@ module.exports = {
     '@typescript-eslint/no-wrapper-object-types': 'off',
     '@typescript-eslint/no-require-imports': 'off',
     'import/no-unresolved': 'off',
+    'import/namespace': 'off',
     'no-var': 'off', // Allow var in type declarations
   },
   ignorePatterns: [
@@ -16,5 +17,24 @@ module.exports = {
     '.expo/',
     'ios/',
     'android/',
+  ],
+  overrides: [
+    {
+      files: ['e2e/**/*.js'],
+      env: {
+        jest: true,
+      },
+      globals: {
+        device: 'readonly',
+        element: 'readonly',
+        by: 'readonly',
+        waitFor: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        beforeAll: 'readonly',
+        beforeEach: 'readonly',
+        expect: 'readonly',
+      },
+    },
   ],
 };

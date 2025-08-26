@@ -15,22 +15,35 @@
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "detox:build:ios": "detox build --configuration ios.sim.debug",
+    "detox:test:ios": "detox test --configuration ios.sim.debug",
+    "detox:build:android": "detox build --configuration android.emu.debug",
+    "detox:test:android": "detox test --configuration android.emu.debug",
+    "prepare": "husky install",
+    "storybook": "storybook dev",
+    "storybook:generate": "sb-rn-get-stories",
+    "storybook:watch": "sb-rn-watcher"
   },
   "dependencies": {
+    "@sentry/react-native": "^6.1.0",
     "expo": "~53.0.22",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.6"
+    "react-native": "0.79.6",
+    "react-native-reanimated": "~3.16.1",
+    "react-native-gesture-handler": "~2.20.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@react-native/eslint-config": "^0.81.0",
+    "@testing-library/react-native": "^12.8.1",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.0.10",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "babel-plugin-module-resolver": "^5.0.2",
+    "detox": "^20.27.3",
     "eslint": "^8.57.1",
     "eslint-config-expo": "^9.2.0",
     "eslint-config-prettier": "^8.10.2",
@@ -38,11 +51,19 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-native": "^4.1.0",
+    "husky": "^9.1.6",
     "jest": "^29.7.0",
     "jest-expo": "~53.0.0",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.6.2",
-    "react-test-renderer": "^19.0.0",
-    "typescript": "~5.8.3"
+    "react-test-renderer": "19.0.0",
+    "typescript": "~5.8.3",
+    "@storybook/addon-actions": "^8.4.7",
+    "@storybook/addon-controls": "^8.4.7",
+    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/addon-ondevice-actions": "^8.4.7",
+    "@storybook/addon-ondevice-controls": "^8.4.7",
+    "@storybook/react-native": "^8.4.7"
   },
   "jest": {
     "preset": "jest-expo",
@@ -53,10 +74,15 @@
       "**/__tests__/**/*.(ts|tsx|js)",
       "**/*.(test|spec).(ts|tsx|js)"
     ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/e2e/"
+    ],
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.d.ts",
-      "!src/test/**/*"
+      "!src/test/**/*",
+      "!src/**/*.stories.{ts,tsx}"
     ],
     "coverageThreshold": {
       "global": {
@@ -65,6 +91,9 @@
         "lines": 70,
         "statements": 70
       }
+    },
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1"
     }
   },
   "private": true
