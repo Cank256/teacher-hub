@@ -51,7 +51,6 @@ const defaultAuthConfig: AuthConfig = {
   googleClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
   tokenRefreshThreshold: 5, // 5 minutes before expiry
   biometricPromptTitle: 'Authenticate',
-  biometricPromptSubtitle: 'Use your biometric to continue',
   maxLoginAttempts: 5,
   lockoutDuration: 15 // 15 minutes
 }

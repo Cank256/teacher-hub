@@ -49,7 +49,6 @@ class GoogleAuthService {
           scopes: this.config.scopes,
           redirectUri: this.config.redirectUri,
           responseType: AuthSession.ResponseType.IdToken,
-          additionalParameters: {},
           extraParams: {
             access_type: 'offline'
           }
@@ -92,8 +91,9 @@ class GoogleAuthService {
           error: 'User cancelled Google authentication'
         }
       } else {
+        const errorMessage = 'error' in result && result.error ? result.error.message : 'Google authentication failed'
         throw new AuthError(
-          result.error?.message || 'Google authentication failed',
+          errorMessage || 'Google authentication failed',
           AuthErrorCode.GOOGLE_AUTH_FAILED
         )
       }

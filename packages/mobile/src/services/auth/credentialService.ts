@@ -245,13 +245,22 @@ class CredentialService {
 
       const { status, message, reviewDate, rejectionReason } = response.data.data
 
-      return {
+      const result = {
         success: true,
         status,
         message,
-        reviewDate: reviewDate ? new Date(reviewDate) : undefined,
         rejectionReason
       }
+
+      // Only include reviewDate if it exists
+      if (reviewDate) {
+        return {
+          ...result,
+          reviewDate: new Date(reviewDate)
+        }
+      }
+
+      return result
     } catch (error: any) {
       console.error('Credential upload error:', error)
       
@@ -279,14 +288,23 @@ class CredentialService {
       const response = await this.apiClient.get('/auth/verification-status')
       const data = response.data.data
 
-      return {
+      const result = {
         status: data.status,
-        submittedAt: data.submittedAt ? new Date(data.submittedAt) : undefined,
-        reviewedAt: data.reviewedAt ? new Date(data.reviewedAt) : undefined,
         message: data.message,
         rejectionReason: data.rejectionReason,
         documents: data.documents || []
       }
+
+      // Only include dates if they exist
+      const resultWithDates = { ...result }
+      if (data.submittedAt) {
+        Object.assign(resultWithDates, { submittedAt: new Date(data.submittedAt) })
+      }
+      if (data.reviewedAt) {
+        Object.assign(resultWithDates, { reviewedAt: new Date(data.reviewedAt) })
+      }
+
+      return resultWithDates
     } catch (error) {
       throw this.handleApiError(error)
     }
@@ -322,12 +340,21 @@ class CredentialService {
 
       const { status, message, reviewDate } = response.data.data
 
-      return {
+      const result = {
         success: true,
         status,
-        message,
-        reviewDate: reviewDate ? new Date(reviewDate) : undefined
+        message
       }
+
+      // Only include reviewDate if it exists
+      if (reviewDate) {
+        return {
+          ...result,
+          reviewDate: new Date(reviewDate)
+        }
+      }
+
+      return result
     } catch (error: any) {
       const authError = this.handleApiError(error)
       return {

@@ -15,7 +15,6 @@ import {
 
 interface BiometricConfig {
   promptTitle: string
-  promptSubtitle: string
   promptDescription?: string
   cancelLabel: string
   fallbackLabel: string
@@ -130,8 +129,6 @@ class BiometricService {
       
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: config.promptTitle,
-        subtitle: config.promptSubtitle,
-        description: config.promptDescription,
         cancelLabel: config.cancelLabel,
         fallbackLabel: config.fallbackLabel,
         disableDeviceFallback: config.disableDeviceFallback || false
@@ -140,14 +137,15 @@ class BiometricService {
       if (result.success) {
         return { success: true }
       } else {
-        const isCancelled = result.error === 'UserCancel' || 
-                           result.error === 'UserFallback' ||
-                           result.error === 'SystemCancel'
+        const errorMessage = 'error' in result ? result.error : 'Biometric authentication failed'
+        const isCancelled = errorMessage === 'UserCancel' || 
+                           errorMessage === 'UserFallback' ||
+                           errorMessage === 'SystemCancel'
 
         return {
           success: false,
           cancelled: isCancelled,
-          error: result.error || 'Biometric authentication failed'
+          error: errorMessage || 'Biometric authentication failed'
         }
       }
     } catch (error) {
@@ -175,8 +173,7 @@ class BiometricService {
 
       // First, authenticate to ensure user can use biometrics
       const authResult = await this.authenticate({
-        promptTitle: 'Enable Biometric Authentication',
-        promptSubtitle: 'Verify your identity to enable biometric login'
+        promptTitle: 'Enable Biometric Authentication'
       })
 
       if (!authResult.success) {
@@ -267,13 +264,22 @@ class BiometricService {
       const isEnabled = await this.isBiometricEnabled()
       const lastEnabledAt = await defaultStorage.getItem<string>('biometric_enabled_at')
 
-      return {
+      const status = {
         isAvailable: capabilities.isAvailable,
         isEnrolled: capabilities.isEnrolled,
         isEnabled,
-        supportedTypes: capabilities.supportedTypes,
-        lastEnabledAt: lastEnabledAt ? new Date(lastEnabledAt) : undefined
+        supportedTypes: capabilities.supportedTypes
       }
+
+      // Only include lastEnabledAt if it exists
+      if (lastEnabledAt) {
+        return {
+          ...status,
+          lastEnabledAt: new Date(lastEnabledAt)
+        }
+      }
+
+      return status
     } catch (error) {
       console.error('Error getting biometric status:', error)
       return {
@@ -300,7 +306,6 @@ class BiometricService {
 
       const result = await this.authenticate({
         promptTitle: 'Sign In',
-        promptSubtitle: 'Use your biometric to sign in to Teacher Hub',
         promptDescription: 'Place your finger on the sensor or look at the camera'
       })
 
@@ -364,7 +369,6 @@ class BiometricService {
 // Default configuration
 const defaultBiometricConfig: BiometricConfig = {
   promptTitle: 'Authenticate',
-  promptSubtitle: 'Use your biometric to continue',
   cancelLabel: 'Cancel',
   fallbackLabel: 'Use Password'
 }

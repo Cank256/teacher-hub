@@ -192,7 +192,6 @@ export interface AuthConfig {
   googleClientId: string
   tokenRefreshThreshold: number // minutes before expiry to refresh
   biometricPromptTitle: string
-  biometricPromptSubtitle: string
   maxLoginAttempts: number
   lockoutDuration: number // minutes
 }

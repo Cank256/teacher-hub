@@ -20,7 +20,6 @@ describe('BiometricService', () => {
 
   const testConfig = {
     promptTitle: 'Test Authentication',
-    promptSubtitle: 'Test Subtitle',
     cancelLabel: 'Cancel',
     fallbackLabel: 'Use Password'
   }
@@ -149,8 +148,6 @@ describe('BiometricService', () => {
       expect(result.success).toBe(true)
       expect(mockLocalAuth.authenticateAsync).toHaveBeenCalledWith({
         promptMessage: testConfig.promptTitle,
-        subtitle: testConfig.promptSubtitle,
-        description: undefined,
         cancelLabel: testConfig.cancelLabel,
         fallbackLabel: testConfig.fallbackLabel,
         disableDeviceFallback: false
@@ -213,7 +210,6 @@ describe('BiometricService', () => {
 
       expect(mockLocalAuth.authenticateAsync).toHaveBeenCalledWith({
         promptMessage: 'Custom Title',
-        subtitle: testConfig.promptSubtitle,
         description: 'Custom Description',
         cancelLabel: testConfig.cancelLabel,
         fallbackLabel: testConfig.fallbackLabel,
@@ -361,7 +357,6 @@ describe('BiometricService', () => {
       expect(result.success).toBe(true)
       expect(mockLocalAuth.authenticateAsync).toHaveBeenCalledWith({
         promptMessage: 'Sign In',
-        subtitle: 'Use your biometric to sign in to Teacher Hub',
         description: 'Place your finger on the sensor or look at the camera',
         cancelLabel: 'Cancel',
         fallbackLabel: 'Use Password',

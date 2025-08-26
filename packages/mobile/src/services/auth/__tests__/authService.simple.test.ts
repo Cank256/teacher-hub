@@ -87,7 +87,6 @@ describe('AuthService (Simple Tests)', () => {
         googleClientId: 'test-client-id',
         tokenRefreshThreshold: 5,
         biometricPromptTitle: 'Test Auth',
-        biometricPromptSubtitle: 'Test Subtitle',
         maxLoginAttempts: 5,
         lockoutDuration: 15
       }
