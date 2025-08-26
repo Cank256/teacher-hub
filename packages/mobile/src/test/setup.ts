@@ -13,6 +13,33 @@ jest.mock('expo', () => ({
   default: {},
 }));
 
+// Mock MMKV
+jest.mock('react-native-mmkv', () => ({
+  MMKV: jest.fn().mockImplementation(() => ({
+    getString: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+    clearAll: jest.fn(),
+  })),
+}));
+
+// Mock Expo Haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(() => Promise.resolve()),
+  notificationAsync: jest.fn(() => Promise.resolve()),
+  selectionAsync: jest.fn(() => Promise.resolve()),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+
 // Mock Expo Linking
 jest.mock('expo-linking', () => ({
   createURL: jest.fn((path: string) => `exp://localhost:8081/${path}`),
@@ -43,6 +70,10 @@ jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   return {
     ...RN,
+    Appearance: {
+      getColorScheme: jest.fn(() => 'light'),
+      addChangeListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
     NativeModules: {
       ...RN.NativeModules,
       RNCNetInfo: {
@@ -64,6 +95,7 @@ jest.mock('react-native', () => {
           scriptURL: 'http://localhost:8081/index.bundle',
         },
       })),
+      get: jest.fn(() => null),
     },
   };
 });
@@ -107,8 +139,14 @@ jest.mock('@react-native-community/netinfo', () => ({
   })),
 }));
 
+// Mock Expo runtime
+jest.mock('expo/src/winter/runtime.native.ts', () => ({}));
+jest.mock('expo/src/winter/ImportMetaRegistry.ts', () => ({}));
+jest.mock('expo/src/utils/getBundleUrl.native.ts', () => ({}));
+
 // Global test utilities
 (global as any).__DEV__ = true;
+(global as any).__ExpoImportMetaRegistry = {};
 
 // Silence console warnings in tests
 const originalWarn = console.warn;

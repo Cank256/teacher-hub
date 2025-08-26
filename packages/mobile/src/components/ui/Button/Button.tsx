@@ -7,17 +7,32 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { useTheme } from '../../../theme/ThemeContext';
+import { HapticService } from '../../../services/haptics';
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  hapticFeedback?: boolean;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -30,106 +45,213 @@ const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
+  hapticFeedback = true,
+  icon,
+  iconPosition = 'left',
 }) => {
-  const buttonStyle = [
-    styles.base,
-    styles[variant],
-    styles[size],
-    disabled && styles.disabled,
-    style,
-  ];
+  const { theme } = useTheme();
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(1);
 
-  const buttonTextStyle = [
-    styles.text,
-    styles[`${variant}Text`],
-    styles[`${size}Text`],
-    disabled && styles.disabledText,
-    textStyle,
-  ];
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 300 });
+    opacity.value = withTiming(0.8, { duration: 100 });
+  };
+
+  const handlePressOut = () => {
+    if (disabled || loading) return;
+    
+    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+    opacity.value = withTiming(1, { duration: 100 });
+  };
+
+  const handlePress = async () => {
+    if (disabled || loading) return;
+    
+    if (hapticFeedback) {
+      await HapticService.buttonPress();
+    }
+    
+    onPress();
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  const getButtonStyles = () => {
+    const baseStyle = {
+      borderRadius: theme.borderRadius.md,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      flexDirection: 'row' as const,
+    };
+
+    const sizeStyles = {
+      small: {
+        paddingHorizontal: theme.spacing.md,
+        paddingVertical: theme.spacing.sm,
+        minHeight: 36,
+      },
+      medium: {
+        paddingHorizontal: theme.spacing.lg,
+        paddingVertical: theme.spacing.md,
+        minHeight: 48,
+      },
+      large: {
+        paddingHorizontal: theme.spacing.xl,
+        paddingVertical: theme.spacing.lg,
+        minHeight: 56,
+      },
+    };
+
+    const variantStyles = {
+      primary: {
+        backgroundColor: theme.colors.primary,
+        ...theme.shadows.sm,
+      },
+      secondary: {
+        backgroundColor: theme.colors.surface,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+      },
+      outline: {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: theme.colors.primary,
+      },
+      ghost: {
+        backgroundColor: 'transparent',
+      },
+    };
+
+    const disabledStyle = disabled ? { opacity: 0.5 } : {};
+
+    return [
+      baseStyle,
+      sizeStyles[size],
+      variantStyles[variant],
+      disabledStyle,
+      style,
+    ];
+  };
+
+  const getTextStyles = () => {
+    const baseTextStyle = {
+      fontFamily: theme.typography.fontFamily.semibold,
+      textAlign: 'center' as const,
+    };
+
+    const sizeTextStyles = {
+      small: {
+        fontSize: theme.typography.fontSize.sm,
+        lineHeight: theme.typography.lineHeight.sm,
+      },
+      medium: {
+        fontSize: theme.typography.fontSize.md,
+        lineHeight: theme.typography.lineHeight.md,
+      },
+      large: {
+        fontSize: theme.typography.fontSize.lg,
+        lineHeight: theme.typography.lineHeight.lg,
+      },
+    };
+
+    const variantTextStyles = {
+      primary: {
+        color: '#FFFFFF',
+      },
+      secondary: {
+        color: theme.colors.text,
+      },
+      outline: {
+        color: theme.colors.primary,
+      },
+      ghost: {
+        color: theme.colors.primary,
+      },
+    };
+
+    const disabledTextStyle = disabled ? { opacity: 0.7 } : {};
+
+    return [
+      baseTextStyle,
+      sizeTextStyles[size],
+      variantTextStyles[variant],
+      disabledTextStyle,
+      textStyle,
+    ];
+  };
+
+  const getActivityIndicatorColor = () => {
+    switch (variant) {
+      case 'primary':
+        return '#FFFFFF';
+      case 'secondary':
+        return theme.colors.text;
+      case 'outline':
+      case 'ghost':
+        return theme.colors.primary;
+      default:
+        return theme.colors.primary;
+    }
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <ActivityIndicator
+          size="small"
+          color={getActivityIndicatorColor()}
+          testID={`${testID}-loading`}
+        />
+      );
+    }
+
+    const textElement = <Text style={getTextStyles()}>{title}</Text>;
+    
+    if (!icon) {
+      return textElement;
+    }
+
+    return (
+      <>
+        {iconPosition === 'left' && (
+          <>{icon}<Text style={{ width: theme.spacing.sm }} /></>
+        )}
+        {textElement}
+        {iconPosition === 'right' && (
+          <><Text style={{ width: theme.spacing.sm }} />{icon}</>
+        )}
+      </>
+    );
+  };
 
   return (
-    <TouchableOpacity
-      style={buttonStyle}
-      onPress={onPress}
+    <AnimatedTouchableOpacity
+      style={[getButtonStyles(), animatedStyle]}
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       disabled={disabled || loading}
       testID={testID}
       accessibilityRole="button"
-      accessibilityLabel={title}
-      accessibilityState={{ disabled: disabled || loading }}
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ 
+        disabled: disabled || loading,
+        busy: loading,
+      }}
+      activeOpacity={1} // We handle opacity with animations
     >
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={variant === 'primary' ? '#ffffff' : '#007AFF'}
-        />
-      ) : (
-        <Text style={buttonTextStyle}>{title}</Text>
-      )}
-    </TouchableOpacity>
+      {renderContent()}
+    </AnimatedTouchableOpacity>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  primary: {
-    backgroundColor: '#007AFF',
-  },
-  secondary: {
-    backgroundColor: '#F2F2F7',
-  },
-  outline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  small: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minHeight: 32,
-  },
-  medium: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    minHeight: 44,
-  },
-  large: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    minHeight: 52,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  primaryText: {
-    color: '#ffffff',
-  },
-  secondaryText: {
-    color: '#007AFF',
-  },
-  outlineText: {
-    color: '#007AFF',
-  },
-  smallText: {
-    fontSize: 14,
-  },
-  mediumText: {
-    fontSize: 16,
-  },
-  largeText: {
-    fontSize: 18,
-  },
-  disabledText: {
-    opacity: 0.7,
-  },
-});
 
 export default Button;
