@@ -139,6 +139,79 @@ jest.mock('@react-native-community/netinfo', () => ({
   })),
 }));
 
+// Mock FastImage
+jest.mock('react-native-fast-image', () => ({
+  __esModule: true,
+  default: 'FastImage',
+  resizeMode: {
+    contain: 'contain',
+    cover: 'cover',
+    stretch: 'stretch',
+    center: 'center',
+  },
+}));
+
+// Mock Vector Icons
+jest.mock('react-native-vector-icons/Ionicons', () => 'Icon');
+
+// Mock FlashList
+jest.mock('@shopify/flash-list', () => ({
+  FlashList: ({ data, renderItem, ListHeaderComponent, ListEmptyComponent }: any) => {
+    const MockScrollView = require('react-native').ScrollView;
+    return MockScrollView;
+  },
+}));
+
+// Mock Document Picker
+jest.mock('react-native-document-picker', () => ({
+  pick: jest.fn(() => Promise.resolve([])),
+  types: {
+    allFiles: '*/*',
+    images: 'image/*',
+    plainText: 'text/plain',
+    audio: 'audio/*',
+    pdf: 'application/pdf',
+  },
+}));
+
+// Mock Image Crop Picker
+jest.mock('react-native-image-crop-picker', () => ({
+  openCamera: jest.fn(() => Promise.resolve({
+    path: 'test-image-path',
+    mime: 'image/jpeg',
+    size: 1024,
+  })),
+  openPicker: jest.fn(() => Promise.resolve([{
+    path: 'test-image-path',
+    mime: 'image/jpeg',
+    size: 1024,
+  }])),
+}));
+
+// Mock Expo Local Authentication
+jest.mock('expo-local-authentication', () => ({
+  hasHardwareAsync: jest.fn(() => Promise.resolve(true)),
+  isEnrolledAsync: jest.fn(() => Promise.resolve(true)),
+  authenticateAsync: jest.fn(() => Promise.resolve({ success: true })),
+  AuthenticationType: {
+    FINGERPRINT: 1,
+    FACIAL_RECOGNITION: 2,
+  },
+}));
+
+// Mock Expo Secure Store
+jest.mock('expo-secure-store', () => ({
+  setItemAsync: jest.fn(() => Promise.resolve()),
+  getItemAsync: jest.fn(() => Promise.resolve(null)),
+  deleteItemAsync: jest.fn(() => Promise.resolve()),
+}));
+
+// Mock date-fns
+jest.mock('date-fns', () => ({
+  formatDistanceToNow: jest.fn((date) => '2 hours ago'),
+  format: jest.fn((date, formatStr) => '2024-01-01'),
+}));
+
 // Mock Expo runtime
 jest.mock('expo/src/winter/runtime.native.ts', () => ({}));
 jest.mock('expo/src/winter/ImportMetaRegistry.ts', () => ({}));

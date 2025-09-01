@@ -95,3 +95,6 @@ export interface AppError {
   timestamp: Date;
   userId?: string;
 }
+
+// Re-export posts types
+export * from './posts';

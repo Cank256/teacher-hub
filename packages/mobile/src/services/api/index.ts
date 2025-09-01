@@ -38,3 +38,7 @@ export {
 
 // Configuration
 export { API_CONFIG, RETRY_CONFIG, SSL_PINNING_CONFIG } from './config'
+
+// Posts service
+export { postsService } from './postsService'
+export * from './hooks/usePosts'
