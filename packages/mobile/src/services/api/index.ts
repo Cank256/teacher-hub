@@ -46,3 +46,7 @@ export * from './hooks/usePosts'
 // Communities service
 export { CommunitiesService } from './communitiesService'
 export * from './hooks/useCommunities'
+
+// Messaging service
+export { MessagingService } from './messagingService'
+export * from './hooks/useMessaging'

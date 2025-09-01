@@ -99,3 +99,4 @@ export interface AppError {
 // Re-export feature types
 export * from './posts';
 export * from './communities';
+export * from './messaging';

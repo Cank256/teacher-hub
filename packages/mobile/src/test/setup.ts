@@ -90,11 +90,14 @@ jest.mock('react-native', () => {
       },
     },
     TurboModuleRegistry: {
-      getEnforcing: jest.fn(() => ({
-        SourceCode: {
-          scriptURL: 'http://localhost:8081/index.bundle',
-        },
-      })),
+      getEnforcing: jest.fn((name) => {
+        if (name === 'SourceCode') {
+          return {
+            scriptURL: 'http://localhost:8081/index.bundle',
+          };
+        }
+        return null;
+      }),
       get: jest.fn(() => null),
     },
   };
@@ -217,9 +220,33 @@ jest.mock('expo/src/winter/runtime.native.ts', () => ({}));
 jest.mock('expo/src/winter/ImportMetaRegistry.ts', () => ({}));
 jest.mock('expo/src/utils/getBundleUrl.native.ts', () => ({}));
 
+// Mock Socket.IO
+jest.mock('socket.io-client', () => ({
+  io: jest.fn(() => ({
+    on: jest.fn(),
+    off: jest.fn(),
+    emit: jest.fn(),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+  })),
+}));
+
 // Global test utilities
 (global as any).__DEV__ = true;
 (global as any).__ExpoImportMetaRegistry = {};
+
+// Mock TurboModule system
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+  getEnforcing: jest.fn((name) => {
+    if (name === 'SourceCode') {
+      return {
+        scriptURL: 'http://localhost:8081/index.bundle',
+      };
+    }
+    return null;
+  }),
+  get: jest.fn(() => null),
+}));
 
 // Silence console warnings in tests
 const originalWarn = console.warn;
