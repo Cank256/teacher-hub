@@ -69,6 +69,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-document-picker": "^9.3.0",
     "react-native-image-crop-picker": "^0.41.2",
+    "react-native-webview": "^13.12.2",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {

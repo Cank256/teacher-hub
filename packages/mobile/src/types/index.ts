@@ -100,3 +100,4 @@ export interface AppError {
 export * from './posts';
 export * from './communities';
 export * from './messaging';
+export * from './resources';
