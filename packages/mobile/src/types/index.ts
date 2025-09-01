@@ -96,5 +96,6 @@ export interface AppError {
   userId?: string;
 }
 
-// Re-export posts types
+// Re-export feature types
 export * from './posts';
+export * from './communities';
