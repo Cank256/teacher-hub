@@ -50,3 +50,7 @@ export * from './hooks/useCommunities'
 // Messaging service
 export { MessagingService } from './messagingService'
 export * from './hooks/useMessaging'
+
+// Government service
+export { governmentService } from './governmentService'
+export * from './hooks/useGovernmentContent'
