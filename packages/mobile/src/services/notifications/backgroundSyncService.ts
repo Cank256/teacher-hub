@@ -119,9 +119,9 @@ export class BackgroundSyncService {
    */
   private registerBackgroundTasks(): void {
     // Register background sync task
-    TaskManager.defineTask(BACKGROUND_SYNC_TASK, async ({ data: _data, error }: { data: any; error: Error | null }) => {
-      if (error) {
-        console.error('Background sync task error:', error);
+    TaskManager.defineTask(BACKGROUND_SYNC_TASK, async (body) => {
+      if (body.error) {
+        console.error('Background sync task error:', body.error);
         return BackgroundFetch.BackgroundFetchResult.Failed;
       }
 
