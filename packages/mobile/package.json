@@ -111,7 +111,8 @@
       "<rootDir>/src/test/setup.ts",
       "<rootDir>/src/services/sync/__tests__/setup.ts",
       "<rootDir>/src/services/security/__tests__/setup.ts",
-      "<rootDir>/src/services/notifications/__tests__/setup.ts"
+      "<rootDir>/src/services/notifications/__tests__/setup.ts",
+      "<rootDir>/src/services/device/__tests__/setup.ts"
     ],
     "testMatch": [
       "**/__tests__/**/*.(test|spec).(ts|tsx|js)",
