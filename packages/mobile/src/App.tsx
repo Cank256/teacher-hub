@@ -5,10 +5,19 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/contexts';
 import { NavigationContainer } from '@/navigation';
+import { usePerformanceInit } from '@/hooks/usePerformanceInit';
 
 // Main App Component with Navigation
 const AppContent: React.FC = () => {
   const { isAuthenticated, isFirstLaunch, isLoading } = useAuth();
+  
+  // Initialize performance monitoring and optimization
+  const { trackScreenLoad } = usePerformanceInit({
+    enableAutoOptimization: true,
+    memoryThreshold: 150 * 1024 * 1024, // 150MB
+    cacheSize: 100 * 1024 * 1024, // 100MB
+    monitoringEnabled: true,
+  });
 
   if (isLoading) {
     return (

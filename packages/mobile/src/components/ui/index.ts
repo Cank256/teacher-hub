@@ -8,6 +8,7 @@ export { default as Loading } from './Loading';
 export { default as ProfilePicture } from './ProfilePicture';
 export { default as MultiSelect } from './MultiSelect';
 export { default as VerificationStatus } from './VerificationStatus';
+export { OptimizedImage } from './OptimizedImage';
 
 // Export types
 export type { ButtonProps } from './Button';
@@ -19,3 +20,4 @@ export type { LoadingProps } from './Loading';
 export type { ProfilePictureProps } from './ProfilePicture';
 export type { MultiSelectProps, MultiSelectOption } from './MultiSelect';
 export type { VerificationStatusProps } from './VerificationStatus';
+export type { OptimizedImageProps } from './OptimizedImage';

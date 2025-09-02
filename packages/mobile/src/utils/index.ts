@@ -105,3 +105,20 @@ export const formatFileSize = (bytes: number): string => {
   
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 };
+
+// Re-export image optimization utilities
+export * from './imageOptimization';
+
+// Re-export performance services for convenience
+export {
+  ImageCacheService,
+  PerformanceMonitoringService,
+  MemoryManagementService,
+  LazyLoadingService,
+  BundleOptimizationService,
+  initializePerformanceServices,
+  getPerformanceReport,
+  optimizePerformance,
+  usePerformanceMonitoring,
+  useMemoryPressure,
+} from '@/services/performance';
