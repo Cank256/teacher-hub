@@ -4,8 +4,11 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '@/contexts';
+import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
+import { InternationalizationProvider } from '@/contexts/InternationalizationContext';
 import { NavigationContainer } from '@/navigation';
 import { usePerformanceInit } from '@/hooks/usePerformanceInit';
+import '@/i18n'; // Initialize i18n
 
 // Main App Component with Navigation
 const AppContent: React.FC = () => {
@@ -40,10 +43,14 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <AppContent />
-          <StatusBar style="auto" />
-        </AuthProvider>
+        <AccessibilityProvider>
+          <InternationalizationProvider>
+            <AuthProvider>
+              <AppContent />
+              <StatusBar style="auto" />
+            </AuthProvider>
+          </InternationalizationProvider>
+        </AccessibilityProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
