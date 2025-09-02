@@ -25,7 +25,7 @@ export class StorageInsightsService {
    */
   async getStorageInsights(): Promise<StorageInsights> {
     try {
-      const fileSystemService = FileSystemService.getInstance()
+      const fileSystemService = FileSystemService
       const fileSystemInfo = await fileSystemService.getFileSystemInfo()
       
       const breakdown = await this.getDetailedStorageBreakdown()
@@ -303,7 +303,7 @@ export class StorageInsightsService {
         if (itemInfo.isDirectory) {
           totalSize += await this.getDirectorySize(`${itemUri}/`)
         } else {
-          totalSize += itemInfo.size ?? 0
+          totalSize += (itemInfo as any).size ?? 0
         }
       }
 
@@ -359,7 +359,7 @@ export class StorageInsightsService {
    */
   private async getCurrentAppSize(): Promise<number> {
     try {
-      const fileSystemService = FileSystemService.getInstance()
+      const fileSystemService = FileSystemService
       const fileSystemInfo = await fileSystemService.getFileSystemInfo()
       return fileSystemInfo.appDataSize
     } catch (error) {
@@ -377,7 +377,7 @@ export class StorageInsightsService {
     error?: string
   }> {
     try {
-      const fileSystemService = FileSystemService.getInstance()
+      const fileSystemService = FileSystemService
       
       switch (recommendationType) {
         case 'clear_cache':

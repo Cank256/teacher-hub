@@ -187,7 +187,7 @@ export class FileSystemService {
         if (itemInfo.isDirectory) {
           totalSize += await this.getDirectorySize(`${itemUri}/`)
         } else {
-          totalSize += itemInfo.size ?? 0
+          totalSize += (itemInfo as any).size ?? 0
         }
       }
 

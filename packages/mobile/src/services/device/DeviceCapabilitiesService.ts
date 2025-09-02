@@ -16,7 +16,7 @@ import {
   DeviceFeatureAvailability,
   PermissionResult,
   FallbackOptions,
-  NativeModuleError
+  NativeModuleError as NativeModuleErrorType
 } from './types'
 
 export class DeviceCapabilitiesService {
