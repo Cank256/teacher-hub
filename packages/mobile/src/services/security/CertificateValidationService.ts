@@ -70,7 +70,8 @@ export class CertificateValidationService {
       return true;
     } catch (error) {
       console.error('Certificate validation failed:', error);
-      await this.logCertificateValidationFailure(hostname, certificate, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      await this.logCertificateValidationFailure(hostname, certificate, errorMessage);
       return false;
     }
   }
@@ -134,7 +135,7 @@ export class CertificateValidationService {
     try {
       // Extract Common Name (CN) from subject
       const cnMatch = certificate.subject.match(/CN=([^,]+)/);
-      if (!cnMatch) {
+      if (!cnMatch || !cnMatch[1]) {
         return false;
       }
 
@@ -307,7 +308,7 @@ export class CertificateValidationService {
       const validFromMatch = certificateString.match(/Not Before: (.+)/);
       const validToMatch = certificateString.match(/Not After: (.+)/);
 
-      if (!subjectMatch || !issuerMatch) {
+      if (!subjectMatch || !subjectMatch[1] || !issuerMatch || !issuerMatch[1]) {
         return null;
       }
 
@@ -317,10 +318,10 @@ export class CertificateValidationService {
       return {
         subject: subjectMatch[1].trim(),
         issuer: issuerMatch[1].trim(),
-        serialNumber: serialMatch ? serialMatch[1].trim() : '',
+        serialNumber: serialMatch && serialMatch[1] ? serialMatch[1].trim() : '',
         fingerprint,
-        validFrom: validFromMatch ? new Date(validFromMatch[1].trim()) : new Date(),
-        validTo: validToMatch ? new Date(validToMatch[1].trim()) : new Date()
+        validFrom: validFromMatch && validFromMatch[1] ? new Date(validFromMatch[1].trim()) : new Date(),
+        validTo: validToMatch && validToMatch[1] ? new Date(validToMatch[1].trim()) : new Date()
       };
     } catch (error) {
       console.error('Certificate parsing failed:', error);
