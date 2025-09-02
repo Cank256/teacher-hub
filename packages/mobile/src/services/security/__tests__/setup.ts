@@ -5,9 +5,33 @@
  * including mocks for native modules and security-sensitive operations.
  */
 
+// Type declarations for global extensions
+declare global {
+  var securityTestUtils: {
+    createMockDeviceStatus: (overrides?: any) => any;
+    createMockSecurityIncident: (overrides?: any) => any;
+    createMockEncryptedData: (data?: any) => string;
+    simulateCompromisedDevice: () => any;
+    simulateSecureDevice: () => any;
+    createMockCertificate: (overrides?: any) => any;
+    waitForAsync: (ms?: number) => Promise<void>;
+    generateRandomData: (size?: number) => string;
+  };
+  var SECURITY_TEST_CONSTANTS: {
+    ENCRYPTION_KEY_LENGTH: number;
+    SALT_LENGTH: number;
+    IV_LENGTH: number;
+    MAX_FAILED_ATTEMPTS: number;
+    LOCKOUT_DURATION: number;
+    LOCK_TIMEOUT: number;
+    MAX_INCIDENTS: number;
+    CACHE_DURATION: number;
+  };
+}
+
 // Mock global objects first
-global.window = global.window || {};
-global.navigator = global.navigator || {};
+(global as any).window = (global as any).window || {};
+(global as any).navigator = (global as any).navigator || {};
 
 import { jest } from '@jest/globals';
 
@@ -15,7 +39,7 @@ import { jest } from '@jest/globals';
 jest.mock('react-native', () => ({
   Platform: {
     OS: 'ios',
-    select: jest.fn((options) => options.ios || options.default)
+    select: jest.fn((options: any) => options.ios || options.default)
   },
   AppState: {
     addEventListener: jest.fn(),
@@ -23,42 +47,42 @@ jest.mock('react-native', () => ({
     currentState: 'active'
   },
   Linking: {
-    canOpenURL: jest.fn().mockResolvedValue(false)
+    canOpenURL: jest.fn(() => Promise.resolve(false))
   }
 }));
 
 // Mock Expo modules
 jest.mock('expo-local-authentication', () => ({
-  hasHardwareAsync: jest.fn().mockResolvedValue(true),
-  isEnrolledAsync: jest.fn().mockResolvedValue(true),
-  supportedAuthenticationTypesAsync: jest.fn().mockResolvedValue([1, 2]),
-  authenticateAsync: jest.fn().mockResolvedValue({ success: true })
+  hasHardwareAsync: jest.fn(() => Promise.resolve(true)),
+  isEnrolledAsync: jest.fn(() => Promise.resolve(true)),
+  supportedAuthenticationTypesAsync: jest.fn(() => Promise.resolve([1, 2])),
+  authenticateAsync: jest.fn(() => Promise.resolve({ success: true }))
 }));
 
 jest.mock('expo-secure-store', () => ({
-  setItemAsync: jest.fn().mockResolvedValue(undefined),
-  getItemAsync: jest.fn().mockResolvedValue(null),
-  deleteItemAsync: jest.fn().mockResolvedValue(undefined)
+  setItemAsync: jest.fn(() => Promise.resolve(undefined)),
+  getItemAsync: jest.fn(() => Promise.resolve(null)),
+  deleteItemAsync: jest.fn(() => Promise.resolve(undefined))
 }));
 
 jest.mock('expo-crypto', () => ({
-  getRandomBytesAsync: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
-  digestStringAsync: jest.fn().mockResolvedValue('mocked_hash'),
+  getRandomBytesAsync: jest.fn(() => Promise.resolve(new ArrayBuffer(32))),
+  digestStringAsync: jest.fn(() => Promise.resolve('mocked_hash')),
   CryptoDigestAlgorithm: {
     SHA256: 'SHA256'
   }
 }));
 
 jest.mock('react-native-device-info', () => ({
-  getUniqueId: jest.fn().mockResolvedValue('mock_device_id'),
-  getSystemName: jest.fn().mockResolvedValue('iOS'),
-  getSystemVersion: jest.fn().mockResolvedValue('15.0'),
-  getVersion: jest.fn().mockResolvedValue('1.0.0'),
-  getBuildNumber: jest.fn().mockResolvedValue('1'),
-  getManufacturer: jest.fn().mockResolvedValue('Apple'),
-  getModel: jest.fn().mockResolvedValue('iPhone'),
-  isTablet: jest.fn().mockResolvedValue(false),
-  isEmulator: jest.fn().mockResolvedValue(false)
+  getUniqueId: jest.fn(() => Promise.resolve('mock_device_id')),
+  getSystemName: jest.fn(() => Promise.resolve('iOS')),
+  getSystemVersion: jest.fn(() => Promise.resolve('15.0')),
+  getVersion: jest.fn(() => Promise.resolve('1.0.0')),
+  getBuildNumber: jest.fn(() => Promise.resolve('1')),
+  getManufacturer: jest.fn(() => Promise.resolve('Apple')),
+  getModel: jest.fn(() => Promise.resolve('iPhone')),
+  isTablet: jest.fn(() => Promise.resolve(false)),
+  isEmulator: jest.fn(() => Promise.resolve(false))
 }));
 
 jest.mock('react-native-mmkv', () => ({
@@ -208,4 +232,4 @@ afterAll(() => {
   global.console = originalConsole;
 });
 
-export {};
+export { };
