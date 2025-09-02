@@ -5,11 +5,12 @@
  * permission management, and graceful fallbacks.
  */
 
+// @ts-ignore - expo-location types may not be available in development environment
 import * as Location from 'expo-location'
 import { Alert, Platform } from 'react-native'
-import { 
-  LocationOptions, 
-  LocationResult, 
+import {
+  LocationOptions,
+  LocationResult,
   LocationPermissionStatus,
   PermissionResult,
   FallbackOptions,
@@ -19,7 +20,7 @@ import {
 export class LocationService {
   private static instance: LocationService
   private watchSubscription: Location.LocationSubscription | null = null
-  
+
   public static getInstance(): LocationService {
     if (!LocationService.instance) {
       LocationService.instance = new LocationService()
@@ -34,7 +35,7 @@ export class LocationService {
     try {
       // Request foreground permission first
       const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync()
-      
+
       if (status !== 'granted') {
         return {
           granted: false,
@@ -74,7 +75,7 @@ export class LocationService {
   async getLocationPermissionStatus(): Promise<LocationPermissionStatus> {
     try {
       const { status, canAskAgain } = await Location.getForegroundPermissionsAsync()
-      
+
       return {
         granted: status === 'granted',
         canAskAgain,
@@ -166,7 +167,7 @@ export class LocationService {
           timeInterval: 5000, // Update every 5 seconds
           distanceInterval: 10 // Update every 10 meters
         },
-        (location) => {
+        (location: Location.LocationObject) => {
           const result: LocationResult = {
             latitude: location.coords.latitude,
             longitude: location.coords.longitude,
@@ -203,8 +204,8 @@ export class LocationService {
   async geocodeAddress(address: string): Promise<LocationResult[]> {
     try {
       const locations = await Location.geocodeAsync(address)
-      
-      return locations.map(location => ({
+
+      return locations.map((location: Location.LocationGeocodedAddress) => ({
         latitude: location.latitude,
         longitude: location.longitude,
         altitude: location.altitude ?? undefined,
@@ -223,7 +224,7 @@ export class LocationService {
   async reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
     try {
       const addresses = await Location.reverseGeocodeAsync({ latitude, longitude })
-      
+
       if (addresses.length > 0) {
         const address = addresses[0]
         const parts = [
@@ -233,10 +234,10 @@ export class LocationService {
           address.region,
           address.country
         ].filter(Boolean)
-        
+
         return parts.join(', ')
       }
-      
+
       return null
     } catch (error) {
       console.error('Error reverse geocoding:', error)
@@ -248,9 +249,9 @@ export class LocationService {
    * Calculate distance between two locations (in meters)
    */
   calculateDistance(
-    lat1: number, 
-    lon1: number, 
-    lat2: number, 
+    lat1: number,
+    lon1: number,
+    lat2: number,
     lon2: number
   ): number {
     const R = 6371e3 // Earth's radius in meters
@@ -260,8 +261,8 @@ export class LocationService {
     const Δλ = (lon2 - lon1) * Math.PI / 180
 
     const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2)
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
     return R * c
@@ -289,7 +290,7 @@ export class LocationService {
 
     if (showError) {
       const message = errorMessage ?? 'Location services are not available. You can manually enter your location in settings.'
-      
+
       Alert.alert(
         'Location Unavailable',
         message,
@@ -376,9 +377,9 @@ export class LocationService {
 
   private handleLocationError(error: NativeModuleError): void {
     console.error('Location error:', error)
-    
+
     let message = 'An error occurred while getting your location. Please try again.'
-    
+
     if (error.code === 'E_LOCATION_SERVICES_DISABLED') {
       message = 'Location services are disabled. Please enable them in your device settings.'
     } else if (error.code === 'E_LOCATION_TIMEOUT') {

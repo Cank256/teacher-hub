@@ -26,11 +26,49 @@ export * from './performance'
 export * from './messaging'
 
 // Notifications Services
-export * from './notifications'
+export {
+    notificationService,
+    NotificationService,
+    notificationPreferencesService,
+    NotificationPreferencesService,
+    notificationAnalyticsService,
+    NotificationAnalyticsService,
+    governmentNotificationService,
+    GovernmentNotificationService,
+    BackgroundSyncService as NotificationBackgroundSyncService,
+    backgroundSyncService as notificationBackgroundSyncService
+} from './notifications'
 
 // Sync Services
-export * from './sync'
+export {
+    SyncEngine,
+    OperationQueue,
+    ConflictResolutionManager,
+    BackgroundSyncService as SyncBackgroundSyncService,
+    OfflineStatusMonitor,
+    ContentDownloadManager,
+    createSyncEngine,
+    DEFAULT_SYNC_CONFIG
+} from './sync'
+
+// Export types from both modules
+export * from '../types/notifications'
+
+// Export sync types with explicit naming to avoid conflicts
+export type {
+    SyncConfiguration,
+    OfflineOperation,
+    SyncPriority,
+    ConflictResolutionStrategy,
+    SyncResult as SyncEngineResult,
+    SyncError,
+    SyncEventListener,
+    OfflineStatus,
+    SyncConflict,
+    SyncMetrics,
+    BackgroundSyncTask
+} from './sync/types'
 
 // Individual service exports
-export { default as haptics } from './haptics'
+export { HapticService as haptics } from './haptics'
 export { default as monitoring } from './monitoring'

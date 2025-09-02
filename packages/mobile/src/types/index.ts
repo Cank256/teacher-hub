@@ -102,3 +102,4 @@ export * from './communities';
 export * from './messaging';
 export * from './resources';
 export * from './government';
+export * from './notifications';
