@@ -1,6 +1,4 @@
-import { Platform } from 'react-native';
 import { CertificateInfo, SecurityIncident, SecurityIncidentType, SecuritySeverity } from './types';
-import { SecurityIncidentService } from './SecurityIncidentService';
 
 // Note: This is a simplified implementation. In production, you would use
 // react-native-ssl-pinning or similar libraries for proper SSL pinning
@@ -105,9 +103,9 @@ export class CertificateValidationService {
     try {
       // In a real implementation, you would validate the entire certificate chain
       // This is a simplified check
-      
+
       // Check if issuer is in trusted CAs
-      const isTrustedIssuer = this.trustedCAs.some(ca => 
+      const isTrustedIssuer = this.trustedCAs.some(ca =>
         certificate.issuer.includes(ca)
       );
 
@@ -244,6 +242,8 @@ export class CertificateValidationService {
     certificate: CertificateInfo
   ): Promise<void> {
     try {
+      // Use dynamic import to avoid circular dependency
+      const { SecurityIncidentService } = await import('./SecurityIncidentService');
       const incidentService = SecurityIncidentService.getInstance();
       await incidentService.logIncident({
         type: SecurityIncidentType.CERTIFICATE_PINNING_FAILED,
@@ -270,6 +270,8 @@ export class CertificateValidationService {
     reason: string
   ): Promise<void> {
     try {
+      // Use dynamic import to avoid circular dependency
+      const { SecurityIncidentService } = await import('./SecurityIncidentService');
       const incidentService = SecurityIncidentService.getInstance();
       await incidentService.logIncident({
         type: SecurityIncidentType.CERTIFICATE_PINNING_FAILED,
@@ -297,7 +299,7 @@ export class CertificateValidationService {
     try {
       // This is a simplified parser. In production, you would use a proper
       // certificate parsing library
-      
+
       // Extract basic information using regex patterns
       const subjectMatch = certificateString.match(/Subject: (.+)/);
       const issuerMatch = certificateString.match(/Issuer: (.+)/);
@@ -346,7 +348,7 @@ export class CertificateValidationService {
    */
   public getSSLConfig(hostname: string): any {
     const pinnedCerts = this.getPinnedCertificates(hostname);
-    
+
     if (pinnedCerts.length === 0) {
       return null;
     }

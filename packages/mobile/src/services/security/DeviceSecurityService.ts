@@ -2,7 +2,6 @@ import DeviceInfo from 'react-native-device-info';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Platform } from 'react-native';
 import { DeviceSecurityStatus, SecurityIncident, SecurityIncidentType, SecuritySeverity } from './types';
-import { SecurityIncidentService } from './SecurityIncidentService';
 
 export class DeviceSecurityService {
   private static instance: DeviceSecurityService;
@@ -298,7 +297,10 @@ export class DeviceSecurityService {
    * Logs security incidents based on detected threats
    */
   private async logSecurityIncidents(status: DeviceSecurityStatus): Promise<void> {
-    const incidentService = SecurityIncidentService.getInstance();
+    try {
+      // Use dynamic import to avoid circular dependency
+      const { SecurityIncidentService } = await import('./SecurityIncidentService');
+      const incidentService = SecurityIncidentService.getInstance();
 
     if (status.isJailbroken) {
       await incidentService.logIncident({
@@ -330,6 +332,9 @@ export class DeviceSecurityService {
         severity: SecuritySeverity.HIGH,
         description: 'Hooking framework detected'
       });
+    }
+    } catch (error) {
+      console.error('Failed to log security incidents:', error);
     }
   }
 
