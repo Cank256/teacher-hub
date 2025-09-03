@@ -13,11 +13,9 @@ class NavigationService implements NavigationServiceInterface {
     params?: RootStackParamList[T]
   ): void {
     if (navigationRef.isReady()) {
-      if (params) {
-        navigationRef.navigate(screen, params);
-      } else {
-        navigationRef.navigate(screen as any);
-      }
+      // Use spread operator to handle React Navigation's complex conditional types
+      const args = params !== undefined ? [screen, params] : [screen];
+      (navigationRef.navigate as any)(...args);
     } else {
       console.warn('Navigation is not ready yet');
     }

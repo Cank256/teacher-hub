@@ -36,31 +36,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const initializeAuth = async () => {
     try {
-      // Initialize auth services
-      await initializeAuthServices();
+      console.log('Starting auth initialization...');
       
-      // Check if this is the first launch
-      const hasLaunchedBefore = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
-      setIsFirstLaunch(hasLaunchedBefore === null);
+      // Check if this is the first launch (this should always work)
+      try {
+        const hasLaunchedBefore = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
+        setIsFirstLaunch(hasLaunchedBefore === null);
+        console.log('First launch check completed:', hasLaunchedBefore === null);
+      } catch (error) {
+        console.warn('Failed to check first launch, defaulting to true:', error);
+        setIsFirstLaunch(true);
+      }
 
-      // Check authentication status
-      const isAuth = await authService.isAuthenticated();
-      setIsAuthenticated(isAuth);
-
-      if (isAuth) {
-        // Get current user
-        const currentUser = await authService.getCurrentUser();
-        setUser(currentUser);
+      // Try to initialize auth services with timeout
+      try {
+        console.log('Initializing auth services...');
+        const initPromise = initializeAuthServices();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Auth initialization timeout')), 10000)
+        );
         
-        if (currentUser) {
-          setVerificationStatus(currentUser.verificationStatus);
+        await Promise.race([initPromise, timeoutPromise]);
+        console.log('Auth services initialized successfully');
+
+        // Check authentication status
+        const isAuth = await authService.isAuthenticated();
+        setIsAuthenticated(isAuth);
+        console.log('Authentication status:', isAuth);
+
+        if (isAuth) {
+          // Get current user
+          const currentUser = await authService.getCurrentUser();
+          setUser(currentUser);
+          
+          if (currentUser) {
+            setVerificationStatus(currentUser.verificationStatus);
+          }
+          console.log('Current user loaded:', currentUser?.email);
         }
+      } catch (error) {
+        console.warn('Auth services initialization failed, using offline mode:', error);
+        // Set default values for offline mode
+        setIsAuthenticated(false);
+        setUser(null);
+        setVerificationStatus(VerificationStatus.PENDING);
       }
     } catch (error) {
-      console.warn('Failed to initialize auth:', error);
+      console.error('Critical auth initialization error:', error);
+      // Ensure we always set safe defaults
       setIsAuthenticated(false);
       setUser(null);
+      setVerificationStatus(VerificationStatus.PENDING);
+      setIsFirstLaunch(true);
     } finally {
+      console.log('Auth initialization completed');
       setIsLoading(false);
     }
   };

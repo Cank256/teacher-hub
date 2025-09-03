@@ -87,12 +87,6 @@
     "scheme": "teacherhub",
     "plugins": [
       [
-        "expo-linking",
-        {
-          "scheme": "teacherhub"
-        }
-      ],
-      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
@@ -107,7 +101,10 @@
       ],
       [
         "expo-task-manager"
-      ]
+      ],
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

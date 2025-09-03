@@ -111,17 +111,15 @@ class ExpoSecureStorageService implements SecureStorageService {
   async getAuthTokens(): Promise<{ accessToken: string | null; refreshToken: string | null }> {
     try {
       const [accessToken, refreshToken] = await Promise.all([
-        this.getSecureItem(SecureStorageKeys.ACCESS_TOKEN),
-        this.getSecureItem(SecureStorageKeys.REFRESH_TOKEN)
+        this.getSecureItem(SecureStorageKeys.ACCESS_TOKEN).catch(() => null),
+        this.getSecureItem(SecureStorageKeys.REFRESH_TOKEN).catch(() => null)
       ])
       
       return { accessToken, refreshToken }
     } catch (error) {
-      throw new StorageError(
-        'Failed to retrieve authentication tokens',
-        StorageErrorCode.ITEM_NOT_FOUND,
-        error as Error
-      )
+      console.warn('Failed to retrieve authentication tokens:', error)
+      // Return null tokens instead of throwing
+      return { accessToken: null, refreshToken: null }
     }
   }
 

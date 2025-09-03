@@ -63,24 +63,40 @@ export const initializeAuthServices = async (): Promise<void> => {
   try {
     console.log('Initializing authentication services...')
     
-    // Initialize main auth service
-    await authService.initialize()
-    console.log('Auth service initialized')
+    // Initialize main auth service with timeout
+    try {
+      const initPromise = authService.initialize()
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Auth service initialization timeout')), 5000)
+      )
+      await Promise.race([initPromise, timeoutPromise])
+      console.log('Auth service initialized')
+    } catch (error) {
+      console.warn('Auth service initialization failed, continuing in offline mode:', error)
+    }
     
-    // Initialize Google auth service
-    const { initializeGoogleAuth } = await import('./googleAuthService')
-    await initializeGoogleAuth()
-    console.log('Google auth service initialized')
+    // Initialize Google auth service (non-blocking)
+    try {
+      const { initializeGoogleAuth } = await import('./googleAuthService')
+      await initializeGoogleAuth()
+      console.log('Google auth service initialized')
+    } catch (error) {
+      console.warn('Google auth service initialization failed:', error)
+    }
     
-    // Initialize biometric service
-    const { biometricService } = await import('./biometricService')
-    await biometricService.initialize()
-    console.log('Biometric service initialized')
+    // Initialize biometric service (non-blocking)
+    try {
+      const { biometricService } = await import('./biometricService')
+      await biometricService.initialize()
+      console.log('Biometric service initialized')
+    } catch (error) {
+      console.warn('Biometric service initialization failed:', error)
+    }
     
-    console.log('All authentication services initialized successfully')
+    console.log('Authentication services initialization completed')
   } catch (error) {
-    console.error('Failed to initialize authentication services:', error)
-    throw error
+    console.error('Critical error during authentication services initialization:', error)
+    // Don't throw - allow app to continue in offline mode
   }
 }
 

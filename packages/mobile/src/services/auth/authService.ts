@@ -52,31 +52,48 @@ class AuthService implements IAuthService {
         if (this.isInitialized) return
 
         try {
-            // Check if user is already authenticated
-            const tokens = await secureStorage.getAuthTokens()
-            if (tokens.accessToken) {
-                const isValid = await this.validateToken(tokens.accessToken)
-                if (isValid.isValid) {
-                    this.currentUser = await this.fetchCurrentUser()
-                } else if (tokens.refreshToken) {
+            console.log('Initializing AuthService...')
+            
+            // Check if user is already authenticated (offline-first approach)
+            try {
+                const tokens = await secureStorage.getAuthTokens()
+                console.log('Retrieved tokens from secure storage:', !!tokens.accessToken)
+                
+                if (tokens.accessToken) {
                     try {
-                        await this.refreshToken()
-                        this.currentUser = await this.fetchCurrentUser()
-                    } catch (error) {
-                        // Refresh failed, clear tokens
-                        await this.clearAuthData()
+                        // Try to validate token with server
+                        const isValid = await this.validateToken(tokens.accessToken)
+                        if (isValid.isValid) {
+                            this.currentUser = await this.fetchCurrentUser()
+                            console.log('User authenticated with valid token')
+                        } else if (tokens.refreshToken) {
+                            try {
+                                await this.refreshToken()
+                                this.currentUser = await this.fetchCurrentUser()
+                                console.log('User authenticated with refreshed token')
+                            } catch (error) {
+                                console.warn('Token refresh failed, clearing auth data:', error)
+                                await this.clearAuthData()
+                            }
+                        }
+                    } catch (networkError) {
+                        console.warn('Network error during token validation, assuming offline mode:', networkError)
+                        // In offline mode, we can't validate tokens but we can assume they're valid
+                        // This allows the app to work offline with cached credentials
                     }
                 }
+            } catch (storageError) {
+                console.warn('Storage error during auth initialization:', storageError)
+                // Continue initialization even if storage fails
             }
 
             this.isInitialized = true
+            console.log('AuthService initialization completed')
         } catch (error) {
-            console.error('Failed to initialize auth service:', error)
-            throw new AuthError(
-                'Failed to initialize authentication service',
-                AuthErrorCode.NETWORK_ERROR,
-                error as Error
-            )
+            console.error('Critical error during auth service initialization:', error)
+            // Mark as initialized anyway to prevent blocking the app
+            this.isInitialized = true
+            // Don't throw - allow app to continue
         }
     }
 

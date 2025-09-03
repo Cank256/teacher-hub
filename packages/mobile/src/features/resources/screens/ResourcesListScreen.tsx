@@ -7,13 +7,13 @@ import {
   Text,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '@/theme';
 import { SearchBar } from '@/components/common/SearchBar/SearchBar';
 import { ResourceCard } from '@/components/resources/ResourceCard/ResourceCard';
 import { ResourceFilters } from '@/components/resources/ResourceFilters/ResourceFilters';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner/LoadingSpinner';
-import { EmptyState } from '@/components/ui/EmptyState/EmptyState';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner/LoadingSpinner';
+import { EmptyState } from '@/components/common/EmptyState/EmptyState';
 import { ErrorState } from '@/components/ui/ErrorState/ErrorState';
 import {
   useInfiniteResources,
@@ -24,12 +24,13 @@ import {
 } from '@/services/api/hooks/useResources';
 import { OfflineResourceService } from '@/services/storage/offlineResourceService';
 import type { ResourcesStackScreenProps } from '@/navigation/types';
-import type { Resource, ResourceFilters as ResourceFiltersType } from '@/types/resources';
+import type { Resource, ResourceFilters as ResourceFiltersType, PaginatedResponse } from '@/types/resources';
 
 type Props = ResourcesStackScreenProps<'ResourcesList'>;
 
 export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
-  const { colors, spacing } = useTheme();
+  const { theme } = useTheme();
+  const { colors, spacing } = theme;
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<ResourceFiltersType>({});
   const [showFilters, setShowFilters] = useState(false);
@@ -46,15 +47,15 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
     error,
     refetch,
   } = searchQuery.length > 0
-    ? useInfiniteSearchResources(searchQuery, filters)
-    : useInfiniteResources(filters);
+      ? useInfiniteSearchResources(searchQuery, filters)
+      : useInfiniteResources(filters);
 
   const { data: categories = [] } = useResourceCategories();
   const { data: subjects = [] } = useSubjects();
   const { data: gradeLevels = [] } = useGradeLevels();
 
   // Flatten paginated data
-  const resources = resourcesData?.pages.flatMap(page => page.data) ?? [];
+  const resources = resourcesData?.pages.flatMap((page) => (page as PaginatedResponse<Resource>).data) ?? [];
 
   // Check downloaded status for resources
   React.useEffect(() => {
@@ -116,7 +117,7 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const getActiveFiltersCount = () => {
-    return Object.values(filters).filter(value => 
+    return Object.values(filters).filter(value =>
       value !== undefined && value !== null && value !== ''
     ).length;
   };
@@ -125,11 +126,9 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.header}>
       <SearchBar
         placeholder="Search resources..."
-        value={searchQuery}
-        onChangeText={handleSearch}
-        onClear={() => setSearchQuery('')}
+        onSearch={handleSearch}
       />
-      
+
       <View style={styles.headerActions}>
         <TouchableOpacity
           style={[
@@ -141,7 +140,7 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
           ]}
           onPress={() => setShowFilters(true)}
         >
-          <Icon
+          <MaterialIcons
             name="filter-list"
             size={20}
             color={getActiveFiltersCount() > 0 ? colors.background.primary : colors.text.primary}
@@ -159,7 +158,7 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
           style={[styles.uploadButton, { backgroundColor: colors.primary }]}
           onPress={() => navigation.navigate('UploadResource')}
         >
-          <Icon name="add" size={20} color={colors.background.primary} />
+          <MaterialIcons name="add" size={20} color={colors.background.primary} />
           <Text style={[styles.uploadButtonText, { color: colors.background.primary }]}>
             Upload
           </Text>
@@ -181,7 +180,7 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
 
   const renderFooter = () => {
     if (!isFetchingNextPage) return null;
-    
+
     return (
       <View style={styles.footer}>
         <LoadingSpinner size="small" />
@@ -193,9 +192,8 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
     if (searchQuery.length > 0) {
       return (
         <EmptyState
-          icon="search"
           title="No resources found"
-          message={`No resources match "${searchQuery}". Try adjusting your search or filters.`}
+          subtitle={`No resources match "${searchQuery}". Try adjusting your search or filters.`}
           actionText="Clear Search"
           onAction={() => setSearchQuery('')}
         />
@@ -204,9 +202,8 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
 
     return (
       <EmptyState
-        icon="folder-open"
         title="No resources yet"
-        message="Be the first to share educational resources with the community."
+        subtitle="Be the first to share educational resources with the community."
         actionText="Upload Resource"
         onAction={() => navigation.navigate('UploadResource')}
       />
@@ -238,7 +235,7 @@ export const ResourcesListScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       {renderHeader()}
-      
+
       <FlashList
         data={resources}
         renderItem={renderResource}

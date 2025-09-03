@@ -12,7 +12,7 @@ import {
 import FastImage from 'react-native-fast-image';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '@/theme';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner/LoadingSpinner';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner/LoadingSpinner';
 import { ErrorState } from '@/components/ui/ErrorState/ErrorState';
 import { YouTubePlayer } from '@/components/resources/YouTubePlayer/YouTubePlayer';
 import { UploadProgress } from '@/components/resources/UploadProgress/UploadProgress';

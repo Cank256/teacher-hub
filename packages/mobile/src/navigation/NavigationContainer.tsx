@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer as RNNavigationContainer } from '@react-navigation/native';
-import type { NavigationState } from '@react-navigation/native';
+import type { NavigationState, InitialState } from '@react-navigation/native';
 import { navigationRef } from './NavigationService';
 import { linkingConfig } from './linking';
 import { NavigationPersistence } from './NavigationPersistence';
 import { RootNavigator } from './RootNavigator';
+import type { RootStackParamList } from './types';
 
 interface NavigationContainerProps {
   isAuthenticated: boolean;
@@ -16,7 +17,7 @@ export const NavigationContainer: React.FC<NavigationContainerProps> = ({
   isFirstLaunch,
 }) => {
   const [isReady, setIsReady] = useState(false);
-  const [initialState, setInitialState] = useState<NavigationState | undefined>();
+  const [initialState, setInitialState] = useState<InitialState | undefined>(undefined);
 
   useEffect(() => {
     const restoreState = async () => {
@@ -24,7 +25,7 @@ export const NavigationContainer: React.FC<NavigationContainerProps> = ({
         // Only restore state if we should and user is authenticated
         if (NavigationPersistence.shouldRestoreState() && isAuthenticated) {
           const savedState = await NavigationPersistence.restoreNavigationState();
-          
+
           if (savedState) {
             setInitialState(savedState);
           }
@@ -65,7 +66,7 @@ export const NavigationContainer: React.FC<NavigationContainerProps> = ({
     <RNNavigationContainer
       ref={navigationRef}
       linking={linkingConfig}
-      initialState={initialState}
+      {...(initialState && { initialState })}
       onStateChange={handleStateChange}
       onReady={handleReady}
       onUnhandledAction={handleUnhandledAction}

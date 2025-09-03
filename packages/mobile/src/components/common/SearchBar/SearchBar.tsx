@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ViewStyle,
+  Text,
 } from 'react-native';
 
 interface SearchBarProps {

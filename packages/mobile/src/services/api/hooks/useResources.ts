@@ -12,6 +12,7 @@ import type {
   ResourceRating,
   ResourceStats,
   UploadProgress,
+  PaginatedResponse,
 } from '@/types/resources';
 
 // Query Keys
@@ -43,7 +44,7 @@ export const useResources = (filters: ResourceFilters = {}, page = 1, limit = 20
 };
 
 export const useInfiniteResources = (filters: ResourceFilters = {}, limit = 20) => {
-  return useInfiniteQuery({
+  return useInfiniteQuery<PaginatedResponse<Resource>>({
     queryKey: resourcesKeys.list(filters),
     queryFn: ({ pageParam = 1 }) => ResourcesService.getResources(filters, pageParam, limit),
     getNextPageParam: (lastPage) => {
@@ -82,7 +83,7 @@ export const useInfiniteSearchResources = (
   filters: ResourceFilters = {},
   limit = 20
 ) => {
-  return useInfiniteQuery({
+  return useInfiniteQuery<PaginatedResponse<Resource>>({
     queryKey: resourcesKeys.search(query, filters),
     queryFn: ({ pageParam = 1 }) => ResourcesService.searchResources(query, filters, pageParam, limit),
     getNextPageParam: (lastPage) => {

@@ -18,14 +18,19 @@ export interface Colors {
   info: string;
   
   // Background colors
-  background: string;
-  surface: string;
-  card: string;
+  background: {
+    primary: string;
+    secondary: string;
+    surface: string;
+    card: string;
+  };
   
   // Text colors
-  text: string;
-  textSecondary: string;
-  textDisabled: string;
+  text: {
+    primary: string;
+    secondary: string;
+    disabled: string;
+  };
   
   // Border colors
   border: string;

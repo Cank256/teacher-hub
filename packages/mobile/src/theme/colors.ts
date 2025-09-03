@@ -18,14 +18,19 @@ export const lightColors: Colors = {
   info: '#3B82F6',
   
   // Background colors
-  background: '#FFFFFF',
-  surface: '#F8FAFC',
-  card: '#FFFFFF',
+  background: {
+    primary: '#FFFFFF',
+    secondary: '#F8FAFC',
+    surface: '#F8FAFC',
+    card: '#FFFFFF',
+  },
   
   // Text colors
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  textDisabled: '#9CA3AF',
+  text: {
+    primary: '#1F2937',
+    secondary: '#6B7280',
+    disabled: '#9CA3AF',
+  },
   
   // Border colors
   border: '#E5E7EB',
@@ -58,14 +63,19 @@ export const darkColors: Colors = {
   info: '#60A5FA',
   
   // Background colors
-  background: '#111827',
-  surface: '#1F2937',
-  card: '#374151',
+  background: {
+    primary: '#111827',
+    secondary: '#1F2937',
+    surface: '#1F2937',
+    card: '#374151',
+  },
   
   // Text colors
-  text: '#F9FAFB',
-  textSecondary: '#D1D5DB',
-  textDisabled: '#9CA3AF',
+  text: {
+    primary: '#F9FAFB',
+    secondary: '#D1D5DB',
+    disabled: '#9CA3AF',
+  },
   
   // Border colors
   border: '#4B5563',

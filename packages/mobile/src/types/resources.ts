@@ -48,6 +48,18 @@ export interface GradeLevel {
   order: number;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 export interface User {
   id: string;
   firstName: string;
