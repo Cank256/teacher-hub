@@ -231,9 +231,168 @@ jest.mock('socket.io-client', () => ({
   })),
 }));
 
+// Import testing utilities
+import { setupAccessibilityTesting } from './accessibilityUtils';
+
+// Setup accessibility testing
+setupAccessibilityTesting();
+
+// Mock analytics
+jest.mock('@/services/analytics', () => ({
+  trackEvent: jest.fn(),
+  trackScreen: jest.fn(),
+  setUserProperties: jest.fn(),
+  initializeAnalytics: jest.fn(),
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  setUser: jest.fn(),
+  setContext: jest.fn(),
+}));
+
+// Mock performance optimizer
+jest.mock('@/utils/performanceOptimizer', () => ({
+  performanceOptimizer: {
+    startRenderTimer: jest.fn(() => jest.fn()),
+    startNavigationTimer: jest.fn(() => jest.fn()),
+    startApiTimer: jest.fn(() => jest.fn()),
+    runAfterInteractions: jest.fn((callback) => callback()),
+    getMetrics: jest.fn(() => ({})),
+    resetMetrics: jest.fn(),
+  },
+}));
+
+// Mock app rating service
+jest.mock('@/services/appRating', () => ({
+  appRatingService: {
+    incrementSessionCount: jest.fn(),
+    shouldShowRatingPrompt: jest.fn().mockResolvedValue(false),
+    showRatingPrompt: jest.fn(),
+    showFeedbackPrompt: jest.fn(),
+  },
+}));
+
+// Mock global store
+jest.mock('@/store/globalStore', () => ({
+  useGlobalStore: jest.fn(() => ({
+    isOnline: true,
+    isLoading: false,
+    error: null,
+    settings: {
+      theme: 'light',
+      language: 'en',
+      notificationsEnabled: true,
+      biometricsEnabled: false,
+      offlineMode: false,
+      dataUsageOptimization: true,
+    },
+    setOnlineStatus: jest.fn(),
+    setLoading: jest.fn(),
+    setError: jest.fn(),
+    updateSettings: jest.fn(),
+  })),
+}));
+
+// Mock React Query
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQuery: jest.fn(),
+  useMutation: jest.fn(),
+  useQueryClient: jest.fn(() => ({
+    invalidateQueries: jest.fn(),
+    setQueryData: jest.fn(),
+    getQueryData: jest.fn(),
+  })),
+  QueryClient: jest.fn().mockImplementation(() => ({
+    invalidateQueries: jest.fn(),
+    setQueryData: jest.fn(),
+    getQueryData: jest.fn(),
+  })),
+  QueryClientProvider: ({ children }: any) => children,
+}));
+
 // Global test utilities
 (global as any).__DEV__ = true;
 (global as any).__ExpoImportMetaRegistry = {};
+
+// Test helper functions
+(global as any).testUtils = {
+  // Helper to create mock user
+  createMockUser: (overrides = {}) => ({
+    id: '1',
+    email: 'test@example.com',
+    firstName: 'Test',
+    lastName: 'User',
+    profilePicture: null,
+    subjects: ['Mathematics'],
+    gradeLevels: ['Primary'],
+    schoolLocation: { city: 'Kampala', district: 'Kampala' },
+    yearsOfExperience: 5,
+    verificationStatus: 'verified',
+    createdAt: new Date(),
+    lastActiveAt: new Date(),
+    ...overrides,
+  }),
+
+  // Helper to create mock post
+  createMockPost: (overrides = {}) => ({
+    id: '1',
+    title: 'Test Post',
+    content: 'Test content',
+    author: (global as any).testUtils.createMockUser(),
+    category: { id: '1', name: 'General', color: '#007AFF', icon: 'book' },
+    mediaAttachments: [],
+    likes: 0,
+    comments: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isLiked: false,
+    ...overrides,
+  }),
+
+  // Helper to create mock community
+  createMockCommunity: (overrides = {}) => ({
+    id: '1',
+    name: 'Test Community',
+    description: 'Test community description',
+    category: 'subject',
+    memberCount: 100,
+    isPublic: true,
+    isJoined: false,
+    moderators: [],
+    createdAt: new Date(),
+    ...overrides,
+  }),
+
+  // Helper to wait for async operations
+  waitFor: (callback: () => any, timeout = 5000) => {
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      const check = () => {
+        try {
+          const result = callback();
+          if (result) {
+            resolve(result);
+          } else if (Date.now() - startTime > timeout) {
+            reject(new Error('Timeout waiting for condition'));
+          } else {
+            setTimeout(check, 100);
+          }
+        } catch (error) {
+          if (Date.now() - startTime > timeout) {
+            reject(error);
+          } else {
+            setTimeout(check, 100);
+          }
+        }
+      };
+      check();
+    });
+  },
+};
 
 // Mock TurboModule system
 jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
