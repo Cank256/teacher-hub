@@ -4,43 +4,33 @@
  */
 
 import { describe, it, expect } from '@jest/globals'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 
 describe('Authentication Services Validation', () => {
-  const authServicesPath = join(__dirname, '..')
+  describe('service structure', () => {
+    it('should have all required service files available for import', async () => {
+      // Test that services can be imported without errors
+      const { AuthService } = await import('../authService')
+      const { BiometricService } = await import('../biometricService')
+      const { CredentialService } = await import('../credentialService')
+      const { GoogleAuthService } = await import('../googleAuthService')
+      const types = await import('../types')
+      const index = await import('../index')
 
-  describe('file structure', () => {
-    it('should have all required service files', () => {
-      const requiredFiles = [
-        'authService.ts',
-        'biometricService.ts',
-        'credentialService.ts',
-        'googleAuthService.ts',
-        'types.ts',
-        'index.ts'
-      ]
-
-      requiredFiles.forEach(file => {
-        const filePath = join(authServicesPath, file)
-        expect(() => readFileSync(filePath, 'utf8')).not.toThrow()
-      })
+      expect(AuthService).toBeDefined()
+      expect(BiometricService).toBeDefined()
+      expect(CredentialService).toBeDefined()
+      expect(GoogleAuthService).toBeDefined()
+      expect(types).toBeDefined()
+      expect(index).toBeDefined()
     })
 
-    it('should have comprehensive test files', () => {
-      const testFiles = [
-        'authService.test.ts',
-        'biometricService.test.ts',
-        'credentialService.test.ts',
-        'googleAuthService.test.ts',
-        'integration.test.ts',
-        'setup.ts'
-      ]
-
-      testFiles.forEach(file => {
-        const filePath = join(__dirname, file)
-        expect(() => readFileSync(filePath, 'utf8')).not.toThrow()
-      })
+    it('should export all required services from index', async () => {
+      const index = await import('../index')
+      
+      expect(index.AuthService).toBeDefined()
+      expect(index.BiometricService).toBeDefined()
+      expect(index.CredentialService).toBeDefined()
+      expect(index.GoogleAuthService).toBeDefined()
     })
   })
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,6 +8,7 @@ import { AccessibilityProvider } from '@/contexts/AccessibilityContext';
 import { InternationalizationProvider } from '@/contexts/InternationalizationContext';
 import { NavigationContainer } from '@/navigation';
 import { usePerformanceInit } from '@/hooks/usePerformanceInit';
+import { initializeAnalytics } from '@/services/analytics';
 import '@/i18n'; // Initialize i18n
 
 // Main App Component with Navigation
@@ -40,6 +41,20 @@ const AppContent: React.FC = () => {
 
 // Root App Component with Providers
 export default function App() {
+  // Initialize analytics system on app start
+  useEffect(() => {
+    const initAnalytics = async () => {
+      await initializeAnalytics({
+        enableCrashReporting: true,
+        enablePerformanceMonitoring: true,
+        enableUserAnalytics: false, // Requires user consent
+        enableStructuredLogging: false, // Requires user consent
+      });
+    };
+
+    initAnalytics();
+  }, []);
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>

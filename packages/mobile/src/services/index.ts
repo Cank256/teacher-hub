@@ -69,6 +69,9 @@ export type {
     BackgroundSyncTask
 } from './sync/types'
 
+// Analytics Services
+export * from './analytics'
+
 // Individual service exports
 export { HapticService as haptics } from './haptics'
 export { default as monitoring } from './monitoring'
