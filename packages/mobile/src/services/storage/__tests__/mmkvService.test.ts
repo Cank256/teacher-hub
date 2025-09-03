@@ -1,202 +1,334 @@
-/**
- * MMKV Service Tests
- */
+import { MMKV } from 'react-native-mmkv';
+import { MMKVService } from '../mmkvService';
 
-import { MMKVService } from '../mmkvService'
-import { StorageError } from '../types'
+// Mock MMKV
+jest.mock('react-native-mmkv');
 
-// Mock react-native-mmkv
-jest.mock('react-native-mmkv', () => ({
-  MMKV: jest.fn().mockImplementation(() => ({
-    set: jest.fn(),
-    getString: jest.fn(),
-    getBoolean: jest.fn(),
-    getNumber: jest.fn(),
-    delete: jest.fn(),
-    clearAll: jest.fn(),
-    getAllKeys: jest.fn(),
-    contains: jest.fn(),
-    size: 1024
-  }))
-}))
+const mockMMKV = {
+  getString: jest.fn(),
+  set: jest.fn(),
+  delete: jest.fn(),
+  clearAll: jest.fn(),
+  getAllKeys: jest.fn(),
+  contains: jest.fn(),
+  getNumber: jest.fn(),
+  getBoolean: jest.fn(),
+};
+
+(MMKV as jest.MockedClass<typeof MMKV>).mockImplementation(() => mockMMKV as any);
 
 describe('MMKVService', () => {
-  let mmkvService: MMKVService
-  let mockStorage: any
+  let mmkvService: MMKVService;
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    mmkvService = new MMKVService('test')
-    mockStorage = (mmkvService as any).storage
-  })
+    mmkvService = new MMKVService();
+    jest.clearAllMocks();
+  });
 
-  describe('setItem', () => {
-    it('should store a value successfully', async () => {
-      const testData = { name: 'John', age: 30 }
-      mockStorage.set.mockImplementation(() => {})
+  describe('String operations', () => {
+    it('should store and retrieve string values', async () => {
+      const key = 'test-key';
+      const value = 'test-value';
 
-      await mmkvService.setItem('user', testData)
+      await mmkvService.setString(key, value);
+      expect(mockMMKV.set).toHaveBeenCalledWith(key, value);
 
-      expect(mockStorage.set).toHaveBeenCalledWith('user', JSON.stringify(testData))
-    })
+      mockMMKV.getString.mockReturnValue(value);
+      const retrieved = await mmkvService.getString(key);
+      expect(retrieved).toBe(value);
+      expect(mockMMKV.getString).toHaveBeenCalledWith(key);
+    });
 
-    it('should throw StorageError on failure', async () => {
-      mockStorage.set.mockImplementation(() => {
-        throw new Error('Storage full')
-      })
+    it('should return null for non-existent string keys', async () => {
+      mockMMKV.getString.mockReturnValue(undefined);
+      const result = await mmkvService.getString('non-existent');
+      expect(result).toBeNull();
+    });
+  });
 
-      await expect(mmkvService.setItem('user', { data: 'test' }))
-        .rejects.toThrow(StorageError)
-    })
-  })
+  describe('Number operations', () => {
+    it('should store and retrieve number values', async () => {
+      const key = 'number-key';
+      const value = 42;
 
-  describe('getItem', () => {
-    it('should retrieve a value successfully', async () => {
-      const testData = { name: 'John', age: 30 }
-      mockStorage.getString.mockReturnValue(JSON.stringify(testData))
+      await mmkvService.setNumber(key, value);
+      expect(mockMMKV.set).toHaveBeenCalledWith(key, value);
 
-      const result = await mmkvService.getItem('user')
+      mockMMKV.getNumber.mockReturnValue(value);
+      const retrieved = await mmkvService.getNumber(key);
+      expect(retrieved).toBe(value);
+      expect(mockMMKV.getNumber).toHaveBeenCalledWith(key);
+    });
 
-      expect(result).toEqual(testData)
-      expect(mockStorage.getString).toHaveBeenCalledWith('user')
-    })
+    it('should return null for non-existent number keys', async () => {
+      mockMMKV.getNumber.mockReturnValue(undefined);
+      const result = await mmkvService.getNumber('non-existent');
+      expect(result).toBeNull();
+    });
+  });
 
-    it('should return null for non-existent key', async () => {
-      mockStorage.getString.mockReturnValue(undefined)
+  describe('Boolean operations', () => {
+    it('should store and retrieve boolean values', async () => {
+      const key = 'boolean-key';
+      const value = true;
 
-      const result = await mmkvService.getItem('nonexistent')
+      await mmkvService.setBoolean(key, value);
+      expect(mockMMKV.set).toHaveBeenCalledWith(key, value);
 
-      expect(result).toBeNull()
-    })
+      mockMMKV.getBoolean.mockReturnValue(value);
+      const retrieved = await mmkvService.getBoolean(key);
+      expect(retrieved).toBe(value);
+      expect(mockMMKV.getBoolean).toHaveBeenCalledWith(key);
+    });
 
-    it('should throw StorageError on JSON parse failure', async () => {
-      mockStorage.getString.mockReturnValue('invalid json')
+    it('should handle false boolean values correctly', async () => {
+      const key = 'boolean-key';
+      const value = false;
 
-      await expect(mmkvService.getItem('user'))
-        .rejects.toThrow(StorageError)
-    })
-  })
+      await mmkvService.setBoolean(key, value);
+      expect(mockMMKV.set).toHaveBeenCalledWith(key, value);
 
-  describe('removeItem', () => {
-    it('should remove an item successfully', async () => {
-      mockStorage.delete.mockImplementation(() => {})
+      mockMMKV.getBoolean.mockReturnValue(value);
+      const retrieved = await mmkvService.getBoolean(key);
+      expect(retrieved).toBe(false);
+    });
+  });
 
-      await mmkvService.removeItem('user')
+  describe('Object operations', () => {
+    it('should store and retrieve object values', async () => {
+      const key = 'object-key';
+      const value = { name: 'John', age: 30 };
+      const serialized = JSON.stringify(value);
 
-      expect(mockStorage.delete).toHaveBeenCalledWith('user')
-    })
+      await mmkvService.setObject(key, value);
+      expect(mockMMKV.set).toHaveBeenCalledWith(key, serialized);
 
-    it('should throw StorageError on failure', async () => {
-      mockStorage.delete.mockImplementation(() => {
-        throw new Error('Delete failed')
-      })
+      mockMMKV.getString.mockReturnValue(serialized);
+      const retrieved = await mmkvService.getObject(key);
+      expect(retrieved).toEqual(value);
+    });
 
-      await expect(mmkvService.removeItem('user'))
-        .rejects.toThrow(StorageError)
-    })
-  })
+    it('should handle complex nested objects', async () => {
+      const key = 'complex-object';
+      const value = {
+        user: {
+          id: 1,
+          profile: {
+            name: 'John',
+            settings: {
+              theme: 'dark',
+              notifications: true,
+            },
+          },
+        },
+        posts: [
+          { id: 1, title: 'Post 1' },
+          { id: 2, title: 'Post 2' },
+        ],
+      };
 
-  describe('clear', () => {
-    it('should clear all storage successfully', async () => {
-      mockStorage.clearAll.mockImplementation(() => {})
+      await mmkvService.setObject(key, value);
+      mockMMKV.getString.mockReturnValue(JSON.stringify(value));
+      
+      const retrieved = await mmkvService.getObject(key);
+      expect(retrieved).toEqual(value);
+    });
 
-      await mmkvService.clear()
+    it('should return null for invalid JSON', async () => {
+      mockMMKV.getString.mockReturnValue('invalid-json');
+      const result = await mmkvService.getObject('invalid-key');
+      expect(result).toBeNull();
+    });
+  });
 
-      expect(mockStorage.clearAll).toHaveBeenCalled()
-    })
-  })
+  describe('Array operations', () => {
+    it('should store and retrieve array values', async () => {
+      const key = 'array-key';
+      const value = [1, 2, 3, 'test', { id: 1 }];
 
-  describe('getAllKeys', () => {
-    it('should return all keys', async () => {
-      const keys = ['key1', 'key2', 'key3']
-      mockStorage.getAllKeys.mockReturnValue(keys)
+      await mmkvService.setArray(key, value);
+      mockMMKV.getString.mockReturnValue(JSON.stringify(value));
+      
+      const retrieved = await mmkvService.getArray(key);
+      expect(retrieved).toEqual(value);
+    });
 
-      const result = await mmkvService.getAllKeys()
+    it('should handle empty arrays', async () => {
+      const key = 'empty-array';
+      const value: any[] = [];
 
-      expect(result).toEqual(keys)
-    })
-  })
+      await mmkvService.setArray(key, value);
+      mockMMKV.getString.mockReturnValue(JSON.stringify(value));
+      
+      const retrieved = await mmkvService.getArray(key);
+      expect(retrieved).toEqual([]);
+    });
+  });
 
-  describe('hasKey', () => {
-    it('should return true for existing key', async () => {
-      mockStorage.contains.mockReturnValue(true)
+  describe('Key management', () => {
+    it('should check if key exists', async () => {
+      const key = 'existing-key';
+      mockMMKV.contains.mockReturnValue(true);
 
-      const result = await mmkvService.hasKey('user')
+      const exists = await mmkvService.hasKey(key);
+      expect(exists).toBe(true);
+      expect(mockMMKV.contains).toHaveBeenCalledWith(key);
+    });
 
-      expect(result).toBe(true)
-      expect(mockStorage.contains).toHaveBeenCalledWith('user')
-    })
+    it('should return false for non-existent keys', async () => {
+      mockMMKV.contains.mockReturnValue(false);
+      const exists = await mmkvService.hasKey('non-existent');
+      expect(exists).toBe(false);
+    });
 
-    it('should return false for non-existing key', async () => {
-      mockStorage.contains.mockReturnValue(false)
+    it('should get all keys', async () => {
+      const keys = ['key1', 'key2', 'key3'];
+      mockMMKV.getAllKeys.mockReturnValue(keys);
 
-      const result = await mmkvService.hasKey('nonexistent')
+      const allKeys = await mmkvService.getAllKeys();
+      expect(allKeys).toEqual(keys);
+      expect(mockMMKV.getAllKeys).toHaveBeenCalled();
+    });
 
-      expect(result).toBe(false)
-    })
-  })
+    it('should delete specific key', async () => {
+      const key = 'key-to-delete';
+      
+      await mmkvService.delete(key);
+      expect(mockMMKV.delete).toHaveBeenCalledWith(key);
+    });
 
-  describe('setBool', () => {
-    it('should store boolean value', async () => {
-      mockStorage.set.mockImplementation(() => {})
+    it('should clear all data', async () => {
+      await mmkvService.clearAll();
+      expect(mockMMKV.clearAll).toHaveBeenCalled();
+    });
+  });
 
-      await mmkvService.setBool('isEnabled', true)
+  describe('Batch operations', () => {
+    it('should perform batch set operations', async () => {
+      const operations = [
+        { key: 'key1', value: 'value1' },
+        { key: 'key2', value: 42 },
+        { key: 'key3', value: { test: true } },
+      ];
 
-      expect(mockStorage.set).toHaveBeenCalledWith('isEnabled', true)
-    })
-  })
+      await mmkvService.batchSet(operations);
 
-  describe('getBool', () => {
-    it('should retrieve boolean value', async () => {
-      mockStorage.getBoolean.mockReturnValue(true)
+      expect(mockMMKV.set).toHaveBeenCalledWith('key1', 'value1');
+      expect(mockMMKV.set).toHaveBeenCalledWith('key2', 42);
+      expect(mockMMKV.set).toHaveBeenCalledWith('key3', JSON.stringify({ test: true }));
+    });
 
-      const result = await mmkvService.getBool('isEnabled')
+    it('should perform batch get operations', async () => {
+      const keys = ['key1', 'key2', 'key3'];
+      mockMMKV.getString
+        .mockReturnValueOnce('value1')
+        .mockReturnValueOnce('42')
+        .mockReturnValueOnce('{"test":true}');
 
-      expect(result).toBe(true)
-    })
+      const results = await mmkvService.batchGet(keys);
 
-    it('should return null for undefined value', async () => {
-      mockStorage.getBoolean.mockReturnValue(undefined)
+      expect(results).toEqual({
+        key1: 'value1',
+        key2: '42',
+        key3: '{"test":true}',
+      });
+    });
 
-      const result = await mmkvService.getBool('nonexistent')
+    it('should perform batch delete operations', async () => {
+      const keys = ['key1', 'key2', 'key3'];
 
-      expect(result).toBeNull()
-    })
-  })
+      await mmkvService.batchDelete(keys);
 
-  describe('setNumber', () => {
-    it('should store number value', async () => {
-      mockStorage.set.mockImplementation(() => {})
+      keys.forEach(key => {
+        expect(mockMMKV.delete).toHaveBeenCalledWith(key);
+      });
+    });
+  });
 
-      await mmkvService.setNumber('count', 42)
+  describe('Error handling', () => {
+    it('should handle MMKV errors gracefully', async () => {
+      mockMMKV.set.mockImplementation(() => {
+        throw new Error('MMKV error');
+      });
 
-      expect(mockStorage.set).toHaveBeenCalledWith('count', 42)
-    })
-  })
+      await expect(mmkvService.setString('key', 'value')).rejects.toThrow('MMKV error');
+    });
 
-  describe('getNumber', () => {
-    it('should retrieve number value', async () => {
-      mockStorage.getNumber.mockReturnValue(42)
+    it('should handle JSON parsing errors', async () => {
+      mockMMKV.getString.mockReturnValue('invalid-json{');
+      
+      const result = await mmkvService.getObject('key');
+      expect(result).toBeNull();
+    });
+  });
 
-      const result = await mmkvService.getNumber('count')
+  describe('Performance', () => {
+    it('should handle large objects efficiently', async () => {
+      const largeObject = {
+        data: Array.from({ length: 1000 }, (_, i) => ({
+          id: i,
+          name: `Item ${i}`,
+          description: `Description for item ${i}`.repeat(10),
+        })),
+      };
 
-      expect(result).toBe(42)
-    })
+      const startTime = Date.now();
+      await mmkvService.setObject('large-object', largeObject);
+      const endTime = Date.now();
 
-    it('should return null for undefined value', async () => {
-      mockStorage.getNumber.mockReturnValue(undefined)
+      expect(endTime - startTime).toBeLessThan(100); // Should complete within 100ms
+      expect(mockMMKV.set).toHaveBeenCalledWith('large-object', JSON.stringify(largeObject));
+    });
 
-      const result = await mmkvService.getNumber('nonexistent')
+    it('should handle many concurrent operations', async () => {
+      const operations = Array.from({ length: 100 }, (_, i) => 
+        mmkvService.setString(`key-${i}`, `value-${i}`)
+      );
 
-      expect(result).toBeNull()
-    })
-  })
+      const startTime = Date.now();
+      await Promise.all(operations);
+      const endTime = Date.now();
 
-  describe('getSize', () => {
-    it('should return storage size', () => {
-      const size = mmkvService.getSize()
+      expect(endTime - startTime).toBeLessThan(500); // Should complete within 500ms
+      expect(mockMMKV.set).toHaveBeenCalledTimes(100);
+    });
+  });
 
-      expect(size).toBe(1024)
-    })
-  })
-})
+  describe('Data integrity', () => {
+    it('should maintain data consistency across operations', async () => {
+      const testData = {
+        string: 'test-string',
+        number: 42,
+        boolean: true,
+        object: { nested: { value: 'deep' } },
+        array: [1, 2, 3, { item: 'test' }],
+      };
+
+      // Store all data
+      await mmkvService.setString('string', testData.string);
+      await mmkvService.setNumber('number', testData.number);
+      await mmkvService.setBoolean('boolean', testData.boolean);
+      await mmkvService.setObject('object', testData.object);
+      await mmkvService.setArray('array', testData.array);
+
+      // Mock retrieval
+      mockMMKV.getString.mockImplementation((key: string) => {
+        switch (key) {
+          case 'string': return testData.string;
+          case 'object': return JSON.stringify(testData.object);
+          case 'array': return JSON.stringify(testData.array);
+          default: return undefined;
+        }
+      });
+      mockMMKV.getNumber.mockReturnValue(testData.number);
+      mockMMKV.getBoolean.mockReturnValue(testData.boolean);
+
+      // Verify all data
+      expect(await mmkvService.getString('string')).toBe(testData.string);
+      expect(await mmkvService.getNumber('number')).toBe(testData.number);
+      expect(await mmkvService.getBoolean('boolean')).toBe(testData.boolean);
+      expect(await mmkvService.getObject('object')).toEqual(testData.object);
+      expect(await mmkvService.getArray('array')).toEqual(testData.array);
+    });
+  });
+});

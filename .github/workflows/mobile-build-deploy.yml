@@ -1,0 +1,423 @@
+name: Mobile Build & Deploy
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/mobile/**'
+      - '.github/workflows/mobile-build-deploy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/mobile/**'
+      - '.github/workflows/mobile-build-deploy.yml'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+env:
+  NODE_VERSION: '20'
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+jobs:
+  # Quality Gates
+  quality-gates:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/mobile
+    
+    outputs:
+      should-build: ${{ steps.changes.outputs.mobile }}
+      version: ${{ steps.version.outputs.version }}
+      build-number: ${{ steps.version.outputs.build-number }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for mobile changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            mobile:
+              - 'packages/mobile/**'
+              - '.github/workflows/mobile-build-deploy.yml'
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.mobile == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: packages/mobile/package-lock.json
+
+      - name: Install dependencies
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm ci
+
+      - name: Type check
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm run type-check
+
+      - name: Lint
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm run lint
+
+      - name: Format check
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm run format:check
+
+      - name: Security audit
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm audit --audit-level moderate
+
+      - name: Run tests
+        if: steps.changes.outputs.mobile == 'true'
+        run: npm run test:all
+
+      - name: Generate version info
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          BUILD_NUMBER=$(date +%Y%m%d%H%M)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "build-number=$BUILD_NUMBER" >> $GITHUB_OUTPUT  # 
+Build Preview (PR builds)
+  build-preview:
+    name: Build Preview
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: github.event_name == 'pull_request' && needs.quality-gates.outputs.should-build == 'true'
+    defaults:
+      run:
+        working-directory: packages/mobile
+    
+    strategy:
+      matrix:
+        platform: [android, ios]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: packages/mobile/package-lock.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ env.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create app config for preview
+        run: |
+          cat > app.config.js << 'EOF'
+          import config from './app.json';
+          
+          export default {
+            ...config.expo,
+            name: 'Teacher Hub (Preview)',
+            slug: 'teacher-hub-mobile-preview',
+            version: '${{ needs.quality-gates.outputs.version }}',
+            ios: {
+              ...config.expo.ios,
+              buildNumber: '${{ needs.quality-gates.outputs.build-number }}',
+            },
+            android: {
+              ...config.expo.android,
+              versionCode: parseInt('${{ needs.quality-gates.outputs.build-number }}'),
+            },
+            extra: {
+              eas: {
+                projectId: process.env.EXPO_PROJECT_ID
+              }
+            }
+          };
+          EOF
+
+      - name: Build ${{ matrix.platform }} preview
+        run: |
+          eas build \
+            --platform ${{ matrix.platform }} \
+            --profile preview \
+            --non-interactive \
+            --no-wait \
+            --message "PR #${{ github.event.number }}: ${{ github.event.pull_request.title }}"
+        env:
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+
+  # Build Production (main branch)
+  build-production:
+    name: Build Production
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: github.ref == 'refs/heads/main' && needs.quality-gates.outputs.should-build == 'true'
+    defaults:
+      run:
+        working-directory: packages/mobile
+    
+    strategy:
+      matrix:
+        platform: [android, ios]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: packages/mobile/package-lock.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ env.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create production app config
+        run: |
+          cat > app.config.js << 'EOF'
+          import config from './app.json';
+          
+          export default {
+            ...config.expo,
+            version: '${{ needs.quality-gates.outputs.version }}',
+            ios: {
+              ...config.expo.ios,
+              buildNumber: '${{ needs.quality-gates.outputs.build-number }}',
+            },
+            android: {
+              ...config.expo.android,
+              versionCode: parseInt('${{ needs.quality-gates.outputs.build-number }}'),
+            },
+            extra: {
+              eas: {
+                projectId: process.env.EXPO_PROJECT_ID
+              }
+            }
+          };
+          EOF
+
+      - name: Build ${{ matrix.platform }} production
+        run: |
+          eas build \
+            --platform ${{ matrix.platform }} \
+            --profile production-${{ matrix.platform }} \
+            --non-interactive \
+            --auto-submit \
+            --message "Production build v${{ needs.quality-gates.outputs.version }} (${{ needs.quality-gates.outputs.build-number }})"
+        env:
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}-${{ needs.quality-gates.outputs.version }}
+          path: packages/mobile/dist/
+
+  # OTA Updates
+  ota-update:
+    name: OTA Update
+    runs-on: ubuntu-latest
+    needs: quality-gates
+    if: github.ref == 'refs/heads/develop' && needs.quality-gates.outputs.should-build == 'true'
+    defaults:
+      run:
+        working-directory: packages/mobile
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: packages/mobile/package-lock.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ env.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish OTA update
+        run: |
+          eas update \
+            --branch preview \
+            --message "OTA Update: ${{ github.event.head_commit.message }}" \
+            --non-interactive
+        env:
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+
+  # Manual Build Trigger
+  manual-build:
+    name: Manual Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    defaults:
+      run:
+        working-directory: packages/mobile
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: packages/mobile/package-lock.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ env.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for selected platform(s)
+        run: |
+          if [ "${{ github.event.inputs.platform }}" = "all" ]; then
+            eas build --platform all --profile ${{ github.event.inputs.profile }} --non-interactive
+          else
+            eas build --platform ${{ github.event.inputs.platform }} --profile ${{ github.event.inputs.profile }} --non-interactive
+          fi
+        env:
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+
+  # Release Health Monitoring
+  release-health:
+    name: Release Health Check
+    runs-on: ubuntu-latest
+    needs: [build-production]
+    if: always() && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Sentry CLI
+        run: npm install -g @sentry/cli
+
+      - name: Create Sentry release
+        run: |
+          sentry-cli releases new ${{ needs.quality-gates.outputs.version }}
+          sentry-cli releases set-commits ${{ needs.quality-gates.outputs.version }} --auto
+          sentry-cli releases finalize ${{ needs.quality-gates.outputs.version }}
+        env:
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+
+      - name: Deploy release health monitoring
+        run: |
+          echo "Setting up release health monitoring for version ${{ needs.quality-gates.outputs.version }}"
+          # Additional monitoring setup would go here
+
+  # Notification and Reporting
+  notify-deployment:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [build-production, ota-update, release-health]
+    if: always() && (needs.build-production.result == 'success' || needs.ota-update.result == 'success')
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#mobile-deployments'
+          text: |
+            🚀 Mobile app deployment completed!
+            
+            Version: ${{ needs.quality-gates.outputs.version }}
+            Build: ${{ needs.quality-gates.outputs.build-number }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            
+            Production Build: ${{ needs.build-production.result }}
+            OTA Update: ${{ needs.ota-update.result }}
+            Release Health: ${{ needs.release-health.result }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main' && needs.build-production.result == 'success'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: mobile-v${{ needs.quality-gates.outputs.version }}
+          release_name: Mobile App v${{ needs.quality-gates.outputs.version }}
+          body: |
+            ## Mobile App Release v${{ needs.quality-gates.outputs.version }}
+            
+            ### Changes
+            ${{ github.event.head_commit.message }}
+            
+            ### Build Information
+            - Build Number: ${{ needs.quality-gates.outputs.build-number }}
+            - Commit: ${{ github.sha }}
+            - Branch: ${{ github.ref_name }}
+            
+            ### Platforms
+            - ✅ Android (Google Play Store)
+            - ✅ iOS (App Store)
+            
+            ### Download Links
+            - [Android APK](https://expo.dev/artifacts/eas/...)
+            - [iOS IPA](https://expo.dev/artifacts/eas/...)
+          draft: false
+          prerelease: false

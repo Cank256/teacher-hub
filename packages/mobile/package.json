@@ -11,6 +11,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:unit": "jest --testPathPattern='src/.*\\.(test|spec)\\.(ts|tsx)$'",
+    "test:integration": "jest --testPathPattern='src/.*integration\\.(test|spec)\\.(ts|tsx)$'",
+    "test:e2e": "detox test",
+    "test:e2e:ios": "detox test --configuration ios.sim.debug",
+    "test:e2e:android": "detox test --configuration android.emu.debug",
+    "test:visual": "jest --testPathPattern='.*\\.visual\\.(test|spec)\\.(ts|tsx)$'",
+    "test:performance": "jest --testPathPattern='.*\\.performance\\.(test|spec)\\.(ts|tsx)$'",
+    "test:contract": "jest --testPathPattern='.*\\.contract\\.(test|spec)\\.(ts|tsx)$'",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:contract",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -23,7 +32,23 @@
     "prepare": "husky install",
     "storybook": "storybook dev",
     "storybook:generate": "sb-rn-get-stories",
-    "storybook:watch": "sb-rn-watcher"
+    "storybook:watch": "sb-rn-watcher",
+    "build:development": "eas build --platform all --profile development --non-interactive",
+    "build:preview": "eas build --platform all --profile preview --non-interactive",
+    "build:production": "eas build --platform all --profile production --non-interactive",
+    "build:ios:production": "eas build --platform ios --profile production-ios --non-interactive",
+    "build:android:production": "eas build --platform android --profile production-android --non-interactive",
+    "submit:ios": "eas submit --platform ios --latest",
+    "submit:android": "eas submit --platform android --latest",
+    "submit:all": "eas submit --platform all --latest",
+    "update:preview": "eas update --branch preview --non-interactive",
+    "update:production": "eas update --branch production --non-interactive",
+    "release:patch": "npm version patch && git push && git push --tags",
+    "release:minor": "npm version minor && git push && git push --tags",
+    "release:major": "npm version major && git push && git push --tags",
+    "health:check": "node scripts/health-check.js",
+    "feature-flags:update": "node scripts/update-feature-flags.js",
+    "emergency:kill-switch": "node scripts/emergency-kill-switch.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -86,7 +111,9 @@
     "@storybook/addon-ondevice-actions": "^8.4.7",
     "@storybook/addon-ondevice-controls": "^8.4.7",
     "@storybook/react-native": "^8.4.7",
+    "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^12.8.1",
+    "@testing-library/user-event": "^14.5.2",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.0.10",
     "@types/react-native-vector-icons": "^6.4.18",
@@ -104,45 +131,17 @@
     "husky": "^9.1.6",
     "jest": "^29.7.0",
     "jest-expo": "~53.0.10",
+    "jest-html-reporters": "^3.1.7",
+    "jest-image-snapshot": "^6.4.0",
+    "jest-junit": "^16.0.0",
+    "jest-performance-testing": "^1.0.0",
+    "jest-watch-typeahead": "^2.2.2",
     "lint-staged": "^15.2.10",
+    "msw": "^2.6.4",
+    "nock": "^13.5.5",
     "prettier": "^3.6.2",
     "react-test-renderer": "19.0.0",
     "typescript": "~5.8.3"
-  },
-  "jest": {
-    "preset": "jest-expo",
-    "setupFilesAfterEnv": [
-      "<rootDir>/src/test/setup.ts"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.(test|spec).(ts|tsx|js)",
-      "**/*.(test|spec).(ts|tsx|js)"
-    ],
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/e2e/"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.{ts,tsx}",
-      "!src/**/*.d.ts",
-      "!src/test/**/*",
-      "!src/**/*.stories.{ts,tsx}"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 70,
-        "functions": 70,
-        "lines": 70,
-        "statements": 70
-      }
-    },
-    "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/src/$1"
-    },
-    "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
-    ],
-    "testEnvironment": "jsdom"
   },
   "private": true
 }

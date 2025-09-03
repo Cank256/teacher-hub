@@ -6,32 +6,98 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "simulator": true,
+        "buildConfiguration": "Debug"
       },
       "android": {
-        "resourceClass": "medium"
+        "resourceClass": "medium",
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "env": {
+        "NODE_ENV": "development"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release",
+        "enterpriseProvisioning": "universal"
       },
       "android": {
-        "resourceClass": "medium"
+        "resourceClass": "medium",
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "env": {
+        "NODE_ENV": "staging"
       }
     },
     "production": {
+      "channel": "production",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber"
       },
       "android": {
-        "resourceClass": "medium"
+        "resourceClass": "medium",
+        "buildType": "aab",
+        "autoIncrement": "versionCode"
+      },
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    "production-ios": {
+      "extends": "production",
+      "ios": {
+        "resourceClass": "m-medium",
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber",
+        "bundleIdentifier": "com.teacherhub.mobile"
+      }
+    },
+    "production-android": {
+      "extends": "production",
+      "android": {
+        "resourceClass": "medium",
+        "buildType": "aab",
+        "autoIncrement": "versionCode",
+        "applicationId": "com.teacherhub.mobile"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "teacher.hub.uganda@gmail.com",
+        "ascAppId": "TBD",
+        "appleTeamId": "TBD"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "production"
+      }
+    },
+    "preview": {
+      "ios": {
+        "appleId": "teacher.hub.uganda@gmail.com",
+        "ascAppId": "TBD",
+        "appleTeamId": "TBD"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      }
+    }
+  },
+  "update": {
+    "url": "https://u.expo.dev/your-project-id"
   }
 }
