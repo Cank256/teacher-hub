@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import path from 'path';
 import { createServer } from 'http';
+import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/auth';
 import profileRoutes from './routes/profile';
 import fileRoutes from './routes/files';
@@ -20,6 +21,7 @@ import { EnhancedSocketServer } from './messaging/socketServer';
 import { redisClient } from './cache/redisClient';
 import { db, getConnection } from './database/connection';
 import logger from './utils/logger';
+import { swaggerSpec } from './config/swagger';
 import { 
   requestTrackingMiddleware, 
   performanceTrackingMiddleware, 
@@ -52,14 +54,64 @@ app.locals.db = getConnection();
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Swagger API Documentation
+const swaggerOptions = {
+  customCss: `
+    .swagger-ui .topbar { display: none }
+    .swagger-ui .info .title { color: #2c3e50; }
+    .swagger-ui .scheme-container { background: #f8f9fa; padding: 20px; border-radius: 5px; }
+  `,
+  customSiteTitle: 'Teacher Hub API Documentation',
+  customfavIcon: '/favicon.ico',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    filter: true,
+    tryItOutEnabled: true
+  }
+};
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions));
+
+// Serve API specification as JSON
+app.get('/api/docs.json', (_req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Serve static documentation files
+app.use('/api/docs/guides', express.static(path.join(__dirname, 'docs/guides')));
+app.use('/api/docs/static', express.static(path.join(__dirname, 'docs')));
+
 // Health check endpoint
 app.get('/health', (_req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    documentation: '/api/docs'
+  });
 });
 
 // API routes
 app.get('/api', (_req, res) => {
-  res.json({ message: 'Teacher Hub API is running' });
+  res.json({ 
+    message: 'Teacher Hub API is running',
+    version: '1.0.0',
+    documentation: {
+      interactive: '/api/docs',
+      json: '/api/docs.json',
+      guides: '/api/docs/guides'
+    },
+    endpoints: {
+      authentication: '/api/auth',
+      posts: '/api/posts',
+      communities: '/api/communities',
+      messages: '/api/messages',
+      resources: '/api/resources',
+      admin: '/api/admin'
+    }
+  });
 });
 
 // Authentication routes

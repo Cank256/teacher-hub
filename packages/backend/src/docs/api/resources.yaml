@@ -1,0 +1,884 @@
+paths:
+  /api/resources/upload:
+    post:
+      tags:
+        - Resources
+      summary: Upload a new resource
+      description: |
+        Uploads a new educational resource with security scanning and optional video processing.
+        Supports various file types including documents, images, and videos.
+        Videos are automatically uploaded to YouTube as unlisted content for secure sharing.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - title
+                - description
+                - subjects
+                - gradeLevels
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload (max 100MB)
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Resource title
+                  example: "Fraction Teaching Visual Aids"
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  description: Detailed resource description
+                  example: "A collection of visual aids to help students understand fractions through pizza slice representations."
+                subjects:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Subjects this resource relates to
+                  example: ["mathematics", "elementary-math"]
+                gradeLevels:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Grade levels this resource is suitable for
+                  example: ["grade-3", "grade-4", "grade-5"]
+                curriculumAlignment:
+                  type: array
+                  items:
+                    type: string
+                  description: Curriculum standards this resource aligns with
+                  example: ["ontario-math-curriculum", "common-core-math"]
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Additional tags for categorization
+                  example: ["fractions", "visual-learning", "manipulatives"]
+            examples:
+              document_upload:
+                summary: Document upload
+                value:
+                  title: "Grade 5 Math Worksheets"
+                  description: "Comprehensive worksheets covering all Grade 5 mathematics topics."
+                  subjects: ["mathematics"]
+                  gradeLevels: ["grade-5"]
+                  tags: ["worksheets", "practice", "assessment"]
+              video_upload:
+                summary: Video upload
+                value:
+                  title: "Teaching Fractions with Visual Models"
+                  description: "A 15-minute instructional video demonstrating how to teach fractions using visual models."
+                  subjects: ["mathematics", "pedagogy"]
+                  gradeLevels: ["elementary"]
+                  tags: ["fractions", "video", "instruction", "visual-models"]
+      responses:
+        '201':
+          description: Resource uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource uploaded successfully"
+                  resource:
+                    $ref: '#/components/schemas/Resource'
+              examples:
+                document_success:
+                  summary: Document upload success
+                  value:
+                    message: "Resource uploaded successfully"
+                    resource:
+                      id: "123e4567-e89b-12d3-a456-426614174000"
+                      title: "Grade 5 Math Worksheets"
+                      type: "document"
+                      format: "pdf"
+                      size: 2048576
+                      securityScanStatus: "passed"
+                      verificationStatus: "pending"
+                video_success:
+                  summary: Video upload success
+                  value:
+                    message: "Resource uploaded successfully"
+                    resource:
+                      id: "456e7890-e89b-12d3-a456-426614174000"
+                      title: "Teaching Fractions with Visual Models"
+                      type: "video"
+                      format: "mp4"
+                      size: 52428800
+                      youtubeVideoId: "dQw4w9WgXcQ"
+                      securityScanStatus: "passed"
+                      verificationStatus: "pending"
+        '400':
+          description: Validation error or file upload issue
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                no_file:
+                  summary: No file uploaded
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "No file uploaded"
+                      timestamp: "2024-01-15T10:30:00Z"
+                file_too_large:
+                  summary: File too large
+                  value:
+                    error:
+                      code: "FILE_TOO_LARGE"
+                      message: "File size must not exceed 100MB"
+                      timestamp: "2024-01-15T10:30:00Z"
+                invalid_file_type:
+                  summary: Invalid file type
+                  value:
+                    error:
+                      code: "INVALID_FILE_TYPE"
+                      message: "File type application/exe not allowed"
+                      timestamp: "2024-01-15T10:30:00Z"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/search:
+    get:
+      tags:
+        - Resources
+      summary: Search resources
+      description: |
+        Search for educational resources using various filters and criteria.
+        Supports full-text search, filtering by type, subjects, grade levels, and more.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query for resource titles and descriptions
+          example: "fraction worksheets"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [video, image, document, text]
+          description: Filter by resource type
+        - name: subjects
+          in: query
+          schema:
+            type: string
+          description: Comma-separated list of subjects
+          example: "mathematics,science"
+        - name: gradeLevels
+          in: query
+          schema:
+            type: string
+          description: Comma-separated list of grade levels
+          example: "elementary,middle"
+        - name: verificationStatus
+          in: query
+          schema:
+            type: string
+            enum: [verified, pending, flagged]
+          description: Filter by verification status
+        - name: hasVideo
+          in: query
+          schema:
+            type: boolean
+          description: Filter resources with YouTube videos
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of resources per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, title, rating, download_count]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Resources retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resources retrieved successfully"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Resource'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+                  searchMetadata:
+                    type: object
+                    properties:
+                      query:
+                        type: string
+                        description: Original search query
+                      appliedFilters:
+                        type: object
+                        description: Filters that were applied
+                      totalResults:
+                        type: integer
+                        description: Total number of matching resources
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/{id}:
+    get:
+      tags:
+        - Resources
+      summary: Get resource by ID
+      description: |
+        Retrieves detailed information about a specific resource.
+        Includes metadata, download statistics, and YouTube video information if applicable.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      responses:
+        '200':
+          description: Resource retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource retrieved successfully"
+                  resource:
+                    $ref: '#/components/schemas/Resource'
+        '403':
+          description: Access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Resources
+      summary: Update resource
+      description: |
+        Updates resource metadata. Only the resource author can update their resources.
+        File content cannot be updated - a new resource must be uploaded instead.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: Updated resource title
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                  description: Updated resource description
+                subjects:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Updated subjects
+                gradeLevels:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  description: Updated grade levels
+                curriculumAlignment:
+                  type: array
+                  items:
+                    type: string
+                  description: Updated curriculum alignment
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Updated tags
+            examples:
+              update_metadata:
+                summary: Update resource metadata
+                value:
+                  title: "Updated: Grade 5 Math Worksheets with Answer Keys"
+                  description: "Comprehensive worksheets covering all Grade 5 mathematics topics, now including detailed answer keys."
+                  tags: ["worksheets", "practice", "assessment", "answer-keys"]
+      responses:
+        '200':
+          description: Resource updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource updated successfully"
+                  resource:
+                    $ref: '#/components/schemas/Resource'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to update this resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Resources
+      summary: Delete resource
+      description: |
+        Permanently deletes a resource and all associated data.
+        If the resource has a YouTube video, it will also be deleted from YouTube.
+        Only the resource author can delete their resources.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      responses:
+        '200':
+          description: Resource deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource deleted successfully"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to delete this resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/{id}/download:
+    get:
+      tags:
+        - Resources
+      summary: Download resource
+      description: |
+        Generates a download URL for the resource and increments the download counter.
+        For video resources, this provides access to the original file, not the YouTube version.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      responses:
+        '200':
+          description: Download URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Download URL generated"
+                  downloadUrl:
+                    type: string
+                    format: uri
+                    description: Temporary URL to download the resource
+                    example: "https://cdn.teacherhub.com/resources/123e4567-e89b-12d3-a456-426614174000/download?token=abc123"
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: When the download URL expires
+                    example: "2024-01-15T11:30:00Z"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied to this resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/{id}/rate:
+    post:
+      tags:
+        - Resources
+      summary: Rate a resource
+      description: |
+        Submits a rating and optional review for a resource.
+        Users can only rate each resource once, but can update their rating.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: Rating from 1 to 5 stars
+                  example: 4
+                review:
+                  type: string
+                  maxLength: 1000
+                  description: Optional written review
+                  example: "Excellent resource! My students found the visual aids very helpful for understanding fractions."
+            examples:
+              rating_only:
+                summary: Rating without review
+                value:
+                  rating: 5
+              rating_with_review:
+                summary: Rating with detailed review
+                value:
+                  rating: 4
+                  review: "Great resource with clear explanations. Would be even better with more practice problems."
+      responses:
+        '200':
+          description: Resource rated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Resource rated successfully"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/{id}/youtube-status:
+    get:
+      tags:
+        - Resources
+      summary: Get YouTube video status
+      description: |
+        Retrieves the YouTube upload and processing status for a video resource.
+        Includes upload progress, processing status, and video metadata.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource
+      responses:
+        '200':
+          description: YouTube video status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "YouTube video status retrieved"
+                  video:
+                    allOf:
+                      - $ref: '#/components/schemas/YouTubeVideo'
+                      - type: object
+                        properties:
+                          currentStatus:
+                            type: object
+                            properties:
+                              uploadStatus:
+                                type: string
+                                enum: [uploaded, processed, failed]
+                                description: Current status from YouTube API
+                              processingProgress:
+                                type: object
+                                properties:
+                                  partsTotal:
+                                    type: integer
+                                    description: Total parts to process
+                                  partsProcessed:
+                                    type: integer
+                                    description: Parts processed so far
+                                  timeLeftMs:
+                                    type: integer
+                                    description: Estimated time left in milliseconds
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found or no YouTube video associated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/youtube/auth-url:
+    get:
+      tags:
+        - Resources
+      summary: Get YouTube OAuth authorization URL
+      description: |
+        Generates a YouTube OAuth authorization URL for admin users to set up YouTube integration.
+        This is required before the system can upload videos to YouTube.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authorization URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "YouTube authorization URL generated"
+                  authUrl:
+                    type: string
+                    format: uri
+                    description: URL to redirect admin to for YouTube authorization
+                    example: "https://accounts.google.com/oauth2/auth?client_id=...&redirect_uri=...&scope=..."
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/youtube/callback:
+    post:
+      tags:
+        - Resources
+      summary: Handle YouTube OAuth callback
+      description: |
+        Processes the OAuth callback from YouTube and exchanges the authorization code for access tokens.
+        This completes the YouTube integration setup process.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: Authorization code from YouTube OAuth callback
+                  example: "4/0AX4XfWjYZ1234567890abcdef"
+      responses:
+        '200':
+          description: YouTube authorization completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "YouTube authorization successful"
+                  tokens:
+                    type: object
+                    properties:
+                      hasAccessToken:
+                        type: boolean
+                        description: Whether access token was obtained
+                        example: true
+                      hasRefreshToken:
+                        type: boolean
+                        description: Whether refresh token was obtained
+                        example: true
+        '400':
+          description: Validation error or invalid authorization code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/resources/my-resources:
+    get:
+      tags:
+        - Resources
+      summary: Get current user's resources
+      description: |
+        Retrieves all resources uploaded by the authenticated user.
+        Includes resources in all states (pending, verified, flagged).
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of resources per page
+      responses:
+        '200':
+          description: User resources retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User resources retrieved"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Resource'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

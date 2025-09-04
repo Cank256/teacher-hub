@@ -1,0 +1,798 @@
+paths:
+  /api/communities:
+    post:
+      tags:
+        - Communities
+      summary: Create a new community
+      description: |
+        Creates a new educational community with specified settings and rules.
+        The creator automatically becomes the community owner with full management rights.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - description
+                - type
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Community name
+                  example: "Elementary Mathematics Teachers"
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Community description
+                  example: "A community for elementary school mathematics teachers to share resources and strategies."
+                type:
+                  type: string
+                  enum: [subject, region, grade, general]
+                  description: Type of community
+                  example: "subject"
+                isPrivate:
+                  type: boolean
+                  default: false
+                  description: Whether the community is private (invitation only)
+                requiresApproval:
+                  type: boolean
+                  default: false
+                  description: Whether membership requests require approval
+                rules:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        maxLength: 100
+                        description: Rule title
+                      description:
+                        type: string
+                        maxLength: 500
+                        description: Rule description
+                      order:
+                        type: integer
+                        minimum: 1
+                        description: Rule display order
+                  description: Community rules and guidelines
+                  example:
+                    - title: "Be Respectful"
+                      description: "Treat all members with respect and professionalism."
+                      order: 1
+                    - title: "Stay On Topic"
+                      description: "Keep discussions focused on elementary mathematics education."
+                      order: 2
+                imageUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                  description: Community image URL
+            examples:
+              subject_community:
+                summary: Subject-based community
+                value:
+                  name: "High School Physics Teachers"
+                  description: "A community for high school physics teachers to collaborate and share resources."
+                  type: "subject"
+                  isPrivate: false
+                  requiresApproval: true
+                  rules:
+                    - title: "Professional Conduct"
+                      description: "Maintain professional standards in all interactions."
+                      order: 1
+              regional_community:
+                summary: Regional community
+                value:
+                  name: "Ontario Teachers Network"
+                  description: "Connecting teachers across Ontario for resource sharing and collaboration."
+                  type: "region"
+                  isPrivate: false
+                  requiresApproval: false
+      responses:
+        '201':
+          description: Community created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Communities
+      summary: Search communities
+      description: |
+        Search and discover communities with advanced filtering options.
+        Returns public communities and communities the user has access to.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query for community names and descriptions
+          example: "mathematics"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [subject, region, grade, general]
+          description: Filter by community type
+        - name: isPrivate
+          in: query
+          schema:
+            type: boolean
+          description: Filter by privacy setting
+        - name: subjects
+          in: query
+          schema:
+            type: string
+          description: Comma-separated list of subjects
+          example: "mathematics,science"
+        - name: regions
+          in: query
+          schema:
+            type: string
+          description: Comma-separated list of regions
+          example: "ontario,quebec"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of communities per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [member_count, created_at, updated_at, name]
+            default: member_count
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Communities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Community'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}:
+    get:
+      tags:
+        - Communities
+      summary: Get community by ID
+      description: Retrieves detailed information about a specific community, including membership status for the authenticated user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+      responses:
+        '200':
+          description: Community retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Community not found or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Communities
+      summary: Update community
+      description: Updates community settings. Only owners and moderators can update community information.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  description: Updated community name
+                description:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Updated community description
+                isPrivate:
+                  type: boolean
+                  description: Updated privacy setting
+                requiresApproval:
+                  type: boolean
+                  description: Updated approval requirement
+                rules:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        maxLength: 100
+                      description:
+                        type: string
+                        maxLength: 500
+                      order:
+                        type: integer
+                        minimum: 1
+                  description: Updated community rules
+                imageUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                  description: Updated community image URL
+      responses:
+        '200':
+          description: Community updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to update this community
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Communities
+      summary: Delete community
+      description: Permanently deletes a community and all associated data. Only the community owner can delete a community.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+      responses:
+        '200':
+          description: Community deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to delete this community
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/join:
+    post:
+      tags:
+        - Communities
+      summary: Join community
+      description: |
+        Requests to join a community. For public communities without approval requirements,
+        the user is immediately added. For private communities or those requiring approval,
+        a membership request is created.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+      responses:
+        '201':
+          description: Join request processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  membership:
+                    $ref: '#/components/schemas/CommunityMembership'
+                  message:
+                    type: string
+                    description: Status message about the join request
+                    example: "Successfully joined community"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Banned from community
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Already a member or request pending
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/leave:
+    post:
+      tags:
+        - Communities
+      summary: Leave community
+      description: Removes the user from the community. Community owners cannot leave their own communities.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+      responses:
+        '200':
+          description: Successfully left community
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Cannot leave community (e.g., owner cannot leave)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not a member of this community
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/members:
+    get:
+      tags:
+        - Communities
+      summary: Get community members
+      description: Retrieves a list of community members with their roles and status. Only accessible to community members.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of members per page
+      responses:
+        '200':
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommunityMembership'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to view members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/members/pending:
+    get:
+      tags:
+        - Communities
+      summary: Get pending membership requests
+      description: Retrieves pending membership requests for approval. Only accessible to community owners and moderators.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of requests per page
+      responses:
+        '200':
+          description: Pending requests retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommunityMembership'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to view pending requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/members/{membershipId}/approve:
+    post:
+      tags:
+        - Communities
+      summary: Approve membership request
+      description: Approves a pending membership request. Only accessible to community owners and moderators.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+        - name: membershipId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the membership request
+      responses:
+        '200':
+          description: Membership request approved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Membership request approved"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to approve requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Membership request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/{communityId}/members/{memberId}/promote:
+    post:
+      tags:
+        - Communities
+      summary: Promote member to moderator
+      description: Promotes a community member to moderator role. Only accessible to community owners.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the member to promote
+      responses:
+        '200':
+          description: Member promoted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Member promoted to moderator"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to promote members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Member not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/communities/user/my-communities:
+    get:
+      tags:
+        - Communities
+      summary: Get user's communities
+      description: Retrieves all communities the authenticated user is a member of, including their role in each community.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User communities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  communities:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Community'
+                        - type: object
+                          properties:
+                            userRole:
+                              type: string
+                              enum: [member, moderator, owner]
+                              description: User's role in this community
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

@@ -1,0 +1,1066 @@
+paths:
+  /api/admin/posts:
+    get:
+      tags:
+        - Admin
+      summary: Get all posts for moderation
+      description: |
+        Retrieves all posts in the system with advanced filtering options for administrative oversight.
+        Includes posts from all users and communities for moderation purposes.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of posts per page
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, flagged, deleted]
+          description: Filter by post status
+        - name: authorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by specific author
+        - name: communityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by specific community
+        - name: flaggedOnly
+          in: query
+          schema:
+            type: boolean
+          description: Show only flagged posts
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, like_count, comment_count, flag_count]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Post'
+                        - type: object
+                          properties:
+                            moderationStatus:
+                              type: string
+                              enum: [active, flagged, under_review, approved, deleted]
+                              description: Current moderation status
+                            flagCount:
+                              type: integer
+                              minimum: 0
+                              description: Number of times this post has been flagged
+                            lastModerationAction:
+                              type: object
+                              properties:
+                                action:
+                                  type: string
+                                  enum: [approve, flag, delete, warn]
+                                adminId:
+                                  type: string
+                                  format: uuid
+                                reason:
+                                  type: string
+                                timestamp:
+                                  type: string
+                                  format: date-time
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/posts/{postId}/moderate:
+    post:
+      tags:
+        - Admin
+      summary: Moderate a post
+      description: |
+        Performs moderation actions on a specific post including approval, flagging, or deletion.
+        All moderation actions are logged for audit purposes.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post to moderate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - reason
+              properties:
+                action:
+                  type: string
+                  enum: [approve, flag, delete, warn]
+                  description: Moderation action to take
+                  example: "flag"
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Reason for the moderation action
+                  example: "Content violates community guidelines regarding inappropriate language"
+                notifyUser:
+                  type: boolean
+                  default: true
+                  description: Whether to notify the post author about the action
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  description: Severity level for flagged content
+                  example: "medium"
+            examples:
+              flag_post:
+                summary: Flag inappropriate post
+                value:
+                  action: "flag"
+                  reason: "Post contains inappropriate content that violates community standards"
+                  notifyUser: true
+                  severity: "high"
+              approve_post:
+                summary: Approve flagged post
+                value:
+                  action: "approve"
+                  reason: "Content reviewed and found to be appropriate"
+                  notifyUser: false
+              delete_post:
+                summary: Delete violating post
+                value:
+                  action: "delete"
+                  reason: "Severe violation of terms of service - spam content"
+                  notifyUser: true
+                  severity: "critical"
+      responses:
+        '200':
+          description: Moderation action completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Post moderation action completed"
+                  actionId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the moderation action for audit trail
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/communities:
+    get:
+      tags:
+        - Admin
+      summary: Get all communities for oversight
+      description: |
+        Retrieves all communities in the system for administrative oversight and management.
+        Includes community statistics, member counts, and moderation status.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of communities per page
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [subject, region, grade, general]
+          description: Filter by community type
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, suspended, under_review]
+          description: Filter by community status
+        - name: flaggedOnly
+          in: query
+          schema:
+            type: boolean
+          description: Show only flagged communities
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, member_count, post_count, flag_count, name]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Communities retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Community'
+                        - type: object
+                          properties:
+                            moderationStatus:
+                              type: string
+                              enum: [active, flagged, suspended, under_review]
+                              description: Current moderation status
+                            flagCount:
+                              type: integer
+                              minimum: 0
+                              description: Number of times this community has been flagged
+                            recentActivity:
+                              type: object
+                              properties:
+                                postsLastWeek:
+                                  type: integer
+                                  description: Number of posts in the last week
+                                newMembersLastWeek:
+                                  type: integer
+                                  description: Number of new members in the last week
+                                moderationActionsLastWeek:
+                                  type: integer
+                                  description: Number of moderation actions in the last week
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/communities/{communityId}/moderate:
+    post:
+      tags:
+        - Admin
+      summary: Moderate a community
+      description: |
+        Performs moderation actions on a community including suspension, approval, or deletion.
+        Community moderation affects all members and content within the community.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the community to moderate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - reason
+              properties:
+                action:
+                  type: string
+                  enum: [approve, suspend, delete, warn, reinstate]
+                  description: Moderation action to take
+                  example: "suspend"
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Detailed reason for the moderation action
+                  example: "Community has been repeatedly violating platform guidelines with inappropriate content"
+                duration:
+                  type: integer
+                  minimum: 1
+                  description: Duration in days for temporary actions (suspension)
+                  example: 7
+                notifyMembers:
+                  type: boolean
+                  default: true
+                  description: Whether to notify community members about the action
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  description: Severity level of the violation
+                  example: "high"
+            examples:
+              suspend_community:
+                summary: Suspend community temporarily
+                value:
+                  action: "suspend"
+                  reason: "Multiple reports of inappropriate content and inadequate moderation by community leaders"
+                  duration: 14
+                  notifyMembers: true
+                  severity: "high"
+              delete_community:
+                summary: Permanently delete community
+                value:
+                  action: "delete"
+                  reason: "Severe and repeated violations of terms of service, including hate speech and harassment"
+                  notifyMembers: true
+                  severity: "critical"
+      responses:
+        '200':
+          description: Community moderation action completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Community moderation action completed"
+                  actionId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the moderation action
+                  affectedMembers:
+                    type: integer
+                    description: Number of members affected by the action
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Community not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/resources:
+    get:
+      tags:
+        - Admin
+      summary: Get all resources for review
+      description: |
+        Retrieves all resources in the system for administrative review and moderation.
+        Includes security scan results, verification status, and usage statistics.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of resources per page
+        - name: verificationStatus
+          in: query
+          schema:
+            type: string
+            enum: [verified, pending, flagged]
+          description: Filter by verification status
+        - name: securityScanStatus
+          in: query
+          schema:
+            type: string
+            enum: [pending, passed, failed]
+          description: Filter by security scan status
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [video, image, document, text]
+          description: Filter by resource type
+        - name: flaggedOnly
+          in: query
+          schema:
+            type: boolean
+          description: Show only flagged resources
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, download_count, rating, size]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Resources retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Resource'
+                        - type: object
+                          properties:
+                            flagCount:
+                              type: integer
+                              minimum: 0
+                              description: Number of times this resource has been flagged
+                            lastModerationAction:
+                              type: object
+                              properties:
+                                action:
+                                  type: string
+                                  enum: [approve, flag, delete, verify]
+                                adminId:
+                                  type: string
+                                  format: uuid
+                                reason:
+                                  type: string
+                                timestamp:
+                                  type: string
+                                  format: date-time
+                            storageInfo:
+                              type: object
+                              properties:
+                                storageLocation:
+                                  type: string
+                                  description: Where the file is stored
+                                storageSize:
+                                  type: integer
+                                  description: Storage size in bytes
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/resources/{resourceId}/moderate:
+    post:
+      tags:
+        - Admin
+      summary: Moderate a resource
+      description: |
+        Performs moderation actions on a resource including verification, flagging, or removal.
+        Resource moderation affects availability and visibility to users.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resourceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the resource to moderate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+                - reason
+              properties:
+                action:
+                  type: string
+                  enum: [approve, verify, flag, delete, quarantine]
+                  description: Moderation action to take
+                  example: "verify"
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: Reason for the moderation action
+                  example: "Resource content verified as educationally appropriate and high quality"
+                notifyAuthor:
+                  type: boolean
+                  default: true
+                  description: Whether to notify the resource author
+                severity:
+                  type: string
+                  enum: [low, medium, high, critical]
+                  description: Severity level for flagged content
+                  example: "low"
+            examples:
+              verify_resource:
+                summary: Verify educational resource
+                value:
+                  action: "verify"
+                  reason: "Content reviewed and verified as high-quality educational material"
+                  notifyAuthor: true
+              flag_resource:
+                summary: Flag inappropriate resource
+                value:
+                  action: "flag"
+                  reason: "Resource contains content that may not be appropriate for stated grade level"
+                  notifyAuthor: true
+                  severity: "medium"
+      responses:
+        '200':
+          description: Resource moderation action completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Resource moderation action completed"
+                  actionId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the moderation action
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/analytics/overview:
+    get:
+      tags:
+        - Admin
+      summary: Get platform analytics overview
+      description: |
+        Retrieves comprehensive platform analytics including user activity,
+        content statistics, and system health metrics.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dateRange
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, quarter, year]
+            default: month
+          description: Date range for analytics data
+        - name: includeDetails
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include detailed breakdown of metrics
+      responses:
+        '200':
+          description: Analytics overview retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Platform analytics retrieved successfully"
+                  analytics:
+                    type: object
+                    properties:
+                      overview:
+                        type: object
+                        properties:
+                          totalUsers:
+                            type: integer
+                            description: Total number of registered users
+                            example: 15420
+                          activeUsers:
+                            type: integer
+                            description: Number of active users in the selected period
+                            example: 8750
+                          totalPosts:
+                            type: integer
+                            description: Total number of posts
+                            example: 45230
+                          totalCommunities:
+                            type: integer
+                            description: Total number of communities
+                            example: 1250
+                          totalResources:
+                            type: integer
+                            description: Total number of resources
+                            example: 8940
+                          totalMessages:
+                            type: integer
+                            description: Total number of messages sent
+                            example: 125670
+                      engagement:
+                        type: object
+                        properties:
+                          dailyActiveUsers:
+                            type: integer
+                            description: Average daily active users
+                            example: 2850
+                          weeklyActiveUsers:
+                            type: integer
+                            description: Weekly active users
+                            example: 6420
+                          monthlyActiveUsers:
+                            type: integer
+                            description: Monthly active users
+                            example: 12350
+                          averageSessionDuration:
+                            type: number
+                            description: Average session duration in minutes
+                            example: 24.5
+                      content:
+                        type: object
+                        properties:
+                          postsCreatedToday:
+                            type: integer
+                            description: Posts created today
+                            example: 145
+                          resourcesUploadedToday:
+                            type: integer
+                            description: Resources uploaded today
+                            example: 23
+                          communitiesCreatedToday:
+                            type: integer
+                            description: Communities created today
+                            example: 3
+                          messagessentToday:
+                            type: integer
+                            description: Messages sent today
+                            example: 1250
+                      moderation:
+                        type: object
+                        properties:
+                          flaggedPosts:
+                            type: integer
+                            description: Number of flagged posts requiring review
+                            example: 12
+                          flaggedResources:
+                            type: integer
+                            description: Number of flagged resources requiring review
+                            example: 5
+                          flaggedCommunities:
+                            type: integer
+                            description: Number of flagged communities requiring review
+                            example: 2
+                          pendingResourceReviews:
+                            type: integer
+                            description: Number of resources pending verification
+                            example: 34
+                      system:
+                        type: object
+                        properties:
+                          storageUsed:
+                            type: string
+                            description: Total storage used
+                            example: "2.4 TB"
+                          youtubeQuotaUsage:
+                            type: object
+                            properties:
+                              used:
+                                type: integer
+                                description: YouTube API quota used today
+                                example: 8500
+                              limit:
+                                type: integer
+                                description: Daily YouTube API quota limit
+                                example: 10000
+                              percentage:
+                                type: number
+                                description: Percentage of quota used
+                                example: 85.0
+                  dateRange:
+                    type: object
+                    properties:
+                      from:
+                        type: string
+                        format: date-time
+                        description: Start date of the analytics period
+                      to:
+                        type: string
+                        format: date-time
+                        description: End date of the analytics period
+                      period:
+                        type: string
+                        description: Selected period
+                        example: "month"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/moderation-queue:
+    get:
+      tags:
+        - Admin
+      summary: Get moderation queue
+      description: |
+        Retrieves items in the moderation queue that require admin review.
+        Includes flagged content, reported users, and pending verifications.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page
+        - name: itemType
+          in: query
+          schema:
+            type: string
+            enum: [post, comment, resource, community, user]
+          description: Filter by item type
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_review, resolved]
+            default: pending
+          description: Filter by review status
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+          description: Filter by priority level
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by assigned admin
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, priority, flag_count]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Moderation queue retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the queue item
+                        itemType:
+                          type: string
+                          enum: [post, comment, resource, community, user]
+                          description: Type of item requiring moderation
+                        itemId:
+                          type: string
+                          format: uuid
+                          description: ID of the item requiring moderation
+                        reportReason:
+                          type: string
+                          description: Reason for the report/flag
+                        reportedBy:
+                          type: string
+                          format: uuid
+                          description: ID of the user who reported the item
+                        priority:
+                          type: string
+                          enum: [low, medium, high, critical]
+                          description: Priority level of the item
+                        status:
+                          type: string
+                          enum: [pending, in_review, resolved]
+                          description: Current status of the review
+                        assignedTo:
+                          type: string
+                          format: uuid
+                          nullable: true
+                          description: ID of the admin assigned to review
+                        flagCount:
+                          type: integer
+                          minimum: 0
+                          description: Number of flags/reports for this item
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: When the item was added to the queue
+                        lastUpdated:
+                          type: string
+                          format: date-time
+                          description: When the item was last updated
+                        itemPreview:
+                          type: object
+                          description: Preview of the item content
+                          properties:
+                            title:
+                              type: string
+                              description: Title or summary of the item
+                            content:
+                              type: string
+                              description: Content preview (truncated)
+                            author:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  format: uuid
+                                fullName:
+                                  type: string
+                                email:
+                                  type: string
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+                  queueSummary:
+                    type: object
+                    properties:
+                      totalPending:
+                        type: integer
+                        description: Total items pending review
+                      totalInReview:
+                        type: integer
+                        description: Total items currently being reviewed
+                      averageResolutionTime:
+                        type: number
+                        description: Average time to resolve items in hours
+                      criticalItems:
+                        type: integer
+                        description: Number of critical priority items
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'

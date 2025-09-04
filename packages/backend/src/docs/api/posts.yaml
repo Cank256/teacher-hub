@@ -1,0 +1,808 @@
+paths:
+  /api/posts:
+    post:
+      tags:
+        - Posts
+      summary: Create a new post
+      description: |
+        Creates a new post with optional media attachments and community association.
+        Posts can be public, community-specific, or visible to followers only.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                  description: Post title
+                  example: "Innovative Teaching Methods for Mathematics"
+                content:
+                  type: string
+                  description: Post content (supports markdown)
+                  example: "I've been experimenting with visual learning techniques..."
+                communityId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: ID of community to post in (optional)
+                mediaAttachments:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MediaAttachment'
+                  description: Media files to attach
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Tags to associate with the post
+                  example: ["mathematics", "visual-learning", "elementary"]
+                visibility:
+                  type: string
+                  enum: [public, community, followers]
+                  default: public
+                  description: Post visibility level
+            examples:
+              basic_post:
+                summary: Basic public post
+                value:
+                  title: "New Teaching Strategy"
+                  content: "I discovered an amazing way to teach fractions using pizza slices!"
+                  tags: ["mathematics", "fractions", "elementary"]
+                  visibility: "public"
+              community_post:
+                summary: Community-specific post
+                value:
+                  title: "Grade 5 Math Resources"
+                  content: "Sharing some resources I've created for Grade 5 mathematics."
+                  communityId: "123e4567-e89b-12d3-a456-426614174000"
+                  tags: ["grade5", "mathematics", "resources"]
+                  visibility: "community"
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    $ref: '#/components/schemas/Post'
+              examples:
+                success:
+                  summary: Successful post creation
+                  value:
+                    post:
+                      id: "123e4567-e89b-12d3-a456-426614174000"
+                      title: "New Teaching Strategy"
+                      content: "I discovered an amazing way to teach fractions using pizza slices!"
+                      authorId: "456e7890-e89b-12d3-a456-426614174000"
+                      tags: ["mathematics", "fractions", "elementary"]
+                      visibility: "public"
+                      likeCount: 0
+                      commentCount: 0
+                      isPinned: false
+                      createdAt: "2024-01-15T10:30:00Z"
+                      updatedAt: "2024-01-15T10:30:00Z"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missing_title:
+                  summary: Missing required title
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Title and content are required"
+                      timestamp: "2024-01-15T10:30:00Z"
+                invalid_visibility:
+                  summary: Invalid visibility value
+                  value:
+                    error:
+                      code: "VALIDATION_ERROR"
+                      message: "Visibility must be one of: public, community, followers"
+                      timestamp: "2024-01-15T10:30:00Z"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied (e.g., not a member of specified community)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                community_access_denied:
+                  summary: Not a member of community
+                  value:
+                    error:
+                      code: "COMMUNITY_ACCESS_DENIED"
+                      message: "User is not a member of the specified community"
+                      timestamp: "2024-01-15T10:30:00Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/posts/{postId}:
+    get:
+      tags:
+        - Posts
+      summary: Get post by ID
+      description: Retrieves a specific post by its ID, including author information and interaction counts.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Post retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    $ref: '#/components/schemas/Post'
+        '404':
+          description: Post not found or access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Posts
+      summary: Update post
+      description: Updates an existing post. Only the post author can update their posts.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  maxLength: 200
+                  description: Updated post title
+                content:
+                  type: string
+                  description: Updated post content
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Updated tags
+                visibility:
+                  type: string
+                  enum: [public, community, followers]
+                  description: Updated visibility level
+            examples:
+              update_content:
+                summary: Update post content
+                value:
+                  title: "Updated Teaching Strategy"
+                  content: "I've refined my approach to teaching fractions..."
+                  tags: ["mathematics", "fractions", "elementary", "updated"]
+      responses:
+        '200':
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  post:
+                    $ref: '#/components/schemas/Post'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to update this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Posts
+      summary: Delete post
+      description: Deletes a post and all associated data (comments, likes, etc.). Only the post author can delete their posts.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post
+      responses:
+        '200':
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not authorized to delete this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/posts/feed/user:
+    get:
+      tags:
+        - Posts
+      summary: Get user feed
+      description: |
+        Retrieves a personalized feed of posts for the authenticated user.
+        Includes posts from followed users, joined communities, and public posts.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of posts per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, like_count, comment_count]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+        - name: includeFollowing
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include posts from followed users
+        - name: includeCommunities
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include posts from joined communities
+        - name: visibility
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [public, community, followers]
+          style: form
+          explode: true
+          description: Filter by visibility levels
+      responses:
+        '200':
+          description: Feed retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/posts/search/posts:
+    get:
+      tags:
+        - Posts
+      summary: Search posts
+      description: |
+        Search for posts using various filters including content, author, community, tags, and more.
+        Supports full-text search and advanced filtering options.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query for post content and titles
+          example: "mathematics teaching"
+        - name: authorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by specific author
+        - name: communityId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by specific community
+        - name: visibility
+          in: query
+          schema:
+            type: string
+            enum: [public, community, followers]
+          description: Filter by visibility level
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by tags
+          example: ["mathematics", "elementary"]
+        - name: hasMedia
+          in: query
+          schema:
+            type: boolean
+          description: Filter posts with/without media attachments
+        - name: isPinned
+          in: query
+          schema:
+            type: boolean
+          description: Filter pinned/unpinned posts
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of posts per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, like_count, comment_count, relevance]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order
+      responses:
+        '200':
+          description: Search results retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+                  searchMetadata:
+                    type: object
+                    properties:
+                      query:
+                        type: string
+                        description: Original search query
+                      totalResults:
+                        type: integer
+                        description: Total number of matching posts
+                      searchTime:
+                        type: number
+                        description: Search execution time in milliseconds
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/posts/{postId}/like:
+    post:
+      tags:
+        - Posts
+      summary: Like a post
+      description: Adds a like to the specified post. Users can only like a post once.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post to like
+      responses:
+        '200':
+          description: Post liked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied to this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Post already liked by user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Posts
+      summary: Unlike a post
+      description: Removes a like from the specified post.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post to unlike
+      responses:
+        '200':
+          description: Post unliked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Like not found (post not liked by user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/posts/{postId}/comments:
+    post:
+      tags:
+        - Posts
+      summary: Add comment to post
+      description: Adds a new comment to the specified post. Supports nested replies.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Comment content
+                  example: "Great post! I've had similar experiences with visual learning."
+                parentCommentId:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: ID of parent comment for nested replies
+            examples:
+              top_level_comment:
+                summary: Top-level comment
+                value:
+                  content: "This is a fantastic teaching strategy! Thanks for sharing."
+              reply_comment:
+                summary: Reply to existing comment
+                value:
+                  content: "I agree! Have you tried using manipulatives as well?"
+                  parentCommentId: "789e0123-e89b-12d3-a456-426614174000"
+      responses:
+        '201':
+          description: Comment added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comment:
+                    $ref: '#/components/schemas/PostComment'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied to this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Posts
+      summary: Get post comments
+      description: Retrieves comments for a specific post with pagination and sorting options.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique identifier of the post
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of comments per page
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [created_at, updated_at, like_count]
+            default: created_at
+          description: Field to sort by
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          description: Sort order (asc for chronological, desc for newest first)
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PostComment'
+                  pagination:
+                    $ref: '#/components/schemas/PaginationResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access denied to this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
