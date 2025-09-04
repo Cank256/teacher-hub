@@ -144,11 +144,9 @@ export class MemoryLeakDetector {
 // Frame rate monitoring
 export class FrameRateMonitor {
     private frames: number[] = [];
-    private startTime: number = 0;
 
     start(): void {
         this.frames = [];
-        this.startTime = performance.now();
     }
 
     recordFrame(): void {
