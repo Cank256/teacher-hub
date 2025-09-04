@@ -1,0 +1,78 @@
+# Prometheus Configuration for Teacher Hub Platform
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Backend API metrics
+  - job_name: 'backend-api'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL metrics (if postgres_exporter is added)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis metrics (if redis_exporter is added)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Elasticsearch metrics (if elasticsearch_exporter is added)
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch-exporter:9114']
+
+  # MinIO metrics
+  - job_name: 'minio'
+    static_configs:
+      - targets: ['minio:9000']
+    metrics_path: '/minio/v2/metrics/cluster'
+
+  # ClamAV metrics (custom endpoint)
+  - job_name: 'clamav'
+    static_configs:
+      - targets: ['clamav:3310']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Content Moderator metrics
+  - job_name: 'content-moderator'
+    static_configs:
+      - targets: ['content-moderator:5000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # YouTube API metrics (custom endpoint in backend)
+  - job_name: 'youtube-api'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics/youtube'
+    scrape_interval: 60s

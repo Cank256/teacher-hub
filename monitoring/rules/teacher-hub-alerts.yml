@@ -1,0 +1,203 @@
+# Teacher Hub Platform Alert Rules
+groups:
+  - name: teacher-hub-platform
+    rules:
+      # High-level service availability
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute."
+
+      # Backend API alerts
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second for the last 5 minutes."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }} seconds."
+
+      # Database alerts
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connections are high"
+          description: "Database connections are at {{ $value }}% of maximum."
+
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_database_tup_returned[5m]) / rate(pg_stat_database_tup_fetched[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database has slow queries"
+          description: "Database query efficiency is low: {{ $value }}."
+
+      # Redis alerts
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value }}% of maximum."
+
+      # File storage alerts
+      - alert: DiskSpaceHigh
+        expr: (node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space usage is high"
+          description: "Disk space usage is {{ $value }}% on {{ $labels.mountpoint }}."
+
+      # Enhanced features specific alerts
+      - alert: PostCreationFailureHigh
+        expr: rate(post_creation_failures_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High post creation failure rate"
+          description: "Post creation failure rate is {{ $value }} failures per second."
+
+      - alert: CommunityJoinFailureHigh
+        expr: rate(community_join_failures_total[5m]) > 0.02
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High community join failure rate"
+          description: "Community join failure rate is {{ $value }} failures per second."
+
+      - alert: MessageDeliveryFailureHigh
+        expr: rate(message_delivery_failures_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High message delivery failure rate"
+          description: "Message delivery failure rate is {{ $value }} failures per second."
+
+      - alert: FileUploadFailureHigh
+        expr: rate(file_upload_failures_total[5m]) > 0.03
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High file upload failure rate"
+          description: "File upload failure rate is {{ $value }} failures per second."
+
+      - alert: YouTubeAPIQuotaHigh
+        expr: youtube_api_quota_usage > 0.9
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "YouTube API quota usage is high"
+          description: "YouTube API quota usage is {{ $value }}% of daily limit."
+
+      - alert: SecurityScanFailureHigh
+        expr: rate(security_scan_failures_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High security scan failure rate"
+          description: "Security scan failure rate is {{ $value }} failures per second."
+
+      - alert: MalwareDetected
+        expr: increase(malware_detected_total[1h]) > 0
+        for: 0s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Malware detected in uploaded files"
+          description: "{{ $value }} malware instances detected in the last hour."
+
+      # System resource alerts
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}."
+
+      # WebSocket connection alerts
+      - alert: WebSocketConnectionsHigh
+        expr: websocket_connections_active > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of WebSocket connections"
+          description: "Active WebSocket connections: {{ $value }}."
+
+      - alert: WebSocketConnectionFailureHigh
+        expr: rate(websocket_connection_failures_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High WebSocket connection failure rate"
+          description: "WebSocket connection failure rate is {{ $value }} failures per second."
+
+  - name: teacher-hub-business-metrics
+    rules:
+      # Business metric alerts
+      - alert: LowUserEngagement
+        expr: rate(user_actions_total[1h]) < 10
+        for: 30m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low user engagement detected"
+          description: "User action rate is {{ $value }} actions per second over the last hour."
+
+      - alert: HighContentModerationQueue
+        expr: moderation_queue_pending_items > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of items in moderation queue"
+          description: "{{ $value }} items pending in moderation queue."
+
+      - alert: CommunityGrowthStalled
+        expr: rate(community_memberships_total[24h]) < 1
+        for: 2h
+        labels:
+          severity: info
+        annotations:
+          summary: "Community growth has stalled"
+          description: "Community membership growth rate is {{ $value }} new members per day."

@@ -25,7 +25,19 @@
     "type-check:mobile": "npm run type-check --workspace=@teacher-hub/mobile",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:build": "docker-compose build"
+    "docker:build": "docker-compose build",
+    "deploy": "./scripts/deploy.sh",
+    "deploy:production": "./scripts/deploy.sh production",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "health-check": "./scripts/health-check.sh",
+    "setup:youtube": "./scripts/setup-youtube-api.sh",
+    "setup:security": "./scripts/setup-security-services.sh",
+    "setup:monitoring": "./scripts/setup-monitoring.sh",
+    "migrate:production": "./scripts/migrate-production.sh",
+    "migrate:status": "./scripts/migrate-production.sh status",
+    "migrate:rollback": "./scripts/migrate-production.sh rollback",
+    "docker:up:all": "docker-compose -f docker-compose.yml -f docker-compose.security.yml -f docker-compose.monitoring.yml up -d",
+    "docker:down:all": "docker-compose -f docker-compose.yml -f docker-compose.security.yml -f docker-compose.monitoring.yml down"
   },
   "dependencies": {
     "react": "19.0.0",
