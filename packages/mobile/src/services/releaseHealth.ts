@@ -60,7 +60,6 @@ export interface ReleaseHealthSummary {
 class ReleaseHealthService {
   private static instance: ReleaseHealthService;
   private currentSession: SessionMetrics | null = null;
-  private sessionStartTime: number = 0;
   private performanceMetrics: PerformanceMetrics;
   private appStateSubscription: any;
   private frameRateMonitor: any;
@@ -114,7 +113,6 @@ class ReleaseHealthService {
         networkType: deviceInfo.networkType
       };
 
-      this.sessionStartTime = performance.now();
       
       // Store session start
       this.storeSessionMetrics(this.currentSession);
@@ -147,7 +145,9 @@ class ReleaseHealthService {
       this.currentSession.endTime = endTime;
       this.currentSession.duration = duration;
       this.currentSession.crashed = crashed;
-      this.currentSession.crashReason = crashReason;
+      if (crashReason !== undefined) {
+        this.currentSession.crashReason = crashReason;
+      }
 
       // Store completed session
       this.storeSessionMetrics(this.currentSession);

@@ -122,10 +122,10 @@ export class MemoryLeakDetector {
 
         const recent = this.samples.slice(-3);
         const isIncreasing = recent.every((sample, index) =>
-            index === 0 || sample > recent[index - 1]
+            index === 0 || (index > 0 && sample > recent[index - 1]!)
         );
         const isDecreasing = recent.every((sample, index) =>
-            index === 0 || sample < recent[index - 1]
+            index === 0 || (index > 0 && sample < recent[index - 1]!)
         );
 
         if (isIncreasing) return 'increasing';
@@ -158,7 +158,12 @@ export class FrameRateMonitor {
     getAverageFrameRate(): number {
         if (this.frames.length < 2) return 0;
 
-        const totalTime = this.frames[this.frames.length - 1] - this.frames[0];
+        const lastFrame = this.frames[this.frames.length - 1];
+        const firstFrame = this.frames[0];
+        
+        if (lastFrame === undefined || firstFrame === undefined) return 0;
+        
+        const totalTime = lastFrame - firstFrame;
         const frameCount = this.frames.length - 1;
 
         return (frameCount / totalTime) * 1000; // FPS
@@ -171,7 +176,12 @@ export class FrameRateMonitor {
         let droppedFrames = 0;
 
         for (let i = 1; i < this.frames.length; i++) {
-            const frameTime = this.frames[i] - this.frames[i - 1];
+            const currentFrame = this.frames[i];
+            const previousFrame = this.frames[i - 1];
+            
+            if (currentFrame === undefined || previousFrame === undefined) continue;
+            
+            const frameTime = currentFrame - previousFrame;
             if (frameTime > expectedFrameTime * 1.5) {
                 droppedFrames++;
             }
